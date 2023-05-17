@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -68,14 +70,27 @@ public class PerJobClusterClientBuilder {
         if(StringUtils.isBlank(yarnConfDir)) {
             throw new RuntimeException("parameters of yarn is required");
         }
+
+        LOG.info("Given yarnConfDir is not a directory: {}", yarnConfDir);
+        java.nio.file.Path yarnConfPath = Paths.get(yarnConfDir);
+        boolean givenYarnConfIsDir = Files.isDirectory(yarnConfPath);
+
+        if (givenYarnConfIsDir) {
+            yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
+        } else {
+            LOG.info("{} yarn configuration file is used.", yarnConfDir);
+            yarnConf = new YarnConfiguration();
+            yarnConf.addResource(yarnConfPath.toFile().toURI().toURL());
+        }
+
         flinkConfig = launcherOptions.loadFlinkConfiguration();
         conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         this.kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(),launcherOptions.getKeytab(),launcherOptions.getPrincipal(),this.flinkConfig);
+        kerberosInfo.addHadoopConfResource(yarnConf);
         kerberosInfo.verify();
 
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
-        yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
