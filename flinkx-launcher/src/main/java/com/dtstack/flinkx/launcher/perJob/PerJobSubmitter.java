@@ -78,7 +78,7 @@ public class PerJobSubmitter {
         ClusterClientProvider<ApplicationId> provider = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
         String flinkJobId = jobGraph.getJobID().toString();
-        LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
+        LOG.info("deploy per_job with appId: {}, jobId: {}", applicationId, flinkJobId);
         return applicationId;
     }
 }
