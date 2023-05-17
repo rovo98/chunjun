@@ -10,6 +10,8 @@
             <source>
                 ${project.parent.basedir}/bin/flinkx
             </source>
+            <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
             <outputDirectory>bin</outputDirectory>
         </file>
     </files>
