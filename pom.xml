@@ -7,7 +7,7 @@
     <groupId>com.dtstack.flinkx</groupId>
     <artifactId>flinkx-all</artifactId>
     <packaging>pom</packaging>
-    <version>1.6</version>
+    <version>1.7</version>
 
     <modules>
         <module>flinkx-core</module>
@@ -62,17 +62,20 @@
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
         <module>flinkx-hudi</module>
+
+<!--        make sure the assembly module executed at the last stage-->
+        <module>flinkx-assembly</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.11.3</flink.version>
+        <flink.version>1.13.2</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
-        <hadoop.version>2.7.3</hadoop.version>
-        <hive.version>2.3.1</hive.version>
+        <hadoop.version>3.2.1</hadoop.version>
+        <hive.version>3.1.2</hive.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <package.name>release_1.11.0</package.name>
+        <package.name>release_1.13.0</package.name>
     </properties>
 
     <dependencies>

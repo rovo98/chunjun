@@ -20,7 +20,7 @@ package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flinkx-hudi</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hudi-core</artifactId>
-            <version>1.6</version>
+            <version>1.7</version>
             <exclusions>
                 <exclusion>
                     <artifactId>httpcore</artifactId>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hudi-core</artifactId>
-            <version>1.6</version>
+            <version>1.7</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

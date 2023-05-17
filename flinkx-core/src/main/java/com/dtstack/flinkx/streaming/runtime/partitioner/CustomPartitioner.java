@@ -17,6 +17,7 @@
 package com.dtstack.flinkx.streaming.runtime.partitioner;
 
 import org.apache.flink.annotation.Internal;
+import org.apache.flink.runtime.io.network.api.writer.SubtaskStateMapper;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.types.Row;
@@ -43,6 +44,16 @@ public class CustomPartitioner<T> extends StreamPartitioner<T> {
     @Override
     public StreamPartitioner<T> copy() {
         return this;
+    }
+
+    @Override
+    public SubtaskStateMapper getDownstreamSubtaskStateMapper() {
+        return SubtaskStateMapper.FULL;
+    }
+
+    @Override
+    public boolean isPointwise() {
+        return false;
     }
 
     @Override
