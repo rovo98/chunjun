@@ -18,6 +18,8 @@
 
 package org.apache.flink.yarn;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -27,6 +29,8 @@ import org.apache.flink.client.deployment.ClusterRetrieveException;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.deployment.application.ApplicationConfiguration;
 import org.apache.flink.client.program.ClusterClientProvider;
+import org.apache.flink.client.program.PackagedProgram;
+import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.client.program.rest.RestClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.ConfigOption;
@@ -46,6 +50,7 @@ import org.apache.flink.core.plugin.PluginUtils;
 import org.apache.flink.runtime.clusterframework.BootstrapTools;
 import org.apache.flink.runtime.entrypoint.ClusterEntrypoint;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.jobgraph.JobGraphUtils;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.runtime.jobmanager.JobManagerProcessSpec;
 import org.apache.flink.runtime.jobmanager.JobManagerProcessUtils;
@@ -103,17 +108,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.ConfigConstants.DEFAULT_FLINK_USR_LIB_DIR;
@@ -566,6 +564,44 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 							+ " MB) configured via '"
 							+ YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB
 							+ "' should be greater than 0.");
+		}
+
+		// create flink job graph.
+		if (clusterSpecification.isCreateProgramDelay()) {
+            String[] args = clusterSpecification.getProgramArgs();
+            PackagedProgram program =
+                    PackagedProgram.newBuilder()
+                            .setJarFile(clusterSpecification.getJarFile())
+                            .setUserClassPaths(clusterSpecification.getClasspaths())
+                            .setEntryPointClassName(clusterSpecification.getEntryPointClass())
+                            .setConfiguration(clusterSpecification.getConfiguration())
+                            .setSavepointRestoreSettings(clusterSpecification.getSpSetting())
+                            .setArguments(args)
+                            .build();
+
+            clusterSpecification.setProgram(program);
+            jobGraph =
+                    PackagedProgramUtils.createJobGraph(
+                            program,
+                            clusterSpecification.getConfiguration(),
+                            clusterSpecification.getParallelism(),
+                            false);
+            String pluginLoadMode =
+                    clusterSpecification
+                            .getConfiguration()
+                            .getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
+            if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(
+                    pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)) {
+                List<File> fileList =
+                        jobGraph.getUserArtifacts().entrySet().stream()
+                                .filter(tmp -> tmp.getKey().startsWith("class_path"))
+                                .map(tmp -> new File(tmp.getValue().filePath))
+                                .collect(Collectors.toList());
+
+                shipFiles.addAll(fileList);
+                jobGraph.getUserArtifacts().clear();
+            }
+            clusterSpecification.setJobGraph(jobGraph);
 		}
 
 		final ClusterSpecification validClusterSpecification;

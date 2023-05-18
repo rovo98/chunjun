@@ -115,7 +115,7 @@ public class Launcher {
                 }
                 argList.add("-monitor");
                 argList.add("");
-                PerJobSubmitter.submit(launcherOptions, new JobGraph(launcherOptions.getJobid()), argList.toArray(new String[0]));
+                PerJobSubmitter.submit(launcherOptions, argList.toArray(new String[0]));
         }
     }
 

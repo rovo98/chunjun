@@ -25,6 +25,7 @@ import com.dtstack.flinkx.config.RestartConfig;
 import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
@@ -103,9 +104,10 @@ public class Main {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         }
 
-        StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
-                StreamExecutionEnvironment.getExecutionEnvironment() :
-                new MyLocalStreamEnvironment(flinkConf);
+        StreamExecutionEnvironment env =
+                StringUtils.equalsIgnoreCase(options.getMode(), ClusterMode.local.name())
+                        ? new MyLocalStreamEnvironment(flinkConf)
+                        : StreamExecutionEnvironment.getExecutionEnvironment();
 
         env = openCheckpointConf(env, confProperties);
         configRestartStrategy(env, config);

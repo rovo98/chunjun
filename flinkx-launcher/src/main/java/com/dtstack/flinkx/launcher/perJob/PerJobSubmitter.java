@@ -47,37 +47,43 @@ public class PerJobSubmitter {
     /**
      * submit per-job task
      * @param launcherOptions LauncherOptions
-     * @param jobGraph JobGraph
      * @param remoteArgs remoteArgs
-     * @return
      * @throws Exception
      */
-    public static String submit(Options launcherOptions, JobGraph jobGraph, String[] remoteArgs) throws Exception{
+    public static String submit(Options launcherOptions, String[] remoteArgs) throws Exception{
         LOG.info("start to submit per-job task, launcherOptions = {}", launcherOptions.toString());
-        Properties conProp = MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
-        ClusterSpecification clusterSpecification = FlinkPerJobUtil.createClusterSpecification(conProp);
+        Properties conProp =
+                MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
+        ClusterSpecification clusterSpecification =
+                FlinkPerJobUtil.createClusterSpecification(conProp);
         clusterSpecification.setCreateProgramDelay(true);
 
         String pluginRoot = launcherOptions.getPluginRoot();
         File jarFile = new File(pluginRoot + File.separator + getCoreJarFileName(pluginRoot));
         clusterSpecification.setConfiguration(launcherOptions.loadFlinkConfiguration());
-        clusterSpecification.setClasspaths(analyzeUserClasspath(launcherOptions.getJob(), pluginRoot));
+        clusterSpecification.setClasspaths(
+                analyzeUserClasspath(launcherOptions.getJob(), pluginRoot));
         clusterSpecification.setEntryPointClass(MAIN_CLASS);
         clusterSpecification.setJarFile(jarFile);
 
         if (StringUtils.isNotEmpty(launcherOptions.getS())) {
-            clusterSpecification.setSpSetting(SavepointRestoreSettings.forPath(launcherOptions.getS()));
+            clusterSpecification.setSpSetting(
+                    SavepointRestoreSettings.forPath(launcherOptions.getS()));
         }
         clusterSpecification.setProgramArgs(remoteArgs);
         clusterSpecification.setCreateProgramDelay(true);
-        clusterSpecification.setYarnConfiguration(YarnConfLoader.getYarnConf(launcherOptions.getYarnconf()));
+        clusterSpecification.setYarnConfiguration(
+                YarnConfLoader.getYarnConf(launcherOptions.getYarnconf()));
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         perJobClusterClientBuilder.init(launcherOptions, conProp);
 
-        YarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(launcherOptions);
-        ClusterClientProvider<ApplicationId> provider = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);
+        YarnClusterDescriptor descriptor =
+                perJobClusterClientBuilder.createPerJobClusterDescriptor(launcherOptions);
+
+        ClusterClientProvider<ApplicationId> provider =
+                descriptor.deployJobCluster(clusterSpecification, new JobGraph("df-flinkx"), true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
-        String flinkJobId = jobGraph.getJobID().toString();
+        String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
         LOG.info("deploy per_job with appId: {}, jobId: {}", applicationId, flinkJobId);
         return applicationId;
     }
