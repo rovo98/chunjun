@@ -61,11 +61,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.hbase.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.hbase2writer.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.hbase.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.hbase2writer.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
