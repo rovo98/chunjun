@@ -57,15 +57,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson.databind</pattern>
-                                    <shadedPattern>shade.es.com.fasterxml.jackson.databind</shadedPattern>
+                                    <shadedPattern>shade.eswriter.com.fasterxml.jackson.databind</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.eswriter.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.eswriter.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
