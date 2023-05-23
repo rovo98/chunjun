@@ -119,8 +119,10 @@ public class KerberosInfo {
 
     //是否需要kerberos验证
     public boolean isVerify() {
-        UserGroupInformation.AuthenticationMethod authenticationMethod = SecurityUtil.getAuthenticationMethod(hadoopConfiguration);
-        return UserGroupInformation.AuthenticationMethod.SIMPLE != authenticationMethod;
+        UserGroupInformation.AuthenticationMethod authenticationMethod =
+                SecurityUtil.getAuthenticationMethod(hadoopConfiguration);
+        return UserGroupInformation.AuthenticationMethod.KERBEROS == authenticationMethod
+                || UserGroupInformation.AuthenticationMethod.KERBEROS_SSL == authenticationMethod;
     }
 
     protected void check() {

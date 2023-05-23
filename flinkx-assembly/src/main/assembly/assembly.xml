@@ -1,5 +1,5 @@
 <assembly>
-    <id>${project.version}</id>
+    <id>${project.version}-${package.name}</id>
     <formats>
         <format>tar.gz</format>
     </formats>
@@ -10,6 +10,8 @@
             <source>
                 ${project.parent.basedir}/bin/flinkx
             </source>
+            <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
             <outputDirectory>bin</outputDirectory>
         </file>
     </files>

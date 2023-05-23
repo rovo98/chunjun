@@ -26,14 +26,17 @@ import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonModifyUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.client.ClientUtils;
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
+import org.apache.flink.client.program.ProgramInvocationException;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.core.execution.DetachedJobExecutionResult;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +48,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * FlinkX commandline Launcher
@@ -95,7 +101,7 @@ public class Launcher {
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
                 argList.add("-monitor");
                 argList.add(clusterClient.getWebInterfaceURL());
-                ClientUtils.submitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                yarnSubmitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
                 break;
             case yarnPer:
                 String confProp = launcherOptions.getConfProp();
@@ -109,6 +115,20 @@ public class Launcher {
                 argList.add("-monitor");
                 argList.add("");
                 PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+        }
+    }
+
+    private static JobExecutionResult yarnSubmitJob(ClusterClient<?> client,
+                                                    JobGraph jobGraph) throws ProgramInvocationException {
+        checkNotNull(client);
+        checkNotNull(jobGraph);
+        try {
+            return client.submitJob(jobGraph)
+                    .thenApply(DetachedJobExecutionResult::new)
+                    .get();
+        } catch (InterruptedException | ExecutionException e) {
+            ExceptionUtils.checkInterrupted(e);
+            throw new ProgramInvocationException("Could not run job in detached mode.", jobGraph.getJobID(), e);
         }
     }
 
@@ -129,7 +149,12 @@ public class Launcher {
                 .setSavepointRestoreSettings(savepointRestoreSettings)
                 .setArguments(remoteArgs)
                 .build();
-        JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+        JobGraph jobGraph =
+                PackagedProgramUtils.createJobGraph(
+                        program,
+                        launcherOptions.loadFlinkConfiguration(),
+                        Integer.parseInt(launcherOptions.getParallelism()),
+                        false);
         jobGraph.addJars(urlList);
         return jobGraph;
     }
@@ -188,7 +213,8 @@ public class Launcher {
     }
 
     private static void findDefaultFlinkConf(Options launcherOptions) {
-        if (StringUtils.isNotEmpty(launcherOptions.getFlinkconf()) && StringUtils.isNotEmpty(launcherOptions.getFlinkLibJar())) {
+        if (StringUtils.isNotEmpty(launcherOptions.getFlinkconf())
+                && StringUtils.isNotEmpty(launcherOptions.getFlinkLibJar())) {
             return;
         }
 
@@ -235,12 +261,15 @@ public class Launcher {
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {
-            File[] jarFiles = pluginDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX) && name.toLowerCase().endsWith(".jar");
-                }
-            });
+            File[] jarFiles =
+                    pluginDir.listFiles(
+                            new FilenameFilter() {
+                                @Override
+                                public boolean accept(File dir, String name) {
+                                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar");
+                                }
+                            });
 
             if (jarFiles != null && jarFiles.length > 0) {
                 coreJarFileName = jarFiles[0].getName();
