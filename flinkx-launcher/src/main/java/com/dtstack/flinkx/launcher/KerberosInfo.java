@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.launcher;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
@@ -104,6 +105,7 @@ public class KerberosInfo {
 
 
         try {
+            KerberosUtil.refreshConfig();
             UserGroupInformation.loginUserFromKeytab(principal, keyTabpath);
         } catch (IOException e) {
             String message = String.format("Unable to set the Hadoop login principal【%s】,keytab 【%s】error info-> %s ",
@@ -131,6 +133,13 @@ public class KerberosInfo {
         }
     }
 
+    /**
+     * Add extra hadoop configuration to the founded default yarn configuration for kerberos
+     * authentication.
+     */
+    public void addHadoopConfResource(org.apache.hadoop.conf.Configuration confResource) {
+        this.hadoopConfiguration.addResource(confResource);
+    }
 
     public String getKrb5confPath() {
         return krb5confPath;
