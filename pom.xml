@@ -62,6 +62,7 @@
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
         <module>flinkx-hudi</module>
+        <module>flinkx-assembly</module>
     </modules>
 
     <properties>
