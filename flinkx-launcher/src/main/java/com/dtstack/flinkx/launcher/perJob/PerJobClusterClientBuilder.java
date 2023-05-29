@@ -29,6 +29,7 @@ import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -85,16 +87,26 @@ public class PerJobClusterClientBuilder {
 
         flinkConfig = launcherOptions.loadFlinkConfiguration();
         conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
-        this.kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(),launcherOptions.getKeytab(),launcherOptions.getPrincipal(),this.flinkConfig);
-        kerberosInfo.addHadoopConfResource(yarnConf);
-        kerberosInfo.verify();
-
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
-        yarnClient = YarnClient.createYarnClient();
-        yarnClient.init(yarnConf);
-        yarnClient.start();
+        this.kerberosInfo =
+                new KerberosInfo(
+                        launcherOptions.getKrb5conf(),
+                        launcherOptions.getKeytab(),
+                        launcherOptions.getPrincipal(),
+                        this.flinkConfig);
+        kerberosInfo.addHadoopConfResource(yarnConf);
 
+        UserGroupInformation ugi = kerberosInfo.verify();
+        this.yarnClient =
+                ugi.doAs(
+                        (PrivilegedExceptionAction<? extends YarnClient>)
+                                () -> {
+                                    YarnClient yarnClient = YarnClient.createYarnClient();
+                                    yarnClient.init(yarnConf);
+                                    yarnClient.start();
+                                    return yarnClient;
+                                });
         LOG.info("----init yarn success ----");
     }
 
