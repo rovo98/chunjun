@@ -45,16 +45,17 @@ import java.util.Set;
 /**
  * The Factory of ClusterClient
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifanzju@163.com
  */
 public class ClusterClientFactory {
 
     public static ClusterClient createClusterClient(Options launcherOptions) throws Exception {
         String mode = launcherOptions.getMode();
-        if(mode.equals(ClusterMode.standalone.name())) {
+        if (mode.equals(ClusterMode.standalone.name())) {
             return createStandaloneClient(launcherOptions);
-        } else if(mode.equals(ClusterMode.yarn.name())) {
+        } else if (mode.equals(ClusterMode.yarn.name())) {
             return createYarnClient(launcherOptions);
         }
 
@@ -64,8 +65,12 @@ public class ClusterClientFactory {
     public static ClusterClient createStandaloneClient(Options launcherOptions) throws Exception {
         Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
 
-        try(StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf)){
-            ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
+        try (StandaloneClusterDescriptor standaloneClusterDescriptor =
+                new StandaloneClusterDescriptor(flinkConf)) {
+            ClusterClient clusterClient =
+                    standaloneClusterDescriptor
+                            .retrieve(StandaloneClusterId.getInstance())
+                            .getClusterClient();
             return clusterClient;
         }
     }
@@ -73,12 +78,17 @@ public class ClusterClientFactory {
     public static ClusterClient createYarnClient(Options launcherOptions) {
         Configuration flinkConfig = launcherOptions.loadFlinkConfiguration();
         String yarnConfDir = launcherOptions.getYarnconf();
-        if(StringUtils.isNotBlank(yarnConfDir)) {
+        if (StringUtils.isNotBlank(yarnConfDir)) {
             try {
                 FileSystem.initialize(flinkConfig);
 
-                //进行kerberos验证 如果需要的话
-                KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(), launcherOptions.getKeytab(), launcherOptions.getPrincipal(), flinkConfig);
+                // 进行kerberos验证 如果需要的话
+                KerberosInfo kerberosInfo =
+                        new KerberosInfo(
+                                launcherOptions.getKrb5conf(),
+                                launcherOptions.getKeytab(),
+                                launcherOptions.getPrincipal(),
+                                flinkConfig);
                 kerberosInfo.verify();
 
                 YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
@@ -89,27 +99,32 @@ public class ClusterClientFactory {
 
                     if (StringUtils.isEmpty(launcherOptions.getAppId())) {
                         applicationId = getAppIdFromYarn(yarnClient, launcherOptions);
-                        if (applicationId == null || StringUtils.isEmpty(applicationId.toString())) {
+                        if (applicationId == null
+                                || StringUtils.isEmpty(applicationId.toString())) {
                             throw new RuntimeException("No flink session found on yarn cluster.");
                         }
                     } else {
                         applicationId = ConverterUtils.toApplicationId(launcherOptions.getAppId());
                     }
 
-                    HighAvailabilityMode highAvailabilityMode = HighAvailabilityMode.fromConfig(flinkConfig);
-                    if (highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId != null) {
-                        flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
+                    HighAvailabilityMode highAvailabilityMode =
+                            HighAvailabilityMode.fromConfig(flinkConfig);
+                    if (highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER)
+                            && applicationId != null) {
+                        flinkConfig.setString(
+                                HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
                     }
-                    try(YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
-                            flinkConfig,
-                            yarnConf,
-                            yarnClient,
-                            YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                            true)) {
+                    try (YarnClusterDescriptor yarnClusterDescriptor =
+                            new YarnClusterDescriptor(
+                                    flinkConfig,
+                                    yarnConf,
+                                    yarnClient,
+                                    YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                                    true)) {
                         return yarnClusterDescriptor.retrieve(applicationId).getClusterClient();
                     }
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -117,7 +132,8 @@ public class ClusterClientFactory {
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
 
-    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient, Options launcherOptions) throws Exception{
+    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient, Options launcherOptions)
+            throws Exception {
         Set<String> set = new HashSet<>();
         set.add("Apache Flink");
         EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
@@ -127,24 +143,29 @@ public class ClusterClientFactory {
         ApplicationId applicationId = null;
         int maxMemory = -1;
         int maxCores = -1;
-        for(ApplicationReport report : reportList) {
-            if(!report.getName().startsWith("Flink session")){
+        for (ApplicationReport report : reportList) {
+            if (!report.getName().startsWith("Flink session")) {
                 continue;
             }
 
-            if(!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
+            if (!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
                 continue;
             }
 
-            if(!report.getQueue().equals(launcherOptions.getQueue())) {
+            if (!report.getQueue().equals(launcherOptions.getQueue())) {
                 continue;
             }
 
-            int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
-            int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
+            int thisMemory =
+                    report.getApplicationResourceUsageReport().getNeededResources().getMemory();
+            int thisCores =
+                    report.getApplicationResourceUsageReport()
+                            .getNeededResources()
+                            .getVirtualCores();
 
-            boolean isOverMaxResource = thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
-            if(isOverMaxResource) {
+            boolean isOverMaxResource =
+                    thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
+            if (isOverMaxResource) {
                 maxMemory = thisMemory;
                 maxCores = thisCores;
                 applicationId = report.getApplicationId();
