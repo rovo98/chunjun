@@ -73,18 +73,6 @@ public class PerJobClusterClientBuilder {
             throw new RuntimeException("parameters of yarn is required");
         }
 
-        LOG.info("Given yarnConfDir is not a directory: {}", yarnConfDir);
-        java.nio.file.Path yarnConfPath = Paths.get(yarnConfDir);
-        boolean givenYarnConfIsDir = Files.isDirectory(yarnConfPath);
-
-        if (givenYarnConfIsDir) {
-            yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
-        } else {
-            LOG.info("{} yarn configuration file is used.", yarnConfDir);
-            yarnConf = new YarnConfiguration();
-            yarnConf.addResource(yarnConfPath.toFile().toURI().toURL());
-        }
-
         flinkConfig = launcherOptions.loadFlinkConfiguration();
         conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
@@ -95,6 +83,9 @@ public class PerJobClusterClientBuilder {
                         launcherOptions.getKeytab(),
                         launcherOptions.getPrincipal(),
                         this.flinkConfig);
+
+        yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
+        // Add loaded custom yarn conf for krb authentication.
         kerberosInfo.addHadoopConfResource(yarnConf);
 
         UserGroupInformation ugi = kerberosInfo.verify();
