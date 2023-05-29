@@ -67,51 +67,67 @@ public class KerberosInfo {
         }
     }
 
-    public void verify() {
+    public UserGroupInformation verify() {
         if (!isVerify()) {
-            return;
+            UserGroupInformation.setConfiguration(hadoopConfiguration);
+            try {
+                UserGroupInformation.loginUserFromSubject(null);
+                return UserGroupInformation.getLoginUser();
+            } catch (IOException e) {
+                String message =
+                        "UserGroupInformation getLoginUser has error,"
+                                + ExceptionUtil.getErrorMessage(e);
+                LOG.error("{}", message);
+                throw new RuntimeException(message, e);
+            }
         }
 
         check();
 
-        //如果指定了Krb5conf位置
+        // 如果指定了Krb5conf位置
         if (StringUtils.isNotBlank(this.getKrb5confPath())) {
             System.setProperty("java.security.krb5.conf", this.getKrb5confPath());
         }
 
-        String keyTabpath;
+        String keytabPath;
         try {
-            keyTabpath = (new File(keytab)).getAbsolutePath();
+            keytabPath = (new File(keytab)).getAbsolutePath();
         } catch (Exception e) {
-            String message = String.format("can not get the file 【%s】,error info-> %s ",
-                    keytab,
-                    ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "can not get the file 【%s】,error info-> %s ",
+                            keytab, ExceptionUtil.getErrorMessage(e));
             LOG.error("{}", message);
             throw new RuntimeException(message, e);
         }
 
+        LOG.info(
+                "kerberos info:Krb5confPath ->{}, Principal ->{}, keytab->{}",
+                System.getProperty("java.security.krb5.conf"),
+                principal,
+                keytabPath);
 
-        LOG.info("kerberos info:Krb5confPath ->{}, Principal ->{}, keytab->{}", System.getProperty("java.security.krb5.conf"), principal, keyTabpath);
-
-        //开始kerberos验证
+        // 开始kerberos验证
         UserGroupInformation.setConfiguration(hadoopConfiguration);
         try {
-            UserGroupInformation.getCurrentUser().setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+            UserGroupInformation.getCurrentUser()
+                    .setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
         } catch (IOException e) {
-            String message = "UserGroupInformation getCurrentUser has error," + ExceptionUtil.getErrorMessage(e);
+            String message =
+                    "UserGroupInformation getCurrentUser has error,"
+                            + ExceptionUtil.getErrorMessage(e);
             LOG.error("{}", message);
             throw new RuntimeException(message, e);
         }
-
 
         try {
             KerberosUtil.refreshConfig();
-            UserGroupInformation.loginUserFromKeytab(principal, keyTabpath);
+            return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytabPath);
         } catch (IOException e) {
-            String message = String.format("Unable to set the Hadoop login principal【%s】,keytab 【%s】error info-> %s ",
-                    principal,
-                    keyTabpath,
-                    ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "Unable to set the Hadoop login principal【%s】,keytab 【%s】error info-> %s ",
+                            principal, keytabPath, ExceptionUtil.getErrorMessage(e));
             LOG.error("{}", message);
             throw new RuntimeException(message, e);
         }
