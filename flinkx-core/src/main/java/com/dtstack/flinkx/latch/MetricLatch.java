@@ -78,7 +78,7 @@ public class MetricLatch extends BaseLatch {
                         archivedExecutionGraph.getAccumulatorResultsStringified();
                 for (StringifiedAccumulatorResult result : accumulatorResult) {
                     LOG.info(
-                            "response value of the accumulator: {} is {}.",
+                            "Queried accumulator name -> {}, value -> {}.",
                             result.getName(),
                             result.getValue());
                     if (metricName != null && metricName.equals(result.getName())) {
