@@ -37,6 +37,7 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +58,13 @@ import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
  *
- * 扩展了org.apache.flink.api.common.io.RichInputFormat, 因而可以通过{@link #getRuntimeContext()}获取运行时执行上下文
- * 自动完成
- * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
+ * <p>扩展了org.apache.flink.api.common.io.RichInputFormat, 因而可以通过{@link
+ * #getRuntimeContext()}获取运行时执行上下文 自动完成 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
  * @author jiangbo
  */
-public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
+public abstract class BaseRichInputFormat
+        extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -126,14 +127,14 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     public final InputSplit[] createInputSplits(int i) throws IOException {
         try {
             return createInputSplitsInternal(i);
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.warn(ExceptionUtil.getErrorMessage(e));
 
             return createErrorInputSplit(e);
         }
     }
 
-    private ErrorInputSplit[] createErrorInputSplit(Exception e){
+    private ErrorInputSplit[] createErrorInputSplit(Exception e) {
         ErrorInputSplit[] inputSplits = new ErrorInputSplit[1];
 
         ErrorInputSplit errorInputSplit = new ErrorInputSplit(ExceptionUtil.getErrorMessage(e));
@@ -155,13 +156,13 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     public void open(InputSplit inputSplit) throws IOException {
         checkIfCreateSplitFailed(inputSplit);
 
-        if(!inited){
+        if (!inited) {
             initAccumulatorCollector();
             initStatisticsAccumulator();
             openByteRateLimiter();
             initRestoreInfo();
 
-            if(restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 formatState.setNumOfSubTask(indexOfSubTask);
             }
 
@@ -172,26 +173,28 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     @SuppressWarnings("unchecked")
-    private void showConfig(){
+    private void showConfig() {
         Map<String, Object> map = dataTransferConfig.getJob().getAll();
-        List<Map<String,Object>> contentList = (List<Map<String,Object>>) map.get(KEY_CONTENT);
-        for(Map<String,Object> contentMap : contentList) {
-            //隐藏密码信息
-            Map<String, Object> readerConfig = (Map<String, Object>)contentMap.get(KEY_READER);
-            Map<String, Object> readerParameter = (Map<String, Object>)readerConfig.get(KEY_PARAMETER);
-            if(readerParameter.containsKey(KEY_PASSWORD)){
+        List<Map<String, Object>> contentList = (List<Map<String, Object>>) map.get(KEY_CONTENT);
+        for (Map<String, Object> contentMap : contentList) {
+            // 隐藏密码信息
+            Map<String, Object> readerConfig = (Map<String, Object>) contentMap.get(KEY_READER);
+            Map<String, Object> readerParameter =
+                    (Map<String, Object>) readerConfig.get(KEY_PARAMETER);
+            if (readerParameter.containsKey(KEY_PASSWORD)) {
                 readerParameter.put(KEY_PASSWORD, KEY_CONFUSED_PASSWORD);
             }
-            Map<String, Object> writerConfig = (Map<String, Object>)contentMap.get(KEY_WRITER);
-            Map<String, Object> writerParameter = (Map<String, Object>)writerConfig.get(KEY_PARAMETER);
-            if(writerParameter.containsKey(KEY_PASSWORD)){
+            Map<String, Object> writerConfig = (Map<String, Object>) contentMap.get(KEY_WRITER);
+            Map<String, Object> writerParameter =
+                    (Map<String, Object>) writerConfig.get(KEY_PARAMETER);
+            if (writerParameter.containsKey(KEY_PASSWORD)) {
                 writerParameter.put(KEY_PASSWORD, KEY_CONFUSED_PASSWORD);
             }
         }
         LOG.info("configInfo : \n{}", GsonUtil.GSON.toJson(map));
     }
 
-    private void checkIfCreateSplitFailed(InputSplit inputSplit){
+    private void checkIfCreateSplitFailed(InputSplit inputSplit) {
         if (inputSplit instanceof ErrorInputSplit) {
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
         }
@@ -199,7 +202,9 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     private void initPrometheusReporter() {
         if (useCustomPrometheusReporter()) {
-            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
+            customPrometheusReporter =
+                    new CustomPrometheusReporter(
+                            getRuntimeContext(), makeTaskFailedWhenReportFailed());
             customPrometheusReporter.open();
         }
     }
@@ -208,48 +213,55 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         return false;
     }
 
-    protected boolean makeTaskFailedWhenReportFailed(){
+    protected boolean makeTaskFailedWhenReportFailed() {
         return false;
     }
 
-    private void initAccumulatorCollector(){
-        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
-        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
+    private void initAccumulatorCollector() {
+        String lastWriteLocation =
+                String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
+        String lastWriteNum =
+                String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
-        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrls, getRuntimeContext(), 2,
-                Arrays.asList(Metrics.NUM_READS,
-                        Metrics.READ_BYTES,
-                        Metrics.READ_DURATION,
-                        Metrics.WRITE_BYTES,
-                        Metrics.NUM_WRITES,
-                        lastWriteLocation,
-                        lastWriteNum));
+        StreamingRuntimeContext streamingRuntimeContext =
+                (StreamingRuntimeContext) getRuntimeContext();
+        accumulatorCollector =
+                new AccumulatorCollector(
+                        streamingRuntimeContext,
+                        Arrays.asList(
+                                Metrics.NUM_READS,
+                                Metrics.READ_BYTES,
+                                Metrics.READ_DURATION,
+                                Metrics.WRITE_BYTES,
+                                Metrics.NUM_WRITES,
+                                lastWriteLocation,
+                                lastWriteNum));
         accumulatorCollector.start();
     }
 
-    private void initJobInfo(){
+    private void initJobInfo() {
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
+        if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
-        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
+        if (vars != null && vars.get(Metrics.JOB_ID) != null) {
             jobId = vars.get(Metrics.JOB_ID);
         }
 
-        if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
+        if (vars != null && vars.get(Metrics.SUBTASK_INDEX) != null) {
             indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 
-    private void openByteRateLimiter(){
+    private void openByteRateLimiter() {
         if (this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, this.bytes);
             this.byteRateLimiter.start();
         }
     }
 
-    private void initStatisticsAccumulator(){
+    private void initStatisticsAccumulator() {
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
         bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
@@ -260,11 +272,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
     }
 
-    private void initRestoreInfo(){
-        if(restoreConfig == null){
+    private void initRestoreInfo() {
+        if (restoreConfig == null) {
             restoreConfig = RestoreConfig.defaultConfig();
-        } else if(restoreConfig.isRestore()){
-            if(formatState == null){
+        } else if (restoreConfig.isRestore()) {
+            if (formatState == null) {
                 formatState = new FormatState(indexOfSubTask, null);
             } else {
                 numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
@@ -276,18 +288,18 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     @Override
     public Row nextRecord(Row row) throws IOException {
-        if(byteRateLimiter != null) {
+        if (byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
         Row internalRow = nextRecordInternal(row);
-        if(internalRow != null){
+        if (internalRow != null) {
             internalRow = setChannelInformation(internalRow);
 
             updateDuration();
-            if(numReadCounter !=null ){
+            if (numReadCounter != null) {
                 numReadCounter.add(1);
             }
-            if(bytesReadCounter!=null){
+            if (bytesReadCounter != null) {
                 bytesReadCounter.add(internalRow.toString().getBytes().length);
             }
         }
@@ -302,7 +314,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         return internalRow;
     }
 
-    private Row setChannelInformation(Row internalRow){
+    private Row setChannelInformation(Row internalRow) {
         Row rowWithChannel = new Row(internalRow.getArity() + 1);
         for (int i = 0; i < internalRow.getArity(); i++) {
             rowWithChannel.setField(i, internalRow.getField(i));
@@ -314,10 +326,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     /**
      * Get the recover point of current channel
+     *
      * @return DataRecoverPoint
      */
     public FormatState getFormatState() {
-        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+        if (formatState != null && numReadCounter != null && inputMetric != null) {
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
@@ -334,9 +347,9 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     @Override
     public void close() throws IOException {
-        try{
+        try {
             closeInternal();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -347,15 +360,15 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
             return;
         }
 
-        if(durationCounter != null){
+        if (durationCounter != null) {
             updateDuration();
         }
 
-        if(byteRateLimiter != null){
+        if (byteRateLimiter != null) {
             byteRateLimiter.stop();
         }
 
-        if(accumulatorCollector != null){
+        if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
 
@@ -363,7 +376,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
             customPrometheusReporter.report();
         }
 
-        if(inputMetric != null){
+        if (inputMetric != null) {
             inputMetric.waitForReportMetrics();
         }
 
@@ -375,8 +388,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         LOG.info("subtask input close finished");
     }
 
-    private void updateDuration(){
-        if(durationCounter !=null ){
+    private void updateDuration() {
+        if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
@@ -387,7 +400,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
      *
      * @throws IOException 连接关闭异常
      */
-    protected abstract  void closeInternal() throws IOException;
+    protected abstract void closeInternal() throws IOException;
 
     @Override
     public final BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
@@ -419,7 +432,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         this.testConfig = testConfig;
     }
 
-    public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
+    public void setDataTransferConfig(DataTransferConfig dataTransferConfig) {
         this.dataTransferConfig = dataTransferConfig;
     }
 

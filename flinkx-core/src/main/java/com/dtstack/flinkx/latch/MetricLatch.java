@@ -18,109 +18,78 @@
 
 package com.dtstack.flinkx.latch;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.UrlUtil;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.common.time.Time;
+import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
+import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
+import org.apache.flink.runtime.jobmaster.JobMasterGateway;
+import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Distributed implementation of Latch
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class MetricLatch extends BaseLatch {
 
     public static Logger LOG = LoggerFactory.getLogger(MetricLatch.class);
 
-    private String metricName;
-    private String[] monitorRoots;
-    private String jobId;
-    private Gson gson = new Gson();
-    private RuntimeContext context;
+    private final String metricName;
+    private final StreamingRuntimeContext context;
+    private JobMasterGateway gateway;
     private static final String METRIC_PREFIX = "latch-";
 
-    private void checkMonitorRoots() {
-        boolean flag = false;
-        int j = 0;
-        StringBuilder exceptionMsg = new StringBuilder();
-        for(; j < monitorRoots.length; ++j) {
-            String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
-            LOG.info("Monitor url:" + requestUrl);
-            try(InputStream inputStream = UrlUtil.open(requestUrl, 10)) {
-                flag = true;
-                break;
-            } catch (Exception e) {
-                exceptionMsg.append("Monitor url:").append(requestUrl).append("\n");
-                exceptionMsg.append("Error info:\n").append(e.getMessage()).append("\n");
-                LOG.error("Open monitor url error:", e);
-            }
-        }
-
-        if (!flag){
-            throw new IllegalArgumentException(exceptionMsg.toString());
-        }
-    }
-
-    private int getIntMetricVal(String requestUrl) {
-        try(InputStream inputStream = UrlUtil.open(requestUrl)) {
-            try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-                Map<String,Object> map = gson.fromJson(rd, Map.class);
-                LOG.info("requestUrl = {}, and return map = {}", requestUrl, GsonUtil.GSON.toJson(map));
-                List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
-                for(LinkedTreeMap accumulator : userTaskAccumulators) {
-                    if(metricName != null && metricName.equals(accumulator.get("name"))) {
-                        return Integer.parseInt((String )accumulator.get("value"));
-                    }
-                }
-            } catch (Exception e) {
-                return -1;
-            }
-        } catch (Exception e) {
-            return -1;
-        }
-        return -1;
-    }
-
-    public MetricLatch(RuntimeContext context, String monitors, String metricName) {
+    public MetricLatch(RuntimeContext context, String metricName) {
         this.metricName = METRIC_PREFIX + metricName;
-        this.context = context;
-        Map<String, String> vars = context.getMetricGroup().getAllVariables();
-        jobId = vars.get("<job_id>");
+        this.context = (StreamingRuntimeContext) context;
 
-        if(monitors.startsWith(ConstantValue.KEY_HTTP)) {
-            monitorRoots = monitors.split(",");
-        } else {
-            String[] monitor = monitors.split(",");
-            monitorRoots = new String[monitor.length];
-            for (int i = 0; i < monitorRoots.length; ++i) {
-                monitorRoots[i] = "http://" + monitor[i];
-            }
+        RpcGlobalAggregateManager globalAggregateManager =
+                ((RpcGlobalAggregateManager)
+                        ((StreamingRuntimeContext) context).getGlobalAggregateManager());
+        Field field = ReflectionUtils.getDeclaredField(globalAggregateManager, "jobMasterGateway");
+        assert field != null;
+        field.setAccessible(true);
+        try {
+            this.gateway = (JobMasterGateway) field.get(globalAggregateManager);
+        } catch (Exception e) {
+            LOG.error("", e);
         }
-
-        checkMonitorRoots();
     }
-
 
     @Override
     public int getVal() {
-        for(int index = 0; index < monitorRoots.length; ++index) {
-            String requestUrl = monitorRoots[index] + "/jobs/" + jobId + "/accumulators";
-            int metricVal = getIntMetricVal(requestUrl);
-            if(metricVal != -1) {
-                return metricVal;
+        try {
+            if (gateway != null) {
+                CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+                        gateway.requestJob(Time.seconds(10));
+                ArchivedExecutionGraph archivedExecutionGraph;
+                archivedExecutionGraph = archivedExecutionGraphFuture.get();
+                // update value accumulators.
+                StringifiedAccumulatorResult[] accumulatorResult =
+                        archivedExecutionGraph.getAccumulatorResultsStringified();
+                for (StringifiedAccumulatorResult result : accumulatorResult) {
+                    LOG.info(
+                            "response value of the accumulator: {} is {}.",
+                            result.getName(),
+                            result.getValue());
+                    if (metricName != null && metricName.equals(result.getName())) {
+                        return Integer.parseInt(result.getValue());
+                    }
+                }
+            } else {
+                throw new RuntimeException("The jobMasterGateway is uninitialized!");
             }
+        } catch (Exception e) {
+            LOG.error("failed to request archived execution graph.", e);
         }
         return -1;
     }
@@ -129,5 +98,4 @@ public class MetricLatch extends BaseLatch {
     public void addOne() {
         context.getIntCounter(metricName).add(1);
     }
-
 }
