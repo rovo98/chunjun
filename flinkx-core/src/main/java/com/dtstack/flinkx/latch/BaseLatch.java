@@ -52,7 +52,7 @@ public abstract class BaseLatch {
     }
 
     protected void sleep() {
-        SysUtil.sleep(1000);
+        SysUtil.sleep(2000);
     }
 
     /**
