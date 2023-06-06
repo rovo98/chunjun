@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +57,7 @@ public class AccumulatorCollector {
     private static final String KEY_NAME = "name";
     private static final String KEY_VALUE = "value";
 
-    private static final int MAX_COLLECT_ERROR_TIMES = 100;
+    private static final int MAX_COLLECT_ERROR_TIMES = 30;
 
     private Gson gson = new Gson();
 
@@ -69,7 +67,7 @@ public class AccumulatorCollector {
 
     private List<String> monitorUrls = Lists.newArrayList();
 
-    private int period = 2;
+    private int period;
 
     private CloseableHttpClient httpClient;
 
@@ -83,7 +81,12 @@ public class AccumulatorCollector {
 
     private long collectErrorTimes = 0;
 
-    public AccumulatorCollector(String jobId, String monitorUrlStr, RuntimeContext runtimeContext, int period, List<String> metricNames){
+    public AccumulatorCollector(
+            String jobId,
+            String monitorUrlStr,
+            RuntimeContext runtimeContext,
+            int period,
+            List<String> metricNames) {
         Preconditions.checkArgument(jobId != null && jobId.length() > 0);
         Preconditions.checkArgument(period > 0);
         Preconditions.checkArgument(metricNames != null && metricNames.size() > 0);
@@ -97,7 +100,7 @@ public class AccumulatorCollector {
 
         initValueAccumulatorMap();
 
-        if(!isLocalMode){
+        if (!isLocalMode) {
             formatMonitorUrl(monitorUrlStr);
             checkMonitorUrlIsValid();
 
@@ -107,17 +110,18 @@ public class AccumulatorCollector {
         initThreadPool();
     }
 
-    private void initValueAccumulatorMap(){
+    private void initValueAccumulatorMap() {
         valueAccumulatorMap = new HashMap<>(metricNames.size());
         for (String metricName : metricNames) {
-            valueAccumulatorMap.put(metricName, new ValueAccumulator(0, context.getLongCounter(metricName)));
+            valueAccumulatorMap.put(
+                    metricName, new ValueAccumulator(0, context.getLongCounter(metricName)));
         }
     }
 
-    private void formatMonitorUrl(String monitorUrlStr){
-        if(monitorUrlStr.startsWith(ConstantValue.KEY_HTTP)){
+    private void formatMonitorUrl(String monitorUrlStr) {
+        if (monitorUrlStr.startsWith(ConstantValue.KEY_HTTP)) {
             String url;
-            if(monitorUrlStr.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)){
+            if (monitorUrlStr.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)) {
                 url = monitorUrlStr + "jobs/" + jobId + "/accumulators";
             } else {
                 url = monitorUrlStr + "/jobs/" + jobId + "/accumulators";
@@ -130,14 +134,14 @@ public class AccumulatorCollector {
                 monitorUrls.add(url);
             }
         }
-        if(DtLogger.isEnableDebug()){
+        if (DtLogger.isEnableDebug()) {
             LOG.debug("monitorUrls = {}", gson.toJson(monitorUrls));
         }
     }
 
-    private void checkMonitorUrlIsValid(){
+    private void checkMonitorUrlIsValid() {
         for (String monitorUrl : monitorUrls) {
-            try(InputStream ignored = UrlUtil.open(monitorUrl)) {
+            try (InputStream ignored = UrlUtil.open(monitorUrl)) {
                 return;
             } catch (Exception e) {
                 LOG.warn("Connect error with monitor url:{}", monitorUrl);
@@ -148,64 +152,59 @@ public class AccumulatorCollector {
         LOG.info("No valid url，will use local mode");
     }
 
-    private void initThreadPool(){
-        scheduledExecutorService = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r,THREAD_NAME);
-            }
-        });
+    private void initThreadPool() {
+        scheduledExecutorService =
+                new ScheduledThreadPoolExecutor(1, r -> new Thread(r, THREAD_NAME));
     }
 
-    public void start(){
+    public void start() {
         scheduledExecutorService.scheduleAtFixedRate(
-                this::collectAccumulator,
-                0,
-                (long) (period * 1000),
-                TimeUnit.MILLISECONDS
-        );
+                this::collectAccumulator, 0, period * 1000L, TimeUnit.MILLISECONDS);
     }
 
-    public void close(){
-        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
+    public void close() {
+        if (scheduledExecutorService != null
+                && !scheduledExecutorService.isShutdown()
+                && !scheduledExecutorService.isTerminated()) {
             scheduledExecutorService.shutdown();
+            LOG.info("AccumulatorCollector#scheduledExecutorService has shutdown.");
         }
 
-        if(isLocalMode){
+        if (isLocalMode) {
             return;
         }
 
         try {
-            if(httpClient != null){
+            if (httpClient != null) {
                 httpClient.close();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.error("Close httpClient error:", e);
         }
     }
 
-    public void collectAccumulator(){
-        if(!isLocalMode){
+    public void collectAccumulator() {
+        if (!isLocalMode) {
             collectAccumulatorWithApi();
         }
     }
 
-    public long getAccumulatorValue(String name){
+    public long getAccumulatorValue(String name) {
         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-        if(valueAccumulator == null){
+        if (valueAccumulator == null) {
             return 0;
         }
 
-        if(isLocalMode){
+        if (isLocalMode) {
             return valueAccumulator.getLocal().getLocalValue();
         } else {
             return valueAccumulator.getGlobal();
         }
     }
 
-    public long getLocalAccumulatorValue(String name){
+    public long getLocalAccumulatorValue(String name) {
         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-        if(valueAccumulator == null){
+        if (valueAccumulator == null) {
             return 0;
         }
 
@@ -213,26 +212,27 @@ public class AccumulatorCollector {
     }
 
     @SuppressWarnings("unchecked")
-    private void collectAccumulatorWithApi(){
+    private void collectAccumulatorWithApi() {
         for (String monitorUrl : monitorUrls) {
             try {
                 String response = UrlUtil.get(httpClient, monitorUrl);
-                Map<String,Object> map = gson.fromJson(response, Map.class);
-                List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get(KEY_ACCUMULATORS);
-                for(LinkedTreeMap accumulator : userTaskAccumulators) {
+                Map<String, Object> map = gson.fromJson(response, Map.class);
+                List<LinkedTreeMap> userTaskAccumulators =
+                        (List<LinkedTreeMap>) map.get(KEY_ACCUMULATORS);
+                for (LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
-                    if(name != null && !"tableCol".equalsIgnoreCase(name)) {
+                    if (name != null && !"tableCol".equalsIgnoreCase(name)) {
                         String accValue = (String) accumulator.get(KEY_VALUE);
-                        if(!"null".equals(accValue)){
+                        if (!"null".equals(accValue)) {
                             long value = Double.valueOf(accValue).longValue();
                             ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-                            if(valueAccumulator != null){
+                            if (valueAccumulator != null) {
                                 valueAccumulator.setGlobal(value);
                             }
                         }
                     }
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 checkErrorTimes();
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);
             }
@@ -240,19 +240,19 @@ public class AccumulatorCollector {
         }
     }
 
-    /**
-     * 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能
-     */
+    /** 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能 */
     private void checkErrorTimes() {
         collectErrorTimes++;
-        if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES){
+        if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES) {
             // 主动关闭线程和资源，防止异常情况下没有关闭
             close();
-            throw new RuntimeException("更新统计数据出错次数超过最大限制100次，为了确保数据正确性，任务自动失败");
+            final String errMsg =
+                    String.format("更新统计数据出错次数超过最大限制%s次，为了确保数据正确性，任务自动失败", MAX_COLLECT_ERROR_TIMES);
+            throw new RuntimeException(errMsg);
         }
     }
 
-    static class ValueAccumulator{
+    static class ValueAccumulator {
         private long global;
         private LongCounter local;
 
