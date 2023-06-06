@@ -115,6 +115,10 @@ public class AccumulatorCollector {
                 StringifiedAccumulatorResult[] accumulatorResult =
                         archivedExecutionGraph.getAccumulatorResultsStringified();
                 for (StringifiedAccumulatorResult result : accumulatorResult) {
+                    LOG.info(
+                            "Queried accumulator name -> {}, value -> {}.",
+                            result.getName(),
+                            result.getValue());
                     ValueAccumulator valueAccumulator = valueAccumulatorMap.get(result.getName());
                     if (valueAccumulator != null) {
                         valueAccumulator.setGlobal(Long.parseLong(result.getValue()));
