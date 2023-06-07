@@ -24,6 +24,7 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
 import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
 import org.apache.flink.runtime.jobmaster.JobMasterGateway;
+import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.taskexecutor.TaskManagerConfiguration;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
@@ -73,7 +74,7 @@ public class AccumulatorCollector {
         // 比 task manager 心跳间隔多 1 秒
         this.period =
                 ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo())
-                                .getTimeout()
+                                .getRpcTimeout()
                                 .toMilliseconds()
                         + 1000;
 
@@ -106,13 +107,14 @@ public class AccumulatorCollector {
     public void collectAccumulator() {
         try {
             if (gateway != null) {
-                CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+                CompletableFuture<ExecutionGraphInfo> executionGraphInfoFuture =
                         gateway.requestJob(Time.seconds(10));
-                ArchivedExecutionGraph archivedExecutionGraph = archivedExecutionGraphFuture.get();
-
+                ExecutionGraphInfo executionGraphInfo = executionGraphInfoFuture.get();
                 // update value accumulators.
                 StringifiedAccumulatorResult[] accumulatorResult =
-                        archivedExecutionGraph.getAccumulatorResultsStringified();
+                        executionGraphInfo
+                                .getArchivedExecutionGraph()
+                                .getAccumulatorResultsStringified();
                 for (StringifiedAccumulatorResult result : accumulatorResult) {
                     LOG.info(
                             "Queried accumulator name -> {}, value -> {}.",

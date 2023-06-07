@@ -23,6 +23,7 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
 import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
+import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.jobmaster.JobMasterGateway;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
@@ -69,13 +70,14 @@ public class MetricLatch extends BaseLatch {
     public int getVal() {
         try {
             if (gateway != null) {
-                CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+                CompletableFuture<ExecutionGraphInfo> executionGraphInfoFuture =
                         gateway.requestJob(Time.seconds(10));
-                ArchivedExecutionGraph archivedExecutionGraph;
-                archivedExecutionGraph = archivedExecutionGraphFuture.get();
+                ExecutionGraphInfo executionGraphInfo = executionGraphInfoFuture.get();
                 // update value accumulators.
                 StringifiedAccumulatorResult[] accumulatorResult =
-                        archivedExecutionGraph.getAccumulatorResultsStringified();
+                        executionGraphInfo
+                                .getArchivedExecutionGraph()
+                                .getAccumulatorResultsStringified();
                 for (StringifiedAccumulatorResult result : accumulatorResult) {
                     LOG.info(
                             "Queried accumulator name -> {}, value -> {}.",
