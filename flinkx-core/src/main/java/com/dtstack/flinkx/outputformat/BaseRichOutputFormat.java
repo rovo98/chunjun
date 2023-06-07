@@ -472,10 +472,11 @@ public abstract class BaseRichOutputFormat
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        Row internalRow = setChannelInfo(row);
         if (batchInterval <= 1) {
-            writeSingleRecord(row);
+            writeSingleRecord(internalRow);
         } else {
-            rows.add(row);
+            rows.add(internalRow);
             if (rows.size() == batchInterval) {
                 writeRecordInternal();
             }
@@ -485,6 +486,14 @@ public abstract class BaseRichOutputFormat
         if (bytesWriteCounter != null) {
             bytesWriteCounter.add(row.toString().getBytes().length);
         }
+    }
+
+    private Row setChannelInfo(Row row){
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
+        return internalRow;
     }
 
     @Override
