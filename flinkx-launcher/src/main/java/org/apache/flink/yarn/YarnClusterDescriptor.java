@@ -21,6 +21,7 @@ package org.apache.flink.yarn;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.client.deployment.ClusterDeploymentException;
@@ -580,11 +581,14 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                             .build();
 
             clusterSpecification.setProgram(program);
+            JobID jobID =
+                    Optional.ofNullable(jobGraph).map(JobGraph::getJobID).orElse(JobID.generate());
             jobGraph =
                     PackagedProgramUtils.createJobGraph(
                             program,
                             clusterSpecification.getConfiguration(),
                             clusterSpecification.getParallelism(),
+							jobID,
                             false);
             String pluginLoadMode =
                     clusterSpecification
