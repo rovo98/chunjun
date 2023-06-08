@@ -48,34 +48,34 @@
           <artifactId>hive-exec</artifactId>
           <version>${hive.version}</version>
           <exclusions>
-            <exclusion>
-                <artifactId>calcite-core</artifactId>
-                <groupId>org.apache.calcite</groupId>
-            </exclusion>
-            <exclusion>
-                <artifactId>calcite-avatica</artifactId>
-                <groupId>org.apache.calcite</groupId>
-            </exclusion>
-            <exclusion>
-                <artifactId>derby</artifactId>
-                <groupId>org.apache.derby</groupId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.xerial.snappy</groupId>
-                <artifactId>snappy-java</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
+              <exclusion>
+                  <artifactId>calcite-core</artifactId>
+                  <groupId>org.apache.calcite</groupId>
+              </exclusion>
+              <exclusion>
+                  <artifactId>calcite-avatica</artifactId>
+                  <groupId>org.apache.calcite</groupId>
+              </exclusion>
+              <exclusion>
+                  <artifactId>derby</artifactId>
+                  <groupId>org.apache.derby</groupId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.xerial.snappy</groupId>
+                  <artifactId>snappy-java</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-databind</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-annotations</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-core</artifactId>
+              </exclusion>
           </exclusions>
       </dependency>
 
@@ -84,30 +84,46 @@
           <artifactId>hive-serde</artifactId>
           <version>${hive.version}</version>
           <exclusions>
-            <exclusion>
-              <groupId>org.apache.hadoop</groupId>
-              <artifactId>hadoop-common</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-yarn-api</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.xerial.snappy</groupId>
-                <artifactId>snappy-java</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
+              <exclusion>
+                  <groupId>org.apache.hadoop</groupId>
+                  <artifactId>hadoop-common</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.apache.hadoop</groupId>
+                  <artifactId>hadoop-yarn-api</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.xerial.snappy</groupId>
+                  <artifactId>snappy-java</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-databind</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-annotations</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.core</groupId>
+                  <artifactId>jackson-core</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-core</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-slf4j-impl</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-1.2-api</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-web</artifactId>
+              </exclusion>
           </exclusions>
       </dependency>
 

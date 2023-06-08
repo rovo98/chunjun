@@ -43,7 +43,7 @@
                                     <exclude>io.netty:*</exclude>
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>xerces:xercesImpl</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>

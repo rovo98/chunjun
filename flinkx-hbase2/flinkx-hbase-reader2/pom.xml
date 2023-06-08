@@ -41,7 +41,7 @@
                                 <excludes>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
