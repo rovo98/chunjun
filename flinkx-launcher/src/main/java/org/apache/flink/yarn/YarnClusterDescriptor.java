@@ -821,6 +821,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 		}
 
 		ApplicationSubmissionContext appContext = yarnApplication.getApplicationSubmissionContext();
+		// FIXME: log out appId before uploading resources to hdfs.
+		LOG.info("Submitting application master " + appContext.getApplicationId());
 
 		final List<Path> providedLibDirs =
 				Utils.getQualifiedRemoteSharedPaths(configuration, yarnConfiguration);
@@ -1256,6 +1258,13 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 					if (System.currentTimeMillis() - startTime > 60000) {
 						LOG.info(
 								"Deployment took more than 60 seconds. Please check if the requested resources are available in the YARN cluster");
+						if (appState == YarnApplicationState.SUBMITTED
+								|| appState == YarnApplicationState.ACCEPTED) {
+							LOG.info(
+									"YARN application has been deployed, but not in RUNNING state, current state "
+											+ appState);
+							break loop;
+						}
 					}
 			}
 			lastAppState = appState;
