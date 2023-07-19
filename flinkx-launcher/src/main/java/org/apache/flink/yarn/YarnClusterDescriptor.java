@@ -1255,9 +1255,9 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 					if (appState != lastAppState) {
 						LOG.info("Deploying cluster, current state " + appState);
 					}
-					if (System.currentTimeMillis() - startTime > 600000) {
+					if (System.currentTimeMillis() - startTime > 5 * 60 * 1000) {
 						LOG.info(
-								"Deployment took more than 10 minutes. Please check if the requested resources are available in the YARN cluster");
+								"Deployment took more than 5 minutes. Please check if the requested resources are available in the YARN cluster");
 						if (appState == YarnApplicationState.SUBMITTED
 								|| appState == YarnApplicationState.ACCEPTED) {
 							LOG.info(
