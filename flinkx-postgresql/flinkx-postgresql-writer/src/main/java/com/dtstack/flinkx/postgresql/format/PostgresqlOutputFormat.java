@@ -69,7 +69,13 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         isCopyMode = checkIsCopyMode(insertSqlMode);
         if (EWriteMode.INSERT.name().equalsIgnoreCase(mode) && isCopyMode) {
             copyManager = new CopyManager((BaseConnection) dbConn);
-            copySql = String.format(COPY_SQL_TEMPL, table, String.join(",", column), DEFAULT_FIELD_DELIM, DEFAULT_NULL_DELIM);
+            copySql =
+                    String.format(
+                            COPY_SQL_TEMPL,
+                            databaseInterface.quoteTable(table),
+                            databaseInterface.quoteColumns(column),
+                            DEFAULT_FIELD_DELIM,
+                            DEFAULT_NULL_DELIM);
             return null;
         }
 

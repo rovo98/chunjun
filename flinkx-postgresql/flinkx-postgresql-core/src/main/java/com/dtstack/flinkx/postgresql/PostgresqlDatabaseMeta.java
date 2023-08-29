@@ -42,12 +42,12 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getStartQuote() {
-        return "";
+        return "\"";
     }
 
     @Override
     public String getEndQuote() {
-        return "";
+        return "\"";
     }
 
     @Override
