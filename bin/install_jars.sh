@@ -11,6 +11,7 @@ mvn install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.
 
 ## dm driver
 mvn install:install-file -DgroupId=dm.jdbc.driver -DartifactId=dm7 -Dversion=18.0.0 -Dpackaging=jar -Dfile=../jars/Dm7JdbcDriver18.jar
+mvn install:install-file -DgroupId=com.dameng -DartifactId=Dm8JdbcDriver18 -Dversion=8.1.2.79 -Dpackaging=jar -Dfile=../jars/Dm8JdbcDriver18-8.1.2.79.jar
 
 ## kingbase driver
 mvn install:install-file -DgroupId=com.kingbase8 -DartifactId=kingbase8 -Dversion=8.2.0 -Dpackaging=jar -Dfile=../jars/kingbase8-8.2.0.jar
