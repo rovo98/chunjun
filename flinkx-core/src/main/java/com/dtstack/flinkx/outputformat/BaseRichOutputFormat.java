@@ -34,6 +34,7 @@ import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobStatus;
+import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.time.Time;
@@ -161,6 +162,13 @@ public abstract class BaseRichOutputFormat
 
     private JobMasterGateway jobMasterGateway;
 
+    /*
+     indicators for indicating job's current executing operation.
+     */
+    private IntCounter dataPreprocessIndicator;
+    private IntCounter dataSyncIndicator;
+    private IntCounter dataPostProcessIndicator;
+
     public String getDirtyPath() {
         return dirtyPath;
     }
@@ -239,6 +247,8 @@ public abstract class BaseRichOutputFormat
         }
 
         initRestoreInfo();
+        // indicate task currently in pre-sync state.
+        dataPreprocessIndicator.add(1);
 
         if (needWaitBeforeOpenInternal()) {
             beforeOpenInternal();
@@ -250,6 +260,8 @@ public abstract class BaseRichOutputFormat
             beforeWriteRecords();
             waitWhile("#2");
         }
+        // indicate task currently in data sync state.
+        dataSyncIndicator.add(1);
     }
 
     private void initAccumulatorCollector() {
@@ -315,6 +327,15 @@ public abstract class BaseRichOutputFormat
         snapshotWriteCounter = context.getLongCounter(Metrics.SNAPSHOT_WRITES);
         bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
         durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
+
+        // for indicate job current operations
+        /*
+         * if the value is positive, which indicate the corresponding operation
+         * is doing or has been done.
+         */
+        dataPreprocessIndicator = context.getIntCounter("indicator#pre");
+        dataSyncIndicator = context.getIntCounter("indicator#sync");
+        dataPostProcessIndicator = context.getIntCounter("indicator#post");
 
         outputMetric = new BaseMetric(context);
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
@@ -499,6 +520,9 @@ public abstract class BaseRichOutputFormat
     @Override
     public void close() throws IOException {
         LOG.info("subtask[{}}] close()", taskNumber);
+
+        // indicate task currently in data post-processing state
+        dataPostProcessIndicator.add(1);
 
         try {
             if (rows.size() != 0) {
