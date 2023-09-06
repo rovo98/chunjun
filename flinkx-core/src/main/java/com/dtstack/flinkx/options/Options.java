@@ -25,6 +25,7 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.configuration.SecurityOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
 import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
@@ -117,6 +118,14 @@ public class Options {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
+
+            if (StringUtils.isNotBlank(krb5conf)) {
+                flinkConfiguration.setString(SecurityOptions.KERBEROS_KRB5_PATH, krb5conf);
+            }
+            if (StringUtils.isNotBlank(keytab)) {
+                flinkConfiguration.setString(SecurityOptions.KERBEROS_LOGIN_KEYTAB, keytab);
+                flinkConfiguration.setString(SecurityOptions.KERBEROS_LOGIN_PRINCIPAL, principal);
+            }
         }
         return flinkConfiguration;
     }
