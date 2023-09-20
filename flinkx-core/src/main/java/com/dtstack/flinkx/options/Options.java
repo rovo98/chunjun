@@ -120,6 +120,8 @@ public class Options {
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
 
             if (StringUtils.isNotBlank(krb5conf)) {
+                // setting the krb5 conf location for process-wise.
+                System.setProperty("java.security.krb5.conf", krb5conf);
                 flinkConfiguration.setString(SecurityOptions.KERBEROS_KRB5_PATH, krb5conf);
             }
             if (StringUtils.isNotBlank(keytab)) {
