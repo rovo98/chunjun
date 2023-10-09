@@ -19,11 +19,12 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.classloader.PluginUtil;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.URL;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author tiezhu
@@ -37,6 +38,35 @@ public class PluginUtilTest {
         String pluginRoot = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
         String remotePluginPath = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
 
-        Assert.assertEquals(4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
+        assertEquals(4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
+    }
+
+    private static final String PKG_PREFIX = "com.dtstack.flinkx.";
+
+    @Test
+    public void testCamelize() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method camelizeMethod = PluginUtil.class.getDeclaredMethod("camelize", String.class, String.class);
+        camelizeMethod.setAccessible(true);
+
+        String es6xReaderFullClassName =
+                PKG_PREFIX.concat((String) camelizeMethod.invoke(null, "es6xreader", "reader"));
+        String es6xWriterFullClassName =
+                PKG_PREFIX.concat((String) camelizeMethod.invoke(null, "es6xwriter", "writer"));
+
+        String es7xReaderFullClassName =
+                PKG_PREFIX.concat((String) camelizeMethod.invoke(null, "es7xreader", "reader"));
+        String es7xWriterFullClassName =
+                PKG_PREFIX.concat((String) camelizeMethod.invoke(null, "es7xwriter", "writer"));
+
+        String expectedEs6xReaderCn = "com.dtstack.flinkx.es6x.reader.Es6xReader";
+        String expectedEs6xWriterCn = "com.dtstack.flinkx.es6x.writer.Es6xWriter";
+        String expectedEs7xReaderCn = "com.dtstack.flinkx.es7x.reader.Es7xReader";
+        String expectedEs7xWriterCn = "com.dtstack.flinkx.es7x.writer.Es7xWriter";
+
+        assertEquals(expectedEs6xReaderCn, es6xReaderFullClassName);
+        assertEquals(expectedEs6xWriterCn, es6xWriterFullClassName);
+
+        assertEquals(expectedEs7xReaderCn, es7xReaderFullClassName);
+        assertEquals(expectedEs7xWriterCn, es7xWriterFullClassName);
     }
 }

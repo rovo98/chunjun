@@ -123,12 +123,12 @@
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-es-reader</artifactId>
+            <artifactId>flinkx-es6x-reader</artifactId>
             <version>1.7</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-es-writer</artifactId>
+            <artifactId>flinkx-es6x-writer</artifactId>
             <version>1.7</version>
         </dependency>
 

@@ -12,9 +12,13 @@
 
 
     <modules>
-        <module>flinkx-es-reader</module>
-        <module>flinkx-es-writer</module>
-        <module>flinkx-es-core</module>
+        <module>flinkx-es6x-reader</module>
+        <module>flinkx-es6x-writer</module>
+        <module>flinkx-es6x-core</module>
+        <module>flinkx-es-base</module>
+        <module>flinkx-es7x-core</module>
+        <module>flinkx-es7x-reader</module>
+        <module>flinkx-es7x-writer</module>
     </modules>
 
     <dependencies>
