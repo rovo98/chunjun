@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.mongodboplog.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
-import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.mongodboplog.format.MongodboplogInputFormatBuilder;
+import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -41,7 +41,10 @@ public class MongodboplogReader extends BaseDataReader {
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         try {
-            mongodbConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), MongodbConfig.class);
+            mongodbConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            MongodbConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("parse mongodb config error:", e);
         }

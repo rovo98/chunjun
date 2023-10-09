@@ -20,6 +20,7 @@ package com.dtstack.flinkx.clickhouse.format;
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -27,8 +28,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Date: 2019/11/05
- * Company: www.dtstack.com
+ * Date: 2019/11/05 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -43,7 +43,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
+                if (obj != null) {
                     obj = DbUtil.clobToString(obj);
                 }
                 row.setField(pos, obj);
@@ -58,6 +58,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
 
     /**
      * 获取数据库连接，用于子类覆盖
+     *
      * @return connection
      * @throws SQLException
      */

@@ -21,7 +21,8 @@ package com.dtstack.flinkx.es;
 /**
  * Configuration Keys for EsDataWriter and EsDataReader
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class EsConfigKeys {
@@ -57,5 +58,4 @@ public class EsConfigKeys {
     public static final String KEY_TIMEOUT = "timeout";
 
     public static final String KEY_PATH_PREFIX = "pathPrefix";
-
 }

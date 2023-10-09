@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.inputformat;
 
 import org.apache.flink.core.io.InputSplit;
@@ -35,7 +34,7 @@ public class ErrorInputSplit implements InputSplit {
         this.errorMessage = errorMessage;
     }
 
-    public String getErrorMessage(){
+    public String getErrorMessage() {
         return errorMessage;
     }
 

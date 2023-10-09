@@ -24,6 +24,7 @@ import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -45,9 +46,8 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TYPE;
 import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_VALUE_FIELD_DELIMITER;
 
 /**
- * The writer plugin for redis database
+ * The writer plugin for redis database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class RedisWriter extends BaseDataWriter {
@@ -81,23 +81,31 @@ public class RedisWriter extends BaseDataWriter {
 
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hostPort = writerConfig.getParameter().getStringVal(KEY_HOST_PORT);
-        batchSize = writerConfig.getParameter().getIntVal(KEY_BATCH_SIZE,1);
+        batchSize = writerConfig.getParameter().getIntVal(KEY_BATCH_SIZE, 1);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        database = writerConfig.getParameter().getIntVal(KEY_DB,0);
-        keyFieldDelimiter = (String)writerConfig.getParameter().getVal(KEY_KEY_FIELD_DELIMITER,JedisUtil.DELIMITER);
+        database = writerConfig.getParameter().getIntVal(KEY_DB, 0);
+        keyFieldDelimiter =
+                (String)
+                        writerConfig
+                                .getParameter()
+                                .getVal(KEY_KEY_FIELD_DELIMITER, JedisUtil.DELIMITER);
         dateFormat = writerConfig.getParameter().getStringVal(KEY_DATE_FORMAT);
-        expireTime = writerConfig.getParameter().getLongVal(KEY_EXPIRE_TIME,0);
-        timeout = writerConfig.getParameter().getIntVal(KEY_TIMEOUT,JedisUtil.TIMEOUT);
+        expireTime = writerConfig.getParameter().getLongVal(KEY_EXPIRE_TIME, 0);
+        timeout = writerConfig.getParameter().getIntVal(KEY_TIMEOUT, JedisUtil.TIMEOUT);
         type = DataType.getDataType(writerConfig.getParameter().getStringVal(KEY_TYPE));
         dataMode = DataMode.getDataMode(writerConfig.getParameter().getStringVal(KEY_MODE));
-        valueFieldDelimiter = (String)writerConfig.getParameter().getVal(KEY_VALUE_FIELD_DELIMITER,JedisUtil.DELIMITER);
+        valueFieldDelimiter =
+                (String)
+                        writerConfig
+                                .getParameter()
+                                .getVal(KEY_VALUE_FIELD_DELIMITER, JedisUtil.DELIMITER);
 
         for (Object item : (List<Object>) writerConfig.getParameter().getVal(KEY_KEY_INDEXES)) {
-            if (item instanceof Double){
-                keyIndexes.add(((Double)item).intValue());
-            } else if(item instanceof Float){
-                keyIndexes.add(((Float)item).intValue());
-            } else if(item instanceof String) {
+            if (item instanceof Double) {
+                keyIndexes.add(((Double) item).intValue());
+            } else if (item instanceof Float) {
+                keyIndexes.add(((Float) item).intValue());
+            } else if (item instanceof String) {
                 keyIndexes.add(Integer.valueOf(String.valueOf(item)));
             } else {
                 keyIndexes.add((Integer) item);

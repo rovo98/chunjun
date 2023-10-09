@@ -18,23 +18,15 @@
 
 package com.dtstack.flinkx.hive;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public enum EStoreType {
 
-    /**
-     * 普通文本格式csv
-     */
+    /** 普通文本格式csv */
     TEXT,
 
-    /**
-     * orc格式
-     */
+    /** orc格式 */
     ORC,
 
-    /**
-     * parquet格式
-     */
+    /** parquet格式 */
     PARQUET
 }

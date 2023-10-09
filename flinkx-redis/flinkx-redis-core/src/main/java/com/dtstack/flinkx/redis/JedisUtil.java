@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.redis;
 
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -33,9 +34,8 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
 import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
- * Utilities for redis database connection
+ * Utilities for redis database connection @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class JedisUtil {
@@ -55,42 +55,43 @@ public class JedisUtil {
     private static final Pattern PATTERN = Pattern.compile("(?<host>.+):(?<port>\\d+)");
 
     public static Jedis getJedis(Properties properties) {
-        if (jedisPool == null){
-            String hostPortStr = properties.getProperty(KEY_HOST_PORT,DEFAULT_HOST);
+        if (jedisPool == null) {
+            String hostPortStr = properties.getProperty(KEY_HOST_PORT, DEFAULT_HOST);
             String port = null;
             String host = null;
             Matcher matcher = PATTERN.matcher(hostPortStr);
-            if(matcher.find()){
+            if (matcher.find()) {
                 host = matcher.group("host");
                 port = matcher.group("port");
             }
             port = port == null ? DEFAULT_PORT : port;
 
-            TelnetUtil.telnet(host,Integer.parseInt(port));
+            TelnetUtil.telnet(host, Integer.parseInt(port));
 
-            int timeOut = (Integer) properties.getOrDefault(KEY_TIMEOUT,TIMEOUT);
+            int timeOut = (Integer) properties.getOrDefault(KEY_TIMEOUT, TIMEOUT);
             String password = properties.getProperty(KEY_PASSWORD);
-            int db = Integer.parseInt(properties.getOrDefault(KEY_DB,DEFAULT_DB).toString()) ;
+            int db = Integer.parseInt(properties.getOrDefault(KEY_DB, DEFAULT_DB).toString());
 
-            jedisPool = new JedisPool(getConfig(), host, Integer.valueOf(port),timeOut, password, db);
+            jedisPool =
+                    new JedisPool(getConfig(), host, Integer.valueOf(port), timeOut, password, db);
         }
         return jedisPool.getResource();
     }
 
-    public static void close(Jedis jedis){
+    public static void close(Jedis jedis) {
         try {
-            if(jedisPool != null){
+            if (jedisPool != null) {
                 jedisPool.close();
             }
 
-            if(jedis != null){
+            if (jedis != null) {
                 jedis.close();
             }
-        } catch (Exception ignore){
+        } catch (Exception ignore) {
         }
     }
 
-    private static JedisPoolConfig getConfig(){
+    private static JedisPoolConfig getConfig() {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxIdle(100);
         jedisPoolConfig.setMaxTotal(500);

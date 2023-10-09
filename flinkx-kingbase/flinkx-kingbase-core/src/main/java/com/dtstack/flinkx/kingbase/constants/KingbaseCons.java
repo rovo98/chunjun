@@ -21,27 +21,23 @@ package com.dtstack.flinkx.kingbase.constants;
 /**
  * kingbase常量
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author kunni@dtstack.com
  */
-
 public class KingbaseCons {
 
     public static final String DRIVER = "com.kingbase8.Driver";
-    /**
-     * kingbase 主键索引名后缀
-     */
+    /** kingbase 主键索引名后缀 */
     public static final String KEY_UPDATE_KEY = "key";
 
     public static final String KEY_PRIMARY_SUFFIX = "_PKEY";
 
     public static final String INSERT_SQL_MODE_TYPE = "copy";
 
-    /**
-     * copy语法分隔符
-     */
+    /** copy语法分隔符 */
     public static final String DEFAULT_FIELD_DELIM = "\001";
+
     public static final String DEFAULT_NULL_DELIM = "\002";
     public static final String LINE_DELIMITER = "\n";
-
 }

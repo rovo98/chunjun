@@ -19,15 +19,18 @@ package com.dtstack.flinkx.hbase.reader;
 
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.Preconditions;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * The builder of HbaseInputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -38,7 +41,7 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new HbaseInputFormat();
     }
 
-    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
+    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 
@@ -71,7 +74,7 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
     public void setEncoding(String encoding) {
-        format.encoding = StringUtils.isEmpty(encoding) ?  "utf-8" : encoding;
+        format.encoding = StringUtils.isEmpty(encoding) ? "utf-8" : encoding;
     }
 
     public void setColumnFormats(List<String> columnFormats) {
@@ -89,17 +92,24 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         Preconditions.checkNotNull(format.columnValues);
         Preconditions.checkNotNull(format.columnNames);
 
-        Preconditions.checkArgument(format.scanCacheSize <= HbaseConfigConstants.MAX_SCAN_CACHE_SIZE && format.scanCacheSize >= HbaseConfigConstants.MIN_SCAN_CACHE_SIZE,
-                "scanCacheSize should be between " + HbaseConfigConstants.MIN_SCAN_CACHE_SIZE +  " and " + HbaseConfigConstants.MAX_SCAN_CACHE_SIZE);
+        Preconditions.checkArgument(
+                format.scanCacheSize <= HbaseConfigConstants.MAX_SCAN_CACHE_SIZE
+                        && format.scanCacheSize >= HbaseConfigConstants.MIN_SCAN_CACHE_SIZE,
+                "scanCacheSize should be between "
+                        + HbaseConfigConstants.MIN_SCAN_CACHE_SIZE
+                        + " and "
+                        + HbaseConfigConstants.MAX_SCAN_CACHE_SIZE);
 
-        for(int i = 0; i < format.columnTypes.size(); ++i) {
+        for (int i = 0; i < format.columnTypes.size(); ++i) {
             Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnTypes.get(i)));
-            Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnNames.get(i))
-                    || StringUtils.isNotEmpty(format.columnTypes.get(i)) );
+            Preconditions.checkArgument(
+                    StringUtils.isNotEmpty(format.columnNames.get(i))
+                            || StringUtils.isNotEmpty(format.columnTypes.get(i)));
         }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
 }

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.writer;
 
 import com.dtstack.flinkx.kudu.core.KuduConfig;
@@ -38,24 +37,25 @@ public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new KuduOutputFormat();
     }
 
-    public void setColumns(List<MetaColumn> columns){
+    public void setColumns(List<MetaColumn> columns) {
         format.columns = columns;
     }
 
-    public void setKuduConfig(KuduConfig kuduConfig){
+    public void setKuduConfig(KuduConfig kuduConfig) {
         format.kuduConfig = kuduConfig;
     }
 
-    public void setWriteMode(String writeMode){
+    public void setWriteMode(String writeMode) {
         format.writeMode = writeMode;
     }
 
-    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         format.setHadoopConfig(hadoopConfig);
     }
+
     @Override
     protected void checkFormat() {
-        if (format.columns == null || format.columns.size() == 0){
+        if (format.columns == null || format.columns.size() == 0) {
             throw new IllegalArgumentException("columns can not be empty");
         }
     }

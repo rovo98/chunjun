@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.mongodb;
 
 import com.mongodb.AuthenticationMechanism;
@@ -68,7 +67,7 @@ public class MongodbConfig implements Serializable {
 
     private ConnectionConfig mongodbConfig = new ConnectionConfig();
 
-    public class ConnectionConfig implements Serializable{
+    public class ConnectionConfig implements Serializable {
         private int connectionsPerHost = 100;
 
         private int threadsForConnectionMultiplier = 100;
@@ -121,13 +120,18 @@ public class MongodbConfig implements Serializable {
 
         @Override
         public String toString() {
-            return "ConnectionConfig{" +
-                    "connectionsPerHost=" + connectionsPerHost +
-                    ", threadsForConnectionMultiplier=" + threadsForConnectionMultiplier +
-                    ", connectionTimeout=" + connectionTimeout +
-                    ", maxWaitTime=" + maxWaitTime +
-                    ", socketTimeout=" + socketTimeout +
-                    '}';
+            return "ConnectionConfig{"
+                    + "connectionsPerHost="
+                    + connectionsPerHost
+                    + ", threadsForConnectionMultiplier="
+                    + threadsForConnectionMultiplier
+                    + ", connectionTimeout="
+                    + connectionTimeout
+                    + ", maxWaitTime="
+                    + maxWaitTime
+                    + ", socketTimeout="
+                    + socketTimeout
+                    + '}';
         }
     }
 
@@ -285,26 +289,55 @@ public class MongodbConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "MongodbConfig{" +
-                "hostPorts='" + hostPorts + '\'' +
-                ", url='" + url + '\'' +
-                ", username='" + username + '\'' +
-                ", password='******" + '\'' +
-                ", authenticationMechanism='" + authenticationMechanism + '\'' +
-                ", database='" + database + '\'' +
-                ", collectionName='" + collectionName + '\'' +
-                ", filter='" + filter + '\'' +
-                ", fetchSize=" + fetchSize +
-                ", writeMode='" + writeMode + '\'' +
-                ", replaceKey='" + replaceKey + '\'' +
-                ", monitorDatabases=" + monitorDatabases +
-                ", monitorCollections=" + monitorCollections +
-                ", operateType=" + operateType +
-                ", pavingData=" + pavingData +
-                ", clusterMode='" + clusterMode + '\'' +
-                ", startLocation=" + startLocation +
-                ", excludeDocId=" + excludeDocId +
-                ", mongodbConfig=" + mongodbConfig +
-                '}';
+        return "MongodbConfig{"
+                + "hostPorts='"
+                + hostPorts
+                + '\''
+                + ", url='"
+                + url
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='******"
+                + '\''
+                + ", authenticationMechanism='"
+                + authenticationMechanism
+                + '\''
+                + ", database='"
+                + database
+                + '\''
+                + ", collectionName='"
+                + collectionName
+                + '\''
+                + ", filter='"
+                + filter
+                + '\''
+                + ", fetchSize="
+                + fetchSize
+                + ", writeMode='"
+                + writeMode
+                + '\''
+                + ", replaceKey='"
+                + replaceKey
+                + '\''
+                + ", monitorDatabases="
+                + monitorDatabases
+                + ", monitorCollections="
+                + monitorCollections
+                + ", operateType="
+                + operateType
+                + ", pavingData="
+                + pavingData
+                + ", clusterMode='"
+                + clusterMode
+                + '\''
+                + ", startLocation="
+                + startLocation
+                + ", excludeDocId="
+                + excludeDocId
+                + ", mongodbConfig="
+                + mongodbConfig
+                + '}';
     }
 }

@@ -21,6 +21,7 @@ import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.teradata.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,33 +35,34 @@ import java.sql.SQLException;
  */
 public class TeradataOutputFormat extends JdbcOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(TeradataOutputFormat.class);
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbUrl, username, password);
 
-            if (restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 dbConn.setAutoCommit(false);
             }
 
-            if(CollectionUtils.isEmpty(fullColumn)) {
+            if (CollectionUtils.isEmpty(fullColumn)) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
 
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
-                if(updateKey == null || updateKey.size() == 0) {
+            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
+                if (updateKey == null || updateKey.size() == 0) {
                     updateKey = probePrimaryKeys(table, dbConn);
                 }
             }
 
-            if(fullColumnType == null) {
+            if (fullColumnType == null) {
                 fullColumnType = analyzeTable();
             }
 
-            for(String col : column) {
+            for (String col : column) {
                 for (int i = 0; i < fullColumn.size(); i++) {
-                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                    if (col.equalsIgnoreCase(fullColumn.get(i))) {
                         columnType.add(fullColumnType.get(i));
                         break;
                     }

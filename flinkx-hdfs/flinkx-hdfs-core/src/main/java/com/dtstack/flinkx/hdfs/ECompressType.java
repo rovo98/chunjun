@@ -27,26 +27,20 @@ import org.apache.commons.lang.StringUtils;
  */
 public enum ECompressType {
 
-    /**
-     * text file
-     */
+    /** text file */
     TEXT_GZIP("GZIP", "text", ".gz", 0.331F),
     TEXT_BZIP2("BZIP2", "text", ".bz2", 0.259F),
     TEXT_LZO("LZO", "text", ".lzo", 1.0F),
     TEXT_NONE("NONE", "text", "", 0.637F),
 
-    /**
-     * orc file
-     */
+    /** orc file */
     ORC_SNAPPY("SNAPPY", "orc", ".snappy", 0.233F),
     ORC_GZIP("GZIP", "orc", ".gz", 1.0F),
     ORC_BZIP("BZIP", "orc", ".bz", 1.0F),
     ORC_LZ4("LZ4", "orc", ".lz4", 1.0F),
     ORC_NONE("NONE", "orc", "", 0.233F),
 
-    /**
-     * parquet file
-     */
+    /** parquet file */
     PARQUET_SNAPPY("SNAPPY", "parquet", ".snappy", 0.274F),
     PARQUET_GZIP("GZIP", "parquet", ".gz", 1.0F),
     PARQUET_LZO("LZO", "parquet", ".lzo", 1.0F),
@@ -67,13 +61,14 @@ public enum ECompressType {
         this.deviation = deviation;
     }
 
-    public static ECompressType getByTypeAndFileType(String type, String fileType){
-        if(StringUtils.isEmpty(type)){
+    public static ECompressType getByTypeAndFileType(String type, String fileType) {
+        if (StringUtils.isEmpty(type)) {
             type = "NONE";
         }
 
         for (ECompressType value : ECompressType.values()) {
-            if (value.getType().equalsIgnoreCase(type) && value.getFileType().equalsIgnoreCase(fileType)){
+            if (value.getType().equalsIgnoreCase(type)
+                    && value.getFileType().equalsIgnoreCase(fileType)) {
                 return value;
             }
         }

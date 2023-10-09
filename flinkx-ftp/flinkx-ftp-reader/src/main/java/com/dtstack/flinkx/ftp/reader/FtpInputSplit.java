@@ -19,13 +19,15 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import org.apache.flink.core.io.InputSplit;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The Class describing each InputSplit of Ftp
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpInputSplit implements InputSplit {

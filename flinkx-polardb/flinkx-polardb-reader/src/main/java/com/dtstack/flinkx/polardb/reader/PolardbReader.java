@@ -22,11 +22,11 @@ import com.dtstack.flinkx.mysql.reader.MysqlReader;
 import com.dtstack.flinkx.polardb.format.PolardbInputFormat;
 import com.dtstack.flinkx.polardbd.PolardbDatabaseMeta;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Date: 2019/11/13
- * Company: www.dtstack.com
+ * Date: 2019/11/13 Company: www.dtstack.com
  *
  * @author tudou
  */

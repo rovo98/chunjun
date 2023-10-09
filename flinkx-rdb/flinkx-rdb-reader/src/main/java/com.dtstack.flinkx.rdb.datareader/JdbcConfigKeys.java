@@ -21,7 +21,8 @@ package com.dtstack.flinkx.rdb.datareader;
 /**
  * Configuration Keys for JdbcDataReader
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JdbcConfigKeys {

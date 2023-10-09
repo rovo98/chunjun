@@ -6,6 +6,7 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.WriteType;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -81,11 +82,18 @@ public class AlluxioWriter extends BaseDataWriter {
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
-        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
+        rowGroupSize =
+                writerConfig
+                        .getParameter()
+                        .getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+        maxFileSize =
+                writerConfig
+                        .getParameter()
+                        .getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
         enableDictionary = writerConfig.getParameter().getBooleanVal(KEY_ENABLE_DICTIONARY, true);
-        writerType = writerConfig.getParameter().getStringVal(KEY_WRITE_TYPE, WriteType.THROUGH.name());
+        writerType =
+                writerConfig.getParameter().getStringVal(KEY_WRITE_TYPE, WriteType.THROUGH.name());
 
         if (fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
@@ -105,8 +113,10 @@ public class AlluxioWriter extends BaseDataWriter {
             }
         }
 
-        fullColumnName = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
-        fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
+        fullColumnName =
+                (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
+        fullColumnType =
+                (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
     }

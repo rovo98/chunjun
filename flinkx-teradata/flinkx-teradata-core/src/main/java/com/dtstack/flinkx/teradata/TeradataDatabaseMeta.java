@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.teradata;
 
-
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -30,7 +30,8 @@ import java.util.Map;
 /**
  * The class of TeraData database prototype
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class TeradataDatabaseMeta extends BaseDatabaseMeta {
@@ -47,13 +48,19 @@ public class TeradataDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSqlQueryFields(String tableName) {
-        return "SELECT * FROM " + tableName + " QUALIFY SUM(1) OVER (ROWS UNBOUNDED PRECEDING) BETWEEN 0 AND 0";
+        return "SELECT * FROM "
+                + tableName
+                + " QUALIFY SUM(1) OVER (ROWS UNBOUNDED PRECEDING) BETWEEN 0 AND 0";
     }
 
     @Override
     public String getSqlQueryColumnFields(List<String> column, String table) {
-        return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " QUALIFY SUM(1) OVER (ROWS UNBOUNDED" +
-                " PRECEDING) BETWEEN 0 AND 0";
+        return "SELECT "
+                + quoteColumns(column)
+                + " FROM "
+                + quoteTable(table)
+                + " QUALIFY SUM(1) OVER (ROWS UNBOUNDED"
+                + " PRECEDING) BETWEEN 0 AND 0";
     }
 
     @Override
@@ -68,22 +75,27 @@ public class TeradataDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("\"%s\" as %s",value,column);
+        return String.format("\"%s\" as %s", value, column);
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+    public String getReplaceStatement(
+            List<String> column,
+            List<String> fullColumn,
+            String table,
+            Map<String, List<String>> updateKey) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
         throw new UnsupportedOperationException();
     }
 
-    private String makeUpdatePart (List<String> column) {
+    private String makeUpdatePart(List<String> column) {
         List<String> updateList = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             String quotedCol = quoteColumn(col);
             updateList.add(quotedCol + "=values(" + quotedCol + ")");
         }
@@ -96,8 +108,9 @@ public class TeradataDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(
+                "%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
@@ -115,12 +128,12 @@ public class TeradataDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 }

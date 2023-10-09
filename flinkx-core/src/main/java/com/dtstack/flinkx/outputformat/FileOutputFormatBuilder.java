@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.outputformat;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,19 +53,20 @@ public class FileOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setCharSetName(String charsetName) {
-        if(StringUtils.isNotEmpty(charsetName)) {
-            if(!Charset.isSupported(charsetName)) {
-                throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
+        if (StringUtils.isNotEmpty(charsetName)) {
+            if (!Charset.isSupported(charsetName)) {
+                throw new UnsupportedCharsetException(
+                        "The charset " + charsetName + " is not supported.");
             }
             this.format.charsetName = charsetName;
         }
     }
 
-    public void setMaxFileSize(long maxFileSize){
+    public void setMaxFileSize(long maxFileSize) {
         format.maxFileSize = maxFileSize;
     }
 
-    public void setFlushBlockInterval(long interval){
+    public void setFlushBlockInterval(long interval) {
         format.flushInterval = interval;
     }
 

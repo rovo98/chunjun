@@ -19,13 +19,11 @@
 package com.dtstack.flinkx.greenplum;
 
 /**
- * when use insert mode, use org.postgresql.Driver
+ * when use insert mode, use org.postgresql.Driver @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
-
-public class GreenplumDatabaseMetaInsert extends GreenplumDatabaseMeta{
+public class GreenplumDatabaseMetaInsert extends GreenplumDatabaseMeta {
     @Override
     public String getDriverClass() {
         return "org.postgresql.Driver";

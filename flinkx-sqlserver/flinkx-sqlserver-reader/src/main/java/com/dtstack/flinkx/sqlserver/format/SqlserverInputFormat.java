@@ -20,6 +20,7 @@ package com.dtstack.flinkx.sqlserver.format;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
@@ -29,8 +30,7 @@ import java.sql.Timestamp;
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
- * Date: 2019/09/19
- * Company: www.dtstack.com
+ * Date: 2019/09/19 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -69,17 +69,19 @@ public class SqlserverInputFormat extends JdbcInputFormat {
      * 构建边界位置sql
      *
      * @param incrementColType 增量字段类型
-     * @param incrementCol     增量字段名称
-     * @param location         边界位置(起始/结束)
-     * @param operator         判断符( >, >=,  <)
+     * @param incrementCol 增量字段名称
+     * @param location 边界位置(起始/结束)
+     * @param operator 判断符( >, >=, <)
      * @return
      */
     @Override
-    protected String getLocationSql(String incrementColType, String incrementCol, String location, String operator) {
+    protected String getLocationSql(
+            String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
-        boolean isTimeType = ColumnType.isTimeType(incrementColType)
-                || ColumnType.NVARCHAR.name().equals(incrementColType);
+        boolean isTimeType =
+                ColumnType.isTimeType(incrementColType)
+                        || ColumnType.NVARCHAR.name().equals(incrementColType);
         if (isTimeType) {
             endTimeStr = getTimeStr(Long.parseLong(location), incrementColType);
             endLocationSql = incrementCol + operator + endTimeStr;
@@ -96,7 +98,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
     /**
      * 构建时间边界字符串
      *
-     * @param location         边界位置(起始/结束)
+     * @param location 边界位置(起始/结束)
      * @param incrementColType 增量字段类型
      * @return
      */

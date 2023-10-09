@@ -18,8 +18,7 @@
 package com.dtstack.flinkx.pgwal;
 
 /**
- * Date: 2019/12/13
- * Company: www.dtstack.com
+ * Date: 2019/12/13 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -37,11 +36,11 @@ public class PgRelicationSlot {
     private String restartLsn;
     private String confirmedFlushLsn;
 
-    public boolean isActive(){
+    public boolean isActive() {
         return "t".equalsIgnoreCase(active);
     }
 
-    public boolean isNotActive(){
+    public boolean isNotActive() {
         return !isActive();
     }
 
@@ -143,19 +142,42 @@ public class PgRelicationSlot {
 
     @Override
     public String toString() {
-        return "PgRelicationSlots{" +
-                "slotName='" + slotName + '\'' +
-                ", plugin='" + plugin + '\'' +
-                ", slotType='" + slotType + '\'' +
-                ", datoid=" + datoid +
-                ", database='" + database + '\'' +
-                ", temporary='" + temporary + '\'' +
-                ", active='" + active + '\'' +
-                ", activePid='" + activePid + '\'' +
-                ", xmin='" + xmin + '\'' +
-                ", catalogXmin='" + catalogXmin + '\'' +
-                ", restartLsn='" + restartLsn + '\'' +
-                ", conFirmedFlushLsn='" + confirmedFlushLsn + '\'' +
-                '}';
+        return "PgRelicationSlots{"
+                + "slotName='"
+                + slotName
+                + '\''
+                + ", plugin='"
+                + plugin
+                + '\''
+                + ", slotType='"
+                + slotType
+                + '\''
+                + ", datoid="
+                + datoid
+                + ", database='"
+                + database
+                + '\''
+                + ", temporary='"
+                + temporary
+                + '\''
+                + ", active='"
+                + active
+                + '\''
+                + ", activePid='"
+                + activePid
+                + '\''
+                + ", xmin='"
+                + xmin
+                + '\''
+                + ", catalogXmin='"
+                + catalogXmin
+                + '\''
+                + ", restartLsn='"
+                + restartLsn
+                + '\''
+                + ", conFirmedFlushLsn='"
+                + confirmedFlushLsn
+                + '\''
+                + '}';
     }
 }

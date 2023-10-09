@@ -27,6 +27,7 @@ import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.WriteMode;
+
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections.MapUtils;
@@ -45,9 +46,7 @@ import java.util.TreeMap;
 
 import static com.dtstack.flinkx.util.GsonUtil.GSON;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class HiveWriter extends BaseDataWriter {
 
     private String readerName;
@@ -94,34 +93,63 @@ public class HiveWriter extends BaseDataWriter {
         super(config);
         readerName = config.getJob().getContent().get(0).getReader().getName();
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(HiveConfigKeys.KEY_HADOOP_CONFIG);
+        hadoopConfig =
+                (Map<String, Object>)
+                        writerConfig.getParameter().getVal(HiveConfigKeys.KEY_HADOOP_CONFIG);
         defaultFs = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_DEFAULT_FS);
-        if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(HiveConfigKeys.KEY_FS_DEFAULT_FS)){
+        if (StringUtils.isBlank(defaultFs)
+                && hadoopConfig.containsKey(HiveConfigKeys.KEY_FS_DEFAULT_FS)) {
             defaultFs = MapUtils.getString(hadoopConfig, HiveConfigKeys.KEY_FS_DEFAULT_FS);
         }
         fileType = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_FILE_TYPE);
-        partitionType = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
+        partitionType =
+                writerConfig
+                        .getParameter()
+                        .getStringVal(
+                                HiveConfigKeys.KEY_PARTITION_TYPE,
+                                TimePartitionFormat.PartitionEnum.DAY.name());
         partition = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PARTITION, "pt");
-        delimiter = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_FIELD_DELIMITER, "\u0001");
+        delimiter =
+                writerConfig
+                        .getParameter()
+                        .getStringVal(HiveConfigKeys.KEY_FIELD_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_CHARSET_NAME);
-        maxFileSize = writerConfig.getParameter().getLongVal(HiveConfigKeys.KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
+        maxFileSize =
+                writerConfig
+                        .getParameter()
+                        .getLongVal(HiveConfigKeys.KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         compress = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_COMPRESS);
-        bufferSize = writerConfig.getParameter().getLongVal(HiveConfigKeys.KEY_BUFFER_SIZE, 128 * ConstantValue.STORE_SIZE_M);
-        rowGroupSize = writerConfig.getParameter().getIntVal(HdfsConfigKeys.KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+        bufferSize =
+                writerConfig
+                        .getParameter()
+                        .getLongVal(
+                                HiveConfigKeys.KEY_BUFFER_SIZE, 128 * ConstantValue.STORE_SIZE_M);
+        rowGroupSize =
+                writerConfig
+                        .getParameter()
+                        .getIntVal(
+                                HdfsConfigKeys.KEY_ROW_GROUP_SIZE,
+                                ParquetWriter.DEFAULT_BLOCK_SIZE);
 
-        mode = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_WRITE_MODE, WriteMode.APPEND.name());
+        mode =
+                writerConfig
+                        .getParameter()
+                        .getStringVal(HiveConfigKeys.KEY_WRITE_MODE, WriteMode.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_JDBC_URL);
         username = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PASSWORD);
         schema = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_SCHEMA);
 
-        String distributeTable = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_DISTRIBUTE_TABLE);
+        String distributeTable =
+                writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_DISTRIBUTE_TABLE);
         formatHiveDistributeInfo(distributeTable);
 
-        String tablesColumn = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_TABLE_COLUMN);
+        String tablesColumn =
+                writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_TABLE_COLUMN);
         formatHiveTableInfo(tablesColumn);
 
-        String analyticalRules = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_ANALYTICAL_RULES);
+        String analyticalRules =
+                writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_ANALYTICAL_RULES);
         if (StringUtils.isBlank(analyticalRules)) {
             tableBasePath = tableInfos.entrySet().iterator().next().getValue().getTableName();
         } else {
@@ -131,14 +159,16 @@ public class HiveWriter extends BaseDataWriter {
     }
 
     /**
-     * 分表的映射关系
-     * distributeTableMapping 的数据结构为<tableName,groupName>
+     * 分表的映射关系 distributeTableMapping 的数据结构为<tableName,groupName>
      * tableInfos的数据结构为<groupName,TableInfo>
      */
     private void formatHiveDistributeInfo(String distributeTable) {
         distributeTableMapping = new HashMap<>(32);
         if (StringUtils.isNotBlank(distributeTable)) {
-            Map<String, List<String>> distributeTableMap = GSON.fromJson(distributeTable, new TypeToken<TreeMap<String, List<String>>>(){}.getType());
+            Map<String, List<String>> distributeTableMap =
+                    GSON.fromJson(
+                            distributeTable,
+                            new TypeToken<TreeMap<String, List<String>>>() {}.getType());
             for (Map.Entry<String, List<String>> entry : distributeTableMap.entrySet()) {
                 String groupName = entry.getKey();
                 List<String> groupTables = entry.getValue();
@@ -152,7 +182,11 @@ public class HiveWriter extends BaseDataWriter {
     private void formatHiveTableInfo(String tablesColumn) {
         tableInfos = new HashMap<>(16);
         if (StringUtils.isNotEmpty(tablesColumn)) {
-            Map<String, List<Map<String, Object>>>  tableColumnMap = GSON.fromJson(tablesColumn, new TypeToken<TreeMap<String, List<Map<String, Object>> >>(){}.getType());
+            Map<String, List<Map<String, Object>>> tableColumnMap =
+                    GSON.fromJson(
+                            tablesColumn,
+                            new TypeToken<
+                                    TreeMap<String, List<Map<String, Object>>>>() {}.getType());
             List<Map<String, Object>> extraTableColumnList = getExtraTableColumn();
             for (Map.Entry<String, List<Map<String, Object>>> entry : tableColumnMap.entrySet()) {
                 String tableName = entry.getKey();
@@ -164,7 +198,10 @@ public class HiveWriter extends BaseDataWriter {
                 tableInfo.setStore(fileType);
                 tableInfo.setTableName(tableName);
                 for (Map<String, Object> column : tableColumns) {
-                    tableInfo.addColumnAndType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY), HiveUtil.getHiveColumnType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
+                    tableInfo.addColumnAndType(
+                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
+                            HiveUtil.getHiveColumnType(
+                                    MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);
@@ -174,12 +211,10 @@ public class HiveWriter extends BaseDataWriter {
         }
     }
 
-    /**
-     * 增加hive表字段
-     */
+    /** 增加hive表字段 */
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> getExtraTableColumn(){
-        if(StringUtils.equalsIgnoreCase(readerName, "oraclelogminerreader")){
+    private List<Map<String, Object>> getExtraTableColumn() {
+        if (StringUtils.equalsIgnoreCase(readerName, "oraclelogminerreader")) {
             List<Map<String, Object>> list = new ArrayList<>(2);
             Map<String, Object> opTime = new LinkedTreeMap<>();
             opTime.put("type", "BIGINT");
@@ -195,7 +230,7 @@ public class HiveWriter extends BaseDataWriter {
             list.add(scn);
 
             return list;
-        }else{
+        } else {
             return Collections.EMPTY_LIST;
         }
     }

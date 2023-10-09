@@ -19,18 +19,18 @@ package com.dtstack.flinkx.phoenix5.reader;
 
 import com.dtstack.flinkx.phoenix5.format.Phoenix5InputFormat;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2020/09/30
- * Company: www.dtstack.com
+ * Date: 2020/09/30 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class Phoenix5InputFormatBuilder extends JdbcInputFormatBuilder {
     protected Phoenix5InputFormat format;
 
-    //use for check
+    // use for check
     private String where;
     private String customSql;
     private String orderByColumn;
@@ -40,44 +40,46 @@ public class Phoenix5InputFormatBuilder extends JdbcInputFormatBuilder {
         this.format = format;
     }
 
-    public void setReadFromHbase(boolean readFromHbase){
+    public void setReadFromHbase(boolean readFromHbase) {
         format.readFromHbase = readFromHbase;
     }
 
-    public void setScanCacheSize(int scanCacheSize){
+    public void setScanCacheSize(int scanCacheSize) {
         format.scanCacheSize = scanCacheSize;
     }
 
-    public void setScanBatchSize(int scanBatchSize){
+    public void setScanBatchSize(int scanBatchSize) {
         format.scanBatchSize = scanBatchSize;
     }
 
     @Override
     protected void checkFormat() {
-        if(format.readFromHbase){
+        if (format.readFromHbase) {
             StringBuilder sb = new StringBuilder(256);
             if (StringUtils.isBlank(format.dbUrl)) {
                 sb.append("No database URL supplied\n");
             }
-            if(StringUtils.isNotBlank(where)){
+            if (StringUtils.isNotBlank(where)) {
                 sb.append("cannot config [where] when readFromHbase is true, current where is : [")
                         .append(where)
                         .append("]\n");
             }
-            if(StringUtils.isNotBlank(customSql)){
-                sb.append("cannot config [customSql] when readFromHbase is true, current customSql is : [")
+            if (StringUtils.isNotBlank(customSql)) {
+                sb.append(
+                                "cannot config [customSql] when readFromHbase is true, current customSql is : [")
                         .append(customSql)
                         .append("]\n");
             }
-            if(StringUtils.isNotBlank(orderByColumn)){
-                sb.append("cannot config [orderByColumn] when readFromHbase is true, current orderByColumn is : [")
+            if (StringUtils.isNotBlank(orderByColumn)) {
+                sb.append(
+                                "cannot config [orderByColumn] when readFromHbase is true, current orderByColumn is : [")
                         .append(orderByColumn)
                         .append("]");
             }
-            if(sb.length() > 0){
+            if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
-        }else{
+        } else {
             super.checkFormat();
         }
     }

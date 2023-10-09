@@ -21,9 +21,8 @@ package com.dtstack.flinkx.cassandra.reader;
 import org.apache.flink.core.io.InputSplit;
 
 /**
- * The split for cassandra Reader plugin
+ * The split for cassandra Reader plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author wuhui
  */
 public class CassandraInputSplit implements InputSplit {
@@ -32,7 +31,7 @@ public class CassandraInputSplit implements InputSplit {
 
     private String maxToken;
 
-    public CassandraInputSplit(){}
+    public CassandraInputSplit() {}
 
     public CassandraInputSplit(String minToken, String maxToken) {
         this.minToken = minToken;

@@ -23,7 +23,8 @@ import java.util.Map;
 /**
  * The configuration of setting optoins
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class SettingConfig extends AbstractConfig {
@@ -59,21 +60,22 @@ public class SettingConfig extends AbstractConfig {
     @SuppressWarnings("unchecked")
     public SettingConfig(Map<String, Object> map) {
         super(map);
-        if(map.containsKey(KEY_SPEED_CONFIG)) {
+        if (map.containsKey(KEY_SPEED_CONFIG)) {
             speed = new SpeedConfig((Map<String, Object>) map.get(KEY_SPEED_CONFIG));
         }
-        if(map.containsKey(KEY_ERROR_LIMIT_CONFIG)) {
-            errorLimit = new ErrorLimitConfig((Map<String, Object>) map.get(KEY_ERROR_LIMIT_CONFIG));
+        if (map.containsKey(KEY_ERROR_LIMIT_CONFIG)) {
+            errorLimit =
+                    new ErrorLimitConfig((Map<String, Object>) map.get(KEY_ERROR_LIMIT_CONFIG));
         }
-        if(map.containsKey(KEY_DIRTY_CONFIG)) {
+        if (map.containsKey(KEY_DIRTY_CONFIG)) {
             dirty = new DirtyConfig((Map<String, Object>) map.get(KEY_DIRTY_CONFIG));
         }
 
-        if (map.containsKey(KEY_RESTORE)){
+        if (map.containsKey(KEY_RESTORE)) {
             restoreConfig = new RestoreConfig((Map<String, Object>) map.get(KEY_RESTORE));
         }
 
-        if (map.containsKey(KEY_LOG)){
+        if (map.containsKey(KEY_LOG)) {
             logConfig = new LogConfig((Map<String, Object>) map.get(KEY_LOG));
         }
 
@@ -142,4 +144,3 @@ public class SettingConfig extends AbstractConfig {
         this.restartConfig = restartConfig;
     }
 }
-

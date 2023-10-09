@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.cassandra;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.LocalDate;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,8 +44,8 @@ import java.util.UUID;
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
 
 /**
- *
  * @Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class CassandraUtil {
@@ -52,11 +53,12 @@ public class CassandraUtil {
 
     /**
      * 获取cassandraSession
+     *
      * @param cassandraConfig cassandra配置
      * @param clusterName 集群名称，可以空字符串，用于重新连接使用
      * @return cassandraSession
      */
-    public static Session getSession(Map<String,Object> cassandraConfig, String clusterName) {
+    public static Session getSession(Map<String, Object> cassandraConfig, String clusterName) {
         Session cassandraSession;
         try {
             String keySpace = MapUtils.getString(cassandraConfig, KEY_KEY_SPACE);
@@ -77,11 +79,12 @@ public class CassandraUtil {
 
     /**
      * 获取Cluster
+     *
      * @param cassandraConfig cassandra配置
      * @param clusterName 集群名称
      * @return 返回Cluster实例
      */
-    private static Cluster getCluster(Map<String,Object> cassandraConfig, String clusterName) {
+    private static Cluster getCluster(Map<String, Object> cassandraConfig, String clusterName) {
         Cluster cassandraCluster;
         try {
             String username = MapUtils.getString(cassandraConfig, KEY_USERNAME);
@@ -89,23 +92,32 @@ public class CassandraUtil {
             Integer port = MapUtils.getInteger(cassandraConfig, KEY_PORT);
             String hosts = MapUtils.getString(cassandraConfig, KEY_HOST);
             boolean useSSL = MapUtils.getBooleanValue(cassandraConfig, KEY_USE_SSL);
-            int connectionsPerHost = MapUtils.getIntValue(cassandraConfig, KEY_CONNECTION_PER_HOST, 8);
-            int maxPendingPerConnection = MapUtils.getIntValue(cassandraConfig, KEY_MAX_PENDING_CONNECTION, 128);
+            int connectionsPerHost =
+                    MapUtils.getIntValue(cassandraConfig, KEY_CONNECTION_PER_HOST, 8);
+            int maxPendingPerConnection =
+                    MapUtils.getIntValue(cassandraConfig, KEY_MAX_PENDING_CONNECTION, 128);
 
             Preconditions.checkNotNull(hosts, "url must not null");
 
             // 创建集群
-            Cluster.Builder builder = Cluster.builder().addContactPoints(hosts.split(",")).withPort(port);
-            builder = StringUtils.isNotEmpty(clusterName) ? builder.withClusterName(clusterName) : builder;
+            Cluster.Builder builder =
+                    Cluster.builder().addContactPoints(hosts.split(",")).withPort(port);
+            builder =
+                    StringUtils.isNotEmpty(clusterName)
+                            ? builder.withClusterName(clusterName)
+                            : builder;
             builder = useSSL ? builder.withSSL() : builder;
             if ((username != null) && !username.isEmpty()) {
                 builder = builder.withCredentials(username, password);
             }
 
-            PoolingOptions poolingOptions = new PoolingOptions()
-                    .setConnectionsPerHost(HostDistance.LOCAL, connectionsPerHost, connectionsPerHost)
-                    .setMaxRequestsPerConnection(HostDistance.LOCAL, maxPendingPerConnection)
-                    .setNewConnectionThreshold(HostDistance.LOCAL, 100);
+            PoolingOptions poolingOptions =
+                    new PoolingOptions()
+                            .setConnectionsPerHost(
+                                    HostDistance.LOCAL, connectionsPerHost, connectionsPerHost)
+                            .setMaxRequestsPerConnection(
+                                    HostDistance.LOCAL, maxPendingPerConnection)
+                            .setNewConnectionThreshold(HostDistance.LOCAL, 100);
 
             cassandraCluster = builder.withPoolingOptions(poolingOptions).build();
 
@@ -117,19 +129,20 @@ public class CassandraUtil {
     }
 
     /**
-     *  关闭集群与会话
+     * 关闭集群与会话
+     *
      * @param session 会话实例
      */
-    public static void close(Session session){
+    public static void close(Session session) {
         Cluster cluster = null;
-        if (session != null){
+        if (session != null) {
             LOG.info("Start close cassandra session");
             cluster = session.getCluster();
             session.close();
             LOG.info("Close cassandra session successfully");
         }
 
-        if (cluster != null){
+        if (cluster != null) {
             LOG.info("Start close cassandra cluster");
             cluster.close();
             LOG.info("Close cassandra cluster successfully");
@@ -138,6 +151,7 @@ public class CassandraUtil {
 
     /**
      * 从cassandra中获取数据
+     *
      * @param row 一行数据
      * @param type 字段类型
      * @param columnName 字段名
@@ -194,14 +208,14 @@ public class CassandraUtil {
         return value;
     }
 
-
     /**
      * 对象转byte[]
+     *
      * @param obj 对象实例
      * @param <T> 对象类型
      * @return Optional<byte[]>
      */
-    private static<T> Optional<byte[]> objectToBytes(T obj){
+    private static <T> Optional<byte[]> objectToBytes(T obj) {
         byte[] bytes = null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream sOut;
@@ -209,22 +223,27 @@ public class CassandraUtil {
             sOut = new ObjectOutputStream(out);
             sOut.writeObject(obj);
             sOut.flush();
-            bytes= out.toByteArray();
+            bytes = out.toByteArray();
         } catch (IOException e) {
-            LOG.warn("object convent byte[] failed, error info {}", ExceptionUtil.getErrorMessage(e), e);
+            LOG.warn(
+                    "object convent byte[] failed, error info {}",
+                    ExceptionUtil.getErrorMessage(e),
+                    e);
         }
         return Optional.ofNullable(bytes);
     }
 
     /**
      * 设置值到对应的pos上
+     *
      * @param ps preStatement
      * @param pos 位置
      * @param sqlType cql类型
      * @param value 值
      * @throws Exception 对于不支持的数据类型，抛出异常
      */
-    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value) throws Exception {
+    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value)
+            throws Exception {
         if (value != null) {
             switch (sqlType.getName()) {
                 case ASCII:
@@ -234,7 +253,9 @@ public class CassandraUtil {
                     break;
 
                 case BLOB:
-                    ps.setBytes(pos, ByteBuffer.wrap(objectToBytes(value).orElseGet(() -> new byte[8])));
+                    ps.setBytes(
+                            pos,
+                            ByteBuffer.wrap(objectToBytes(value).orElseGet(() -> new byte[8])));
                     break;
 
                 case BOOLEAN:
@@ -242,19 +263,19 @@ public class CassandraUtil {
                     break;
 
                 case TINYINT:
-                    ps.setByte(pos, ((Integer)value).byteValue());
+                    ps.setByte(pos, ((Integer) value).byteValue());
                     break;
 
                 case SMALLINT:
-                    ps.setShort(pos, ((Integer)value).shortValue());
+                    ps.setShort(pos, ((Integer) value).shortValue());
                     break;
 
                 case INT:
-                    ps.setInt(pos, (Integer)value);
+                    ps.setInt(pos, (Integer) value);
                     break;
 
                 case BIGINT:
-                    ps.setLong(pos, (Long)value);
+                    ps.setLong(pos, (Long) value);
                     break;
 
                 case VARINT:
@@ -262,7 +283,7 @@ public class CassandraUtil {
                     break;
 
                 case FLOAT:
-                    ps.setFloat(pos, (Float)value);
+                    ps.setFloat(pos, (Float) value);
                     break;
 
                 case DOUBLE:
@@ -274,7 +295,7 @@ public class CassandraUtil {
                     break;
 
                 case DATE:
-                    ps.setDate(pos, LocalDate.fromMillisSinceEpoch(((Date)value).getTime()));
+                    ps.setDate(pos, LocalDate.fromMillisSinceEpoch(((Date) value).getTime()));
                     break;
 
                 case TIME:
@@ -296,7 +317,6 @@ public class CassandraUtil {
 
                 default:
                     throw new RuntimeException("暂不支持该数据类型: " + sqlType);
-
             }
         } else {
             ps.setToNull(pos);

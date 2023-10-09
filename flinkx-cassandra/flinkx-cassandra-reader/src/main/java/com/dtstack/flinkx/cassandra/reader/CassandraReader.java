@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -33,9 +34,8 @@ import java.util.Map;
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
 
 /**
- * The Reader plugin for cassandra
+ * The Reader plugin for cassandra @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author wuhui
  */
 public class CassandraReader extends BaseDataReader {
@@ -66,8 +66,7 @@ public class CassandraReader extends BaseDataReader {
 
     protected int maxPendingPerConnection;
 
-    protected Map<String,Object> cassandraConfig;
-
+    protected Map<String, Object> cassandraConfig;
 
     public CassandraReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -84,10 +83,13 @@ public class CassandraReader extends BaseDataReader {
         table = readerConfig.getParameter().getStringVal(KEY_TABLE);
         allowFiltering = readerConfig.getParameter().getBooleanVal(KEY_ALLOW_FILTERING, false);
         connectionsPerHost = readerConfig.getParameter().getIntVal(KEY_CONNECTION_PER_HOST, 8);
-        maxPendingPerConnection = readerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
+        maxPendingPerConnection =
+                readerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
         consistancyLevel = readerConfig.getParameter().getStringVal(KEY_CONSITANCY_LEVEL);
 
-        cassandraConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
+        cassandraConfig =
+                (Map<String, Object>)
+                        readerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
         cassandraConfig.put(KEY_HOST, host);
         cassandraConfig.put(KEY_PORT, port);
         cassandraConfig.put(KEY_USERNAME, username);
@@ -118,6 +120,6 @@ public class CassandraReader extends BaseDataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
 
-        return createInput(builder.finish(),"cassandrareader");
+        return createInput(builder.finish(), "cassandrareader");
     }
 }

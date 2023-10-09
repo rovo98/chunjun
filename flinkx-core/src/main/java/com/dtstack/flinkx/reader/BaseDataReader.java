@@ -19,20 +19,21 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.TestConfig;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,8 @@ import java.util.Map;
 /**
  * Abstract specification of Reader Plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseDataReader {
@@ -66,12 +68,11 @@ public abstract class BaseDataReader {
 
     protected DataTransferConfig dataTransferConfig;
 
-    /**
-     * reuse hadoopConfig for metric
-     */
+    /** reuse hadoopConfig for metric */
     protected Map<String, Object> hadoopConfig;
 
-    protected static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    protected static ObjectMapper objectMapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public int getNumPartitions() {
         return numPartitions;
@@ -92,8 +93,10 @@ public abstract class BaseDataReader {
     protected BaseDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
         this.dataTransferConfig = config;
-        this.numPartitions = Math.max(config.getJob().getSetting().getSpeed().getChannel(),
-                config.getJob().getSetting().getSpeed().getReaderChannel());
+        this.numPartitions =
+                Math.max(
+                        config.getJob().getSetting().getSpeed().getChannel(),
+                        config.getJob().getSetting().getSpeed().getReaderChannel());
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
@@ -108,15 +111,19 @@ public abstract class BaseDataReader {
             }
         }
 
-        if (restoreConfig.isStream()){
+        if (restoreConfig.isStream()) {
             return;
         }
 
-        if(restoreConfig.isRestore()){
-            List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
-            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
-            if(metaColumn == null){
-                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+        if (restoreConfig.isRestore()) {
+            List columns =
+                    config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+            MetaColumn metaColumn =
+                    MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if (metaColumn == null) {
+                throw new RuntimeException(
+                        "Can not find restore column from json with column name:"
+                                + restoreConfig.getRestoreColumnName());
             }
             restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
             restoreConfig.setRestoreColumnType(metaColumn.getType());
@@ -135,12 +142,12 @@ public abstract class BaseDataReader {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
+        DtInputFormatSourceFunction function =
+                new DtInputFormatSourceFunction(inputFormat, typeInfo);
         return env.addSource(function, sourceName, typeInfo);
     }
 
     protected DataStream<Row> createInput(InputFormat inputFormat) {
-        return createInput(inputFormat,this.getClass().getSimpleName().toLowerCase());
+        return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
-
 }

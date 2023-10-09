@@ -25,6 +25,7 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -45,8 +46,8 @@ import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_WRITE_MODE;
 
 /**
  * The Writer plugin for any database that can be connected via JDBC.
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -66,9 +67,7 @@ public class JdbcDataWriter extends BaseDataWriter {
     protected TypeConverterInterface typeConverter;
     protected Properties properties;
 
-    /**
-     * just for postgresql,use copy replace insert
-     */
+    /** just for postgresql,use copy replace insert */
     protected String insertSqlMode;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;

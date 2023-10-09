@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.carbondata.reader;
 
-
 import org.apache.carbondata.hadoop.CarbonInputSplit;
 import org.apache.flink.core.io.InputSplit;
 
@@ -29,11 +28,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Carbondata Flink Split
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonFlinkInputSplit implements InputSplit {
@@ -42,7 +41,8 @@ public class CarbonFlinkInputSplit implements InputSplit {
 
     private List<byte[]> rawSplits;
 
-    public CarbonFlinkInputSplit(List<CarbonInputSplit> carbonInputSplits, int splitNumber) throws IOException {
+    public CarbonFlinkInputSplit(List<CarbonInputSplit> carbonInputSplits, int splitNumber)
+            throws IOException {
         this.splitNumber = splitNumber;
         rawSplits = new ArrayList<>();
         List<byte[]> list = new ArrayList<>();
@@ -62,12 +62,12 @@ public class CarbonFlinkInputSplit implements InputSplit {
         return carbonInputSplits;
     }
 
-    private byte[] carbonSplitToRawSplit(CarbonInputSplit carbonInputSplit) throws IOException{
+    private byte[] carbonSplitToRawSplit(CarbonInputSplit carbonInputSplit) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         try {
             carbonInputSplit.write(dos);
-        }  catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             baos.close();
@@ -77,7 +77,7 @@ public class CarbonFlinkInputSplit implements InputSplit {
         return baos.toByteArray();
     }
 
-    private CarbonInputSplit rawSplitToCarbonSplit(byte[] rawSplit) throws IOException{
+    private CarbonInputSplit rawSplitToCarbonSplit(byte[] rawSplit) throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(rawSplit);
         DataInputStream dis = new DataInputStream(bais);
         CarbonInputSplit carbonInputSplit = new CarbonInputSplit();
@@ -97,5 +97,4 @@ public class CarbonFlinkInputSplit implements InputSplit {
     public int getSplitNumber() {
         return splitNumber;
     }
-
 }

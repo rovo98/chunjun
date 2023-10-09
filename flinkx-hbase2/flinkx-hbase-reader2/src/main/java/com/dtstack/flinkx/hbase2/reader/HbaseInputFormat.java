@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hbase2.reader;
 
 import com.dtstack.flinkx.hbase2.HbaseHelper;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,18 +44,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-
 /**
  * The InputFormat Implementation used for HbaseReader
  *
- * Company: cmss
+ * <p>Company: cmss
+ *
  * @author wangyulei_yewu@cmss.chinamobile.com
  */
 public class HbaseInputFormat extends BaseRichInputFormat {
 
     public static final String KEY_ROW_KEY = "rowkey";
 
-    protected Map<String,Object> hbaseConfig;
+    protected Map<String, Object> hbaseConfig;
     protected String tableName;
     protected String startRowkey;
     protected String endRowkey;
@@ -64,16 +65,15 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     protected List<String> columnTypes;
     protected boolean isBinaryRowkey;
     protected String encoding;
-    /**
-     * 客户端每次 rpc fetch 的行数
-     */
+    /** 客户端每次 rpc fetch 的行数 */
     protected int scanCacheSize;
+
     private transient Connection connection;
     private transient Scan scan;
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
-    private transient Map<String,byte[][]> nameMaps;
+    private transient Map<String, byte[][]> nameMaps;
 
     private boolean openKerberos = false;
 
@@ -92,26 +92,38 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig)) {
-            if(HbaseHelper.openKerberos(hbaseConfig)) {
+            if (HbaseHelper.openKerberos(hbaseConfig)) {
                 UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
-                return ugi.doAs(new PrivilegedAction<com.dtstack.flinkx.hbase2.reader.HbaseInputSplit[]>() {
-                    @Override
-                    public com.dtstack.flinkx.hbase2.reader.HbaseInputSplit[] run() {
-                        return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
-                    }
-                });
+                return ugi.doAs(
+                        new PrivilegedAction<com.dtstack.flinkx.hbase2.reader.HbaseInputSplit[]>() {
+                            @Override
+                            public com.dtstack.flinkx.hbase2.reader.HbaseInputSplit[] run() {
+                                return split(
+                                        connection,
+                                        tableName,
+                                        startRowkey,
+                                        endRowkey,
+                                        isBinaryRowkey);
+                            }
+                        });
             } else {
                 return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
             }
         }
     }
 
-    public HbaseInputSplit[] split(Connection hConn, String tableName, String startKey, String endKey, boolean isBinaryRowkey) {
+    public HbaseInputSplit[] split(
+            Connection hConn,
+            String tableName,
+            String startKey,
+            String endKey,
+            boolean isBinaryRowkey) {
         byte[] startRowkeyByte = HbaseHelper.convertRowkey(startKey, isBinaryRowkey);
         byte[] endRowkeyByte = HbaseHelper.convertRowkey(endKey, isBinaryRowkey);
 
         /* 如果用户配置了 startRowkey 和 endRowkey，需要确保：startRowkey <= endRowkey */
-        if (startRowkeyByte.length != 0 && endRowkeyByte.length != 0
+        if (startRowkeyByte.length != 0
+                && endRowkeyByte.length != 0
                 && Bytes.compareTo(startRowkeyByte, endRowkeyByte) > 0) {
             throw new IllegalArgumentException("startRowKey can't be bigger than endRowkey");
         }
@@ -129,13 +141,13 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             return resultSplits.toArray(new HbaseInputSplit[resultSplits.size()]);
         } catch (Exception e) {
             throw new RuntimeException("Failed to split hbase table");
-        }finally {
+        } finally {
             HbaseHelper.closeRegionLocator(regionLocator);
         }
     }
 
-    private List<HbaseInputSplit> doSplit(byte[] startRowkeyByte,
-                                                                            byte[] endRowkeyByte, Pair<byte[][], byte[][]> regionRanges) {
+    private List<HbaseInputSplit> doSplit(
+            byte[] startRowkeyByte, byte[] endRowkeyByte, Pair<byte[][], byte[][]> regionRanges) {
 
         List<HbaseInputSplit> configurations = new ArrayList<>();
 
@@ -147,9 +159,10 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             // 当前的region为最后一个region
             // 如果最后一个region的start Key大于用户指定的userEndKey,则最后一个region，应该不包含在内
             // 注意如果用户指定userEndKey为"",则此判断应该不成立。userEndKey为""表示取得最大的region
-            boolean isSkip = Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
-                    && (endRowkeyByte.length != 0 && (Bytes.compareTo(
-                    regionStartKey, endRowkeyByte) > 0));
+            boolean isSkip =
+                    Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
+                            && (endRowkeyByte.length != 0
+                                    && (Bytes.compareTo(regionStartKey, endRowkeyByte) > 0));
             if (isSkip) {
                 continue;
             }
@@ -204,8 +217,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     private String getStartKey(byte[] startRowkeyByte, byte[] regionStarKey) {
         // 由于之前处理过，所以传入的userStartKey不可能为null
         if (startRowkeyByte == null) {
-            throw new IllegalArgumentException(
-                    "userStartKey should not be null!");
+            throw new IllegalArgumentException("userStartKey should not be null!");
         }
 
         byte[] tempStartRowkeyByte;
@@ -224,7 +236,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
         byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
-        if(null == connection || connection.isClosed()){
+        if (null == connection || connection.isClosed()) {
             connection = HbaseHelper.getHbaseConnection(hbaseConfig);
         }
 
@@ -264,21 +276,21 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                     if (KEY_ROW_KEY.equals(columnName)) {
                         bytes = next.getRow();
                     } else {
-                        byte [][] arr = nameMaps.get(columnName);
-                        if(arr == null){
+                        byte[][] arr = nameMaps.get(columnName);
+                        if (arr == null) {
                             arr = new byte[2][];
                             String[] arr1 = columnName.split(":");
                             arr[0] = arr1[0].trim().getBytes(StandardCharsets.UTF_8);
                             arr[1] = arr1[1].trim().getBytes(StandardCharsets.UTF_8);
-                            nameMaps.put(columnName,arr);
+                            nameMaps.put(columnName, arr);
                         }
                         bytes = next.getValue(arr[0], arr[1]);
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
                 }
                 row.setField(i, col);
-            } catch(Exception e) {
-                throw new IOException("Couldn't read data:",e);
+            } catch (Exception e) {
+                throw new IOException("Couldn't read data:", e);
             }
         }
         return row;
@@ -289,9 +301,10 @@ public class HbaseInputFormat extends BaseRichInputFormat {
         HbaseHelper.closeConnection(connection);
     }
 
-    public Object convertValueToAssignType(String columnType, String constantValue,String dateformat) throws Exception {
-        Object column  = null;
-        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
+    public Object convertValueToAssignType(
+            String columnType, String constantValue, String dateformat) throws Exception {
+        Object column = null;
+        if (org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
             return column;
         }
 
@@ -312,7 +325,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                 column = constantValue;
                 break;
             case "DATE":
-                column = DateUtils.parseDate(constantValue, new String[]{dateformat});
+                column = DateUtils.parseDate(constantValue, new String[] {dateformat});
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported columnType: " + columnType);
@@ -321,12 +334,13 @@ public class HbaseInputFormat extends BaseRichInputFormat {
         return column;
     }
 
-    public Object convertBytesToAssignType(String columnType, byte[] byteArray,String dateformat) throws Exception {
+    public Object convertBytesToAssignType(String columnType, byte[] byteArray, String dateformat)
+            throws Exception {
         Object column = null;
-        if(ArrayUtils.isEmpty(byteArray)) {
+        if (ArrayUtils.isEmpty(byteArray)) {
             return null;
         }
-        String bytesToString  = new String(byteArray, encoding);
+        String bytesToString = new String(byteArray, encoding);
         switch (columnType.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
                 column = Boolean.valueOf(bytesToString);
@@ -354,12 +368,11 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                 break;
             case "DATE":
                 String dateValue = Bytes.toStringBinary(byteArray);
-                column = DateUtils.parseDate(dateValue, new String[]{dateformat});
+                column = DateUtils.parseDate(dateValue, new String[] {dateformat});
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported column type: " + columnType);
         }
         return column;
     }
-
 }

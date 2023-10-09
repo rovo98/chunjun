@@ -25,6 +25,7 @@ import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -33,8 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -57,11 +57,17 @@ public class KafkaBaseReader extends BaseDataReader {
         topic = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_TOPIC);
         groupId = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_GROUP_ID, "default");
         codec = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_CODEC, "text");
-        blankIgnore = readerConfig.getParameter().getBooleanVal(KafkaConfigKeys.KEY_BLANK_IGNORE, false);
-        mode = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_MODE, StartupMode.GROUP_OFFSETS.name);
+        blankIgnore =
+                readerConfig.getParameter().getBooleanVal(KafkaConfigKeys.KEY_BLANK_IGNORE, false);
+        mode =
+                readerConfig
+                        .getParameter()
+                        .getStringVal(KafkaConfigKeys.KEY_MODE, StartupMode.GROUP_OFFSETS.name);
         offset = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_OFFSET, "");
         timestamp = readerConfig.getParameter().getLongVal(KafkaConfigKeys.KEY_TIMESTAMP, -1L);
-        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KafkaConfigKeys.KEY_CONSUMER_SETTINGS);
+        consumerSettings =
+                (Map<String, String>)
+                        readerConfig.getParameter().getVal(KafkaConfigKeys.KEY_CONSUMER_SETTINGS);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
@@ -84,9 +90,10 @@ public class KafkaBaseReader extends BaseDataReader {
 
     /**
      * 获取不同版本的kafkaInputFormat
+     *
      * @return
      */
-    public KafkaBaseInputFormatBuilder getBuilder(){
+    public KafkaBaseInputFormatBuilder getBuilder() {
         return new KafkaBaseInputFormatBuilder(new KafkaBaseInputFormat());
     }
 }

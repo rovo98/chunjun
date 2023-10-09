@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,13 +53,14 @@ import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_WRITE_BUFFER_SIZE;
 /**
  * The Writer plugin of HBase
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseWriter extends BaseDataWriter {
 
     private String tableName;
-    private Map<String,Object> hbaseConfig;
+    private Map<String, Object> hbaseConfig;
     private String encoding;
     private String nullMode;
     private Boolean walFlag;
@@ -80,13 +82,16 @@ public class HbaseWriter extends BaseDataWriter {
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);
-        writeBufferSize = writerConfig.getParameter().getLongVal(KEY_WRITE_BUFFER_SIZE, DEFAULT_WRITE_BUFFER_SIZE);
+        writeBufferSize =
+                writerConfig
+                        .getParameter()
+                        .getLongVal(KEY_WRITE_BUFFER_SIZE, DEFAULT_WRITE_BUFFER_SIZE);
 
         List columns = writerConfig.getParameter().getColumn();
-        if(CollectionUtils.isNotEmpty(columns)) {
+        if (CollectionUtils.isNotEmpty(columns)) {
             columnTypes = new ArrayList<>();
             columnNames = new ArrayList<>();
-            for(int i = 0; i < columns.size(); ++i) {
+            for (int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
                 columnNames.add((String) sm.get(KEY_COLUMN_NAME));
                 columnTypes.add((String) sm.get(KEY_COLUMN_TYPE));
@@ -96,26 +101,25 @@ public class HbaseWriter extends BaseDataWriter {
         Object rowKeyInfo = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
         rowkeyExpress = buildRowKeyExpress(rowKeyInfo);
 
-        Map<String,Object> versionColumn = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_VERSION_COLUMN);
-        if(versionColumn != null) {
+        Map<String, Object> versionColumn =
+                (Map<String, Object>) writerConfig.getParameter().getVal(KEY_VERSION_COLUMN);
+        if (versionColumn != null) {
             versionColumnIndex = (Integer) versionColumn.get(KEY_VERSION_COLUMN_INDEX);
             versionColumnValue = (String) versionColumn.get(KEY_VERSION_COLUMN_VALUE);
         }
     }
 
-    /**
-     * Compatible with old formats
-     */
-    private String buildRowKeyExpress(Object rowKeyInfo){
-        if (rowKeyInfo == null){
+    /** Compatible with old formats */
+    private String buildRowKeyExpress(Object rowKeyInfo) {
+        if (rowKeyInfo == null) {
             return null;
         }
 
-        if(rowKeyInfo instanceof String){
+        if (rowKeyInfo instanceof String) {
             return rowKeyInfo.toString();
         }
 
-        if(!(rowKeyInfo instanceof List)){
+        if (!(rowKeyInfo instanceof List)) {
             return null;
         }
 

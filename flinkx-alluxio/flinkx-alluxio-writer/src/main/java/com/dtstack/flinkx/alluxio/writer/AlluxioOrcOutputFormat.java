@@ -7,6 +7,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat;
@@ -46,7 +47,9 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
-    private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
+    private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO =
+            new ColumnTypeUtil.DecimalInfo(
+                    HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
 
     @Override
     protected void openSource() throws IOException {
@@ -61,15 +64,17 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
         for (int i = 0; i < fullColumnTypes.size(); i++) {
             String columnType = fullColumnTypes.get(i);
             if (ColumnTypeUtil.isDecimalType(columnType)) {
-                ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
+                ColumnTypeUtil.DecimalInfo decimalInfo =
+                        ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
                 decimalColInfo.put(fullColumnNames.get(i), decimalInfo);
             }
             ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(AlluxioUtil.columnTypeToObjectInspetor(type));
         }
 
-        this.inspector = ObjectInspectorFactory
-                .getStandardStructObjectInspector(fullColumnNames, fullColTypeList);
+        this.inspector =
+                ObjectInspectorFactory.getStandardStructObjectInspector(
+                        fullColumnNames, fullColTypeList);
     }
 
     private Class getCompressType() {
@@ -109,7 +114,8 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
 
         try {
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
-            recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+            recordWriter =
+                    outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
             blockIndex++;
 
             LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
@@ -140,7 +146,8 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
         }
 
         try {
-            this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
+            this.recordWriter.write(
+                    NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
             rowsOfCurrentBlock++;
 
             if (restoreConfig.isRestore()) {
@@ -153,7 +160,9 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected void flushDataInternal() throws IOException {
-        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info(
+                "Close current orc record writer, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
         if (recordWriter != null) {
             recordWriter.close(Reporter.NULL);
@@ -246,13 +255,18 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
         }
     }
 
-    private HiveDecimalWritable getDecimalWritable(int index, String rowData) throws WriteRecordException {
+    private HiveDecimalWritable getDecimalWritable(int index, String rowData)
+            throws WriteRecordException {
         ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(fullColumnNames.get(index));
         HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
-        hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+        hiveDecimal =
+                HiveDecimal.enforcePrecisionScale(
+                        hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
         if (hiveDecimal == null) {
-            String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)",
-                    index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+            String msg =
+                    String.format(
+                            "第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)",
+                            index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
             throw new WriteRecordException(msg, new IllegalArgumentException());
         }
         return new HiveDecimalWritable(hiveDecimal);
@@ -260,7 +274,13 @@ public class AlluxioOrcOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nAlluxioOrcOutputFormat [" + jobName + "] writeRecord error: when converting field[" + fullColumnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nAlluxioOrcOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + fullColumnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override

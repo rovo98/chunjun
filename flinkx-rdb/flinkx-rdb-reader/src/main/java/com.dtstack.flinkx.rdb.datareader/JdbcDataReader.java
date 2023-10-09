@@ -27,6 +27,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -34,13 +35,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.Objects;
+import java.util.Properties;
 
 /**
  * The Reader plugin for any database that can be connected via JDBC.
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JdbcDataReader extends BaseDataReader {
@@ -49,7 +51,6 @@ public class JdbcDataReader extends BaseDataReader {
     protected String password;
     protected String dbUrl;
     protected Properties properties;
-
 
     protected String table;
     protected String where;
@@ -75,11 +76,12 @@ public class JdbcDataReader extends BaseDataReader {
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
         where = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_WHERE);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-        fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
-        queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
+        fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE, 0);
+        queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT, 0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
-        customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
-        orderByColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_ORDER_BY_COLUMN,null);
+        customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL, null);
+        orderByColumn =
+                readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_ORDER_BY_COLUMN, null);
         properties = readerConfig.getParameter().getProperties(JdbcConfigKeys.KEY_PROPERTIES, null);
 
         buildIncrementConfig(readerConfig);
@@ -100,7 +102,8 @@ public class JdbcDataReader extends BaseDataReader {
         builder.setTypeConverter(typeConverter);
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
-        builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setQueryTimeOut(
+                queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncrementConfig(incrementConfig);
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
@@ -114,35 +117,45 @@ public class JdbcDataReader extends BaseDataReader {
         QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        BaseRichInputFormat format =  builder.finish();
+        BaseRichInputFormat format = builder.finish();
         return createInput(format);
     }
 
     protected JdbcInputFormatBuilder getBuilder() {
-        throw new RuntimeException("code error : com.dtstack.flinkx.rdb.datareader.JdbcDataReader.getBuilder must be overwrite by subclass.");
+        throw new RuntimeException(
+                "code error : com.dtstack.flinkx.rdb.datareader.JdbcDataReader.getBuilder must be overwrite by subclass.");
     }
 
-    private void buildIncrementConfig(ReaderConfig readerConfig){
-        boolean polling = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
-        String increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
-        String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
-        boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
-        int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
-        long pollingInterval = readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
+    private void buildIncrementConfig(ReaderConfig readerConfig) {
+        boolean polling =
+                readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
+        String increColumn =
+                readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
+        String startLocation =
+                readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION, null);
+        boolean useMaxFunc =
+                readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
+        int requestAccumulatorInterval =
+                readerConfig
+                        .getParameter()
+                        .getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
+        long pollingInterval =
+                readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
 
         incrementConfig = new IncrementConfig();
-        //增量字段不为空，表示任务为增量或间隔轮询任务
-        if (StringUtils.isNotBlank(increColumn)){
+        // 增量字段不为空，表示任务为增量或间隔轮询任务
+        if (StringUtils.isNotBlank(increColumn)) {
             String type = null;
             String name = null;
             int index = -1;
 
-            //纯数字则表示增量字段在column中的顺序位置
-            if(NumberUtils.isNumber(increColumn)){
+            // 纯数字则表示增量字段在column中的顺序位置
+            if (NumberUtils.isNumber(increColumn)) {
                 int idx = Integer.parseInt(increColumn);
-                if(idx > metaColumns.size() - 1){
+                if (idx > metaColumns.size() - 1) {
                     throw new RuntimeException(
-                            String.format("config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
+                            String.format(
+                                    "config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
                                     GsonUtil.GSON.toJson(metaColumns),
                                     metaColumns.size(),
                                     increColumn));
@@ -153,7 +166,7 @@ public class JdbcDataReader extends BaseDataReader {
                 index = metaColumn.getIndex();
             } else {
                 for (MetaColumn metaColumn : metaColumns) {
-                    if(Objects.equals(increColumn, metaColumn.getName())){
+                    if (Objects.equals(increColumn, metaColumn.getName())) {
                         type = metaColumn.getType();
                         name = metaColumn.getName();
                         index = metaColumn.getIndex();
@@ -161,11 +174,11 @@ public class JdbcDataReader extends BaseDataReader {
                     }
                 }
             }
-            if (type == null || name == null){
+            if (type == null || name == null) {
                 throw new IllegalArgumentException(
-                        String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s",
-                                GsonUtil.GSON.toJson(metaColumns),
-                                increColumn));
+                        String.format(
+                                "config error : increColumn's name or type is null, column = %s, increColumn = %s",
+                                GsonUtil.GSON.toJson(metaColumns), increColumn));
             }
 
             incrementConfig.setIncrement(true);

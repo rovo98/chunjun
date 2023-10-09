@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -38,7 +39,8 @@ import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
 /**
  * The writer plugin of Hdfs
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsWriter extends BaseDataWriter {
@@ -61,7 +63,7 @@ public class HdfsWriter extends BaseDataWriter {
 
     protected List<String> columnType;
 
-    protected Map<String,Object> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     protected String charSet;
 
@@ -87,12 +89,18 @@ public class HdfsWriter extends BaseDataWriter {
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
-        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
+        rowGroupSize =
+                writerConfig
+                        .getParameter()
+                        .getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+        maxFileSize =
+                writerConfig
+                        .getParameter()
+                        .getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
         enableDictionary = writerConfig.getParameter().getBooleanVal(KEY_ENABLE_DICTIONARY, true);
 
-        if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
+        if (fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
         } else {
             fieldDelimiter = com.dtstack.flinkx.util.StringUtil.convertRegularExpr(fieldDelimiter);
@@ -100,7 +108,7 @@ public class HdfsWriter extends BaseDataWriter {
 
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
         fileName = writerConfig.getParameter().getStringVal(KEY_FILE_NAME, "");
-        if(CollectionUtils.isNotEmpty(columns)) {
+        if (CollectionUtils.isNotEmpty(columns)) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
             for (Object column : columns) {
@@ -110,8 +118,10 @@ public class HdfsWriter extends BaseDataWriter {
             }
         }
 
-        fullColumnName = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
-        fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
+        fullColumnName =
+                (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
+        fullColumnType =
+                (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
     }

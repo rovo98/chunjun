@@ -23,9 +23,11 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.ftp.FtpConfig;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,8 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.DEFAULT_FIELD_DELIMITER;
 /**
  * The Writer Plugin of Ftp
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpWriter extends BaseDataWriter {
@@ -49,7 +52,10 @@ public class FtpWriter extends BaseDataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         try {
-            ftpConfig = objectMapper.readValue(objectMapper.writeValueAsString(writerConfig.getParameter().getAll()), FtpConfig.class);
+            ftpConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(writerConfig.getParameter().getAll()),
+                            FtpConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("解析ftpConfig配置出错:", e);
         }
@@ -58,16 +64,16 @@ public class FtpWriter extends BaseDataWriter {
             ftpConfig.setDefaultPort();
         }
 
-        if(!DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
+        if (!DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())) {
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null && columns.size() != 0) {
+        if (columns != null && columns.size() != 0) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
-            for(int i = 0; i < columns.size(); ++i) {
+            for (int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
                 columnName.add(String.valueOf(sm.get("name")));
                 columnType.add(String.valueOf(sm.get("type")));

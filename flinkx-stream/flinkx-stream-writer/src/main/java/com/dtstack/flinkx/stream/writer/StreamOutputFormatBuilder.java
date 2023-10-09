@@ -24,9 +24,8 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import java.util.List;
 
 /**
- * The builder of StreamOutputFormat
+ * The builder of StreamOutputFormat @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -37,7 +36,7 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
-    public void setPrint(boolean print){
+    public void setPrint(boolean print) {
         format.print = print;
     }
 
@@ -50,7 +49,5 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     @Override
-    protected void checkFormat() {
-
-    }
+    protected void checkFormat() {}
 }

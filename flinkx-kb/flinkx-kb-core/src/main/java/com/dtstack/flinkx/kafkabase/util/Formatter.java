@@ -27,16 +27,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class Formatter {
     private static Pattern p = Pattern.compile("(%\\{.*?})");
-    private static DateTimeFormatter ISOformatter = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
+    private static DateTimeFormatter ISOformatter =
+            ISODateTimeFormat.dateTimeParser().withOffsetParsed();
 
     public static String format(Map event, String format) {
         return format(event, format, "UTC");
@@ -54,30 +53,27 @@ public class Formatter {
                     m.appendReplacement(sb, o.toString());
                 }
             } else if (key.startsWith("+")) {
-                DateTimeFormatter formatter = DateTimeFormat.forPattern(
-                        (String) key.subSequence(1, key.length())).withZone(
-                        DateTimeZone.forID(timezone));
+                DateTimeFormatter formatter =
+                        DateTimeFormat.forPattern((String) key.subSequence(1, key.length()))
+                                .withZone(DateTimeZone.forID(timezone));
                 Object o = event.get("@timestamp");
                 if (o == null) {
                     DateTime timestamp = new DateTime();
                     m.appendReplacement(sb, timestamp.toString(formatter));
                 } else {
                     if (o.getClass() == DateTime.class) {
-                        m.appendReplacement(sb,
-                                ((DateTime) o).toString(formatter));
+                        m.appendReplacement(sb, ((DateTime) o).toString(formatter));
                     } else if (o.getClass() == Long.class) {
                         DateTime timestamp = new DateTime((Long) o);
                         m.appendReplacement(sb, timestamp.toString(formatter));
                     } else if (o.getClass() == String.class) {
-                        DateTime timestamp = ISOformatter
-                                .parseDateTime((String) o);
+                        DateTime timestamp = ISOformatter.parseDateTime((String) o);
                         m.appendReplacement(sb, timestamp.toString(formatter));
                     }
                 }
             } else if (event.containsKey(key)) {
                 m.appendReplacement(sb, event.get(key).toString());
             }
-
         }
         m.appendTail(sb);
         return sb.toString();

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.es6x.writer;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+
 import java.util.List;
 import java.util.Map;
 

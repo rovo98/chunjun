@@ -26,8 +26,7 @@ import java.util.Collection;
 import java.util.Properties;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -37,7 +36,11 @@ public class KafkaConsumer extends KafkaBaseConsumer {
     }
 
     @Override
-    public KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit) {
+    public KafkaBaseConsumer createClient(
+            String topic,
+            String group,
+            KafkaBaseInputFormat format,
+            KafkaInputSplit kafkaInputSplit) {
         Properties clientProps = new Properties();
         clientProps.putAll(props);
         clientProps.put(KafkaConfigKeys.GROUP_ID, group);
@@ -48,10 +51,11 @@ public class KafkaConsumer extends KafkaBaseConsumer {
 
     /**
      * 提交kafka offset
+     *
      * @param kafkaStates
      */
-    public void submitOffsets(Collection<kafkaState> kafkaStates){
-        if(client != null){
+    public void submitOffsets(Collection<kafkaState> kafkaStates) {
+        if (client != null) {
             KafkaClient kafkaClient = (KafkaClient) this.client;
             kafkaClient.submitOffsets(kafkaStates);
         }

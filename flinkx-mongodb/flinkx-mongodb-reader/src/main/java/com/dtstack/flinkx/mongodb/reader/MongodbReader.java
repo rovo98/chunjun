@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -30,9 +31,8 @@ import org.apache.flink.types.Row;
 import java.util.List;
 
 /**
- * The Reader plugin for mongodb database
+ * The Reader plugin for mongodb database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbReader extends BaseDataReader {
@@ -48,7 +48,10 @@ public class MongodbReader extends BaseDataReader {
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
 
         try {
-            mongodbConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), MongodbConfig.class);
+            mongodbConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            MongodbConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("解析mongodb配置出错:", e);
         }

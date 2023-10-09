@@ -18,18 +18,18 @@
 package com.dtstack.flinkx.emqx.format;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     private EmqxOutputFormat format;
 
-    public EmqxOutputFormatBuilder(){
+    public EmqxOutputFormatBuilder() {
         super.format = format = new EmqxOutputFormat();
     }
 
@@ -65,10 +65,10 @@ public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if(StringUtils.isBlank(format.broker)){
+        if (StringUtils.isBlank(format.broker)) {
             throw new IllegalArgumentException("emqx broker cannot be blank");
         }
-        if(StringUtils.isBlank(format.topic)){
+        if (StringUtils.isBlank(format.topic)) {
             throw new IllegalArgumentException("emqx topic cannot be blank");
         }
     }

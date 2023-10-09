@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.core.test;
 
 import com.dtstack.flinkx.kudu.core.KuduUtil;
+
 import org.apache.kudu.Type;
 import org.apache.kudu.client.KuduPredicate;
 import org.junit.Assert;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class KuduUtilTest {
 
     @Test
-    public void parseExpressTest(){
+    public void parseExpressTest() {
         Map<String, Type> nameTypeMap = new HashMap<>();
         nameTypeMap.put("id", Type.INT32);
         nameTypeMap.put("name", Type.STRING);

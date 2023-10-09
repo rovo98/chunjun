@@ -22,6 +22,7 @@ import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
 import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
 import com.dtstack.flinkx.hbase.writer.function.Md5Function;
 import com.dtstack.flinkx.hbase.writer.function.StringFunction;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * @company: www.dtstack.com
@@ -39,18 +39,19 @@ import java.util.Map;
 public class RowKeyFunctionTest {
 
     @Test
-    public void parseRowKeyColTest(){
+    public void parseRowKeyColTest() {
         List<String> expectCol = new ArrayList<>();
         expectCol.add("col1");
         expectCol.add("col2");
 
-        List<String> columnNames = FunctionParser.parseRowKeyCol("md5(test_$(col1)_test_$(col2)_test)");
+        List<String> columnNames =
+                FunctionParser.parseRowKeyCol("md5(test_$(col1)_test_$(col2)_test)");
 
         Assert.assertEquals(expectCol, columnNames);
     }
 
     @Test
-    public void noFunc() throws Exception{
+    public void noFunc() throws Exception {
         String express = "_test_$(col1)_test_$(col2)_test_";
 
         String expectVal = new StringFunction().evaluate("_test_value1_test_value2_test_");
@@ -65,7 +66,7 @@ public class RowKeyFunctionTest {
     }
 
     @Test
-    public void hasFunc()  throws Exception{
+    public void hasFunc() throws Exception {
         String express = "_md5(test_$(col1)_test_$(col2)_test)_";
 
         String expectVal = new Md5Function().evaluate("test_value1_test_value2_test");
@@ -81,7 +82,7 @@ public class RowKeyFunctionTest {
     }
 
     @Test
-    public void replaceColToStringFuncTest(){
+    public void replaceColToStringFuncTest() {
         String express = "$(cf:name)_md5($(cf:id)_split_$(cf:age))";
         String expect = "string(cf:name)_md5(string(cf:id)_split_string(cf:age))";
 

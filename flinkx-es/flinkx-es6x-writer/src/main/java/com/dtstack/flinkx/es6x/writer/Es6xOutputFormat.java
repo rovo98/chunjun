@@ -20,8 +20,9 @@ package com.dtstack.flinkx.es6x.writer;
 
 import com.dtstack.flinkx.es.Es6xUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -30,6 +31,7 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

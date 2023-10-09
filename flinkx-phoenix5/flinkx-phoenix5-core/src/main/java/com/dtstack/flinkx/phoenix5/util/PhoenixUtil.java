@@ -24,8 +24,7 @@ import java.io.IOException;
 import java.io.StringReader;
 
 /**
- * Date: 2020/02/28
- * Company: www.dtstack.com
+ * Date: 2020/02/28 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -33,15 +32,18 @@ public class PhoenixUtil {
 
     /**
      * 通过指定类加载器获取helper
+     *
      * @param parentClassLoader
      * @return
      * @throws IOException
      * @throws CompileException
      */
-    public static IPhoenix5Helper getHelper(ClassLoader parentClassLoader) throws IOException, CompileException {
+    public static IPhoenix5Helper getHelper(ClassLoader parentClassLoader)
+            throws IOException, CompileException {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
-        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil",
+        cbe.setDefaultImports(
+                "com.dtstack.flinkx.util.ClassUtil",
                 "com.dtstack.flinkx.util.TelnetUtil",
                 "org.apache.commons.lang3.StringUtils",
                 "org.apache.commons.lang3.tuple.Pair",
@@ -92,7 +94,7 @@ public class PhoenixUtil {
                 "java.util.Map",
                 "java.util.NavigableSet",
                 "java.util.Properties");
-        cbe.setImplementedInterfaces(new Class[]{IPhoenix5Helper.class});
+        cbe.setImplementedInterfaces(new Class[] {IPhoenix5Helper.class});
         StringReader sr = new StringReader(IPhoenix5Helper.CLASS_STR);
         return (IPhoenix5Helper) cbe.createInstance(sr);
     }

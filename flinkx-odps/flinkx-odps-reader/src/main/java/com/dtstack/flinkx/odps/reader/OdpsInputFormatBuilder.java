@@ -28,7 +28,8 @@ import java.util.Map;
 /**
  * The Builder of OdpsInputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -39,7 +40,7 @@ public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new OdpsInputFormat();
     }
 
-    public void setOdpsConfig(Map<String,String> odpsConfig) {
+    public void setOdpsConfig(Map<String, String> odpsConfig) {
         format.odpsConfig = odpsConfig;
         format.projectName = odpsConfig.get(OdpsConfigKeys.KEY_PROJECT);
     }
@@ -48,7 +49,7 @@ public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.tableName = tableName;
     }
 
-    public void setMetaColumn(List<MetaColumn> metaColumns){
+    public void setMetaColumn(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
 
@@ -58,10 +59,9 @@ public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
-
-
 }

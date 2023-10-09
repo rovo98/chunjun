@@ -26,24 +26,31 @@ import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
 /**
- * The writer plugin for PostgreSQL database
+ * The writer plugin for PostgreSQL database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class PostgresqlWriter extends JdbcDataWriter {
 
-
     public PostgresqlWriter(DataTransferConfig config) {
         super(config);
-        String schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
-        if (StringUtils.isNotEmpty(schema)){
+        String schema =
+                config.getJob()
+                        .getContent()
+                        .get(0)
+                        .getWriter()
+                        .getParameter()
+                        .getConnection()
+                        .get(0)
+                        .getSchema();
+        if (StringUtils.isNotEmpty(schema)) {
             table = schema + ConstantValue.POINT_SYMBOL + table;
         }
         setDatabaseInterface(new PostgresqlDatabaseMeta());

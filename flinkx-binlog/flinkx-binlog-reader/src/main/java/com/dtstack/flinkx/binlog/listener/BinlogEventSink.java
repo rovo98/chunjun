@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.binlog.listener;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
+import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,16 +39,15 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-/**
- * @author toutian
- */
-public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
+/** @author toutian */
+public class BinlogEventSink extends AbstractCanalLifeCycle
+        implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
 
     private BinlogInputFormat format;
 
-    private BlockingQueue<Map<String,Object>> queue;
+    private BlockingQueue<Map<String, Object>> queue;
 
     private boolean pavingData;
 
@@ -60,7 +60,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     }
 
     @Override
-    public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException, InterruptedException {
+    public boolean sink(
+            List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s)
+            throws CanalSinkException, InterruptedException {
 
         for (CanalEntry.Entry entry : entries) {
             CanalEntry.EntryType entryType = entry.getEntryType();
@@ -74,7 +76,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
             CanalEntry.RowChange rowChange = parseRowChange(entry);
 
-            if(rowChange == null) {
+            if (rowChange == null) {
                 return false;
             }
 
@@ -100,25 +102,25 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table) {
         CanalEntry.EventType eventType = rowChange.getEventType();
 
-        if(!format.accept(eventType.toString())) {
+        if (!format.accept(eventType.toString())) {
             return;
         }
 
-        for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            Map<String,Object> message = new HashMap<>(8);
+        for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
+            Map<String, Object> message = new HashMap<>(8);
             message.put("type", eventType.toString());
             message.put("schema", schema);
             message.put("table", table);
             message.put("ts", idWorker.nextId());
 
-            if (pavingData){
+            if (pavingData) {
                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                    if(!column.getIsNull()){
+                    if (!column.getIsNull()) {
                         message.put("after_" + column.getName(), column.getValue());
                     }
                 }
-                for (CanalEntry.Column column : rowData.getBeforeColumnsList()){
-                    if(!column.getIsNull()){
+                for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
+                    if (!column.getIsNull()) {
                         message.put("before_" + column.getName(), column.getValue());
                     }
                 }
@@ -133,17 +135,16 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             } catch (InterruptedException e) {
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
-            if(DtLogger.isEnableTrace()){
+            if (DtLogger.isEnableTrace()) {
                 LOG.trace("message = {}", GsonUtil.GSON.toJson(message));
             }
         }
-
     }
 
-    private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
-        Map<String,Object> map = new HashMap<>(columnList.size());
+    private Map<String, Object> processColumnList(List<CanalEntry.Column> columnList) {
+        Map<String, Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
-            if(!column.getIsNull()){
+            if (!column.getIsNull()) {
                 map.put(column.getName(), column.getValue());
             }
         }
@@ -158,10 +159,11 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         Row row = null;
         try {
             Map<String, Object> map = queue.take();
-            //@see com.dtstack.flinkx.binlog.listener.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
-            if(map.size() == 1 && map.containsKey("e")){
+            // @see com.dtstack.flinkx.binlog.listener.HeartBeatController.onFailed 检测到异常之后
+            // 会添加key为e的错误数据
+            if (map.size() == 1 && map.containsKey("e")) {
                 throw new RuntimeException((String) map.get("e"));
-            }else{
+            } else {
                 row = Row.of(map);
             }
         } catch (InterruptedException e) {
@@ -174,7 +176,10 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             queue.put(event);
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", event, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "takeEvent interrupted event:{} error:{}",
+                    event,
+                    ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -182,5 +187,4 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     public void interrupt() {
         LOG.info("BinlogEventSink is interrupted");
     }
-
 }

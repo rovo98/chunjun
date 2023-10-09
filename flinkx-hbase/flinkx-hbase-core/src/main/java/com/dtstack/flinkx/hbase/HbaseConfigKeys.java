@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +20,8 @@ package com.dtstack.flinkx.hbase;
 /**
  * This class defines configuration keys for HbaseReader and HbaseWriter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseConfigKeys {
@@ -67,6 +67,4 @@ public class HbaseConfigKeys {
     public static final String KEY_VERSION_COLUMN_INDEX = "index";
 
     public static final String KEY_VERSION_COLUMN_VALUE = "value";
-
-
 }

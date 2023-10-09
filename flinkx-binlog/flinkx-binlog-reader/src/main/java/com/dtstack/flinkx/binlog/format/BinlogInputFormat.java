@@ -17,20 +17,21 @@
  */
 package com.dtstack.flinkx.binlog.format;
 
+import com.dtstack.flinkx.binlog.BinlogJournalValidator;
+import com.dtstack.flinkx.binlog.BinlogUtil;
+import com.dtstack.flinkx.binlog.listener.BinlogAlarmHandler;
+import com.dtstack.flinkx.binlog.listener.BinlogEventSink;
+import com.dtstack.flinkx.binlog.listener.BinlogPositionManager;
+import com.dtstack.flinkx.binlog.listener.HeartBeatController;
+import com.dtstack.flinkx.binlog.reader.BinlogConfig;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ClassUtil;
+
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
-import com.dtstack.flinkx.binlog.BinlogJournalValidator;
-import com.dtstack.flinkx.binlog.BinlogUtil;
-import com.dtstack.flinkx.binlog.listener.BinlogAlarmHandler;
-import com.dtstack.flinkx.binlog.reader.BinlogConfig;
-import com.dtstack.flinkx.binlog.listener.BinlogEventSink;
-import com.dtstack.flinkx.binlog.listener.BinlogPositionManager;
-import com.dtstack.flinkx.binlog.listener.HeartBeatController;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,9 +50,7 @@ import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
@@ -66,9 +65,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private final String SCHEMA_SPLIT = ".";
 
-    /**
-     * internal fields
-     */
+    /** internal fields */
     private transient MysqlEventParser controller;
 
     private transient BinlogEventSink binlogEventSink;
@@ -83,7 +80,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         LOG.info("binlog configure...");
-        LOG.info("binlog FilterBefore:{},tableBefore: {}",binlogConfig.getFilter(),binlogConfig.getTable());
+        LOG.info(
+                "binlog FilterBefore:{},tableBefore: {}",
+                binlogConfig.getFilter(),
+                binlogConfig.getTable());
 
         if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
             LOG.info("{}", categories);
@@ -91,18 +91,15 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
         /**
          * mysql 数据解析关注的表，Perl正则表达式.
-
-         多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
-
-
-         常见例子：
-
-         1.  所有表：.*   or  .*\\..*
-         2.  canal schema下所有表： canal\\..*
-         3.  canal下的以canal打头的表：canal\\.canal.*
-         4.  canal schema下的一张表：canal\\.test1
-
-         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
+         *
+         * <p>多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
+         *
+         * <p>常见例子：
+         *
+         * <p>1. 所有表：.* or .*\\..* 2. canal schema下所有表： canal\\..* 3.
+         * canal下的以canal打头的表：canal\\.canal.* 4. canal schema下的一张表：canal\\.test1
+         *
+         * <p>5. 多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
          */
         List<String> tables = binlogConfig.getTable();
         String jdbcUrl = binlogConfig.getJdbcUrl();
@@ -110,17 +107,21 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             String database = BinlogUtil.getDataBaseByUrl(jdbcUrl);
 
             if (CollectionUtils.isNotEmpty(tables)) {
-                String filter = tables.stream()
-                        //每一个表格式化为schema.tableName格式
-                        .map(t -> formatTableName(database, t))
-                        .collect(Collectors.joining(","));
+                String filter =
+                        tables.stream()
+                                // 每一个表格式化为schema.tableName格式
+                                .map(t -> formatTableName(database, t))
+                                .collect(Collectors.joining(","));
 
                 binlogConfig.setFilter(filter);
             } else if (StringUtils.isBlank(binlogConfig.getFilter())) {
-                //如果table未指定  filter未指定 只消费此schema下的数据
+                // 如果table未指定  filter未指定 只消费此schema下的数据
                 binlogConfig.setFilter(database + "\\..*");
             }
-            LOG.info("binlog FilterAfter:{},tableAfter: {}",binlogConfig.getFilter(),binlogConfig.getTable());
+            LOG.info(
+                    "binlog FilterAfter:{},tableAfter: {}",
+                    binlogConfig.getFilter(),
+                    binlogConfig.getTable());
         }
     }
 
@@ -157,7 +158,11 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         controller.setSlaveId(binlogConfig.getSlaveId());
         controller.setDetectingEnable(binlogConfig.getDetectingEnable());
         controller.setDetectingSQL(binlogConfig.getDetectingSql());
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(binlogConfig.getHost(), binlogConfig.getPort()), binlogConfig.getUsername(), binlogConfig.getPassword()));
+        controller.setMasterInfo(
+                new AuthenticationInfo(
+                        new InetSocketAddress(binlogConfig.getHost(), binlogConfig.getPort()),
+                        binlogConfig.getUsername(),
+                        binlogConfig.getPassword()));
         controller.setEnableTsdb(binlogConfig.getEnableTsdb());
         controller.setDestination("example");
         controller.setParallel(binlogConfig.getParallel());
@@ -174,17 +179,17 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         controller.setEventSink(sink);
 
         controller.setLogPositionManager(new BinlogPositionManager(this));
-        //添加connection心跳回调处理器
-        HeartBeatController heartBeatController =new HeartBeatController();
+        // 添加connection心跳回调处理器
+        HeartBeatController heartBeatController = new HeartBeatController();
         heartBeatController.setBinlogEventSink(binlogEventSink);
-        controller.setHaController( heartBeatController);
+        controller.setHaController(heartBeatController);
         EntryPosition startPosition = findStartPosition();
         if (startPosition != null) {
             controller.setMasterPosition(startPosition);
         }
 
         if (StringUtils.isNotEmpty(binlogConfig.getFilter())) {
-            LOG.info("binlogFilter最终值：{}",binlogConfig.getFilter());
+            LOG.info("binlogFilter最终值：{}", binlogConfig.getFilter());
             controller.setEventFilter(new AviaterRegexFilter(binlogConfig.getFilter()));
         }
 
@@ -207,14 +212,17 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         if (controller != null && controller.isStart()) {
             controller.stop();
             controller = null;
-            LOG.info("binlog closeInternal..., entryPosition:{}", formatState != null ? formatState.getState() : null);
+            LOG.info(
+                    "binlog closeInternal..., entryPosition:{}",
+                    formatState != null ? formatState.getState() : null);
         }
-
     }
 
     private EntryPosition findStartPosition() {
         EntryPosition startPosition = null;
-        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
+        if (formatState != null
+                && formatState.getState() != null
+                && formatState.getState() instanceof EntryPosition) {
             startPosition = (EntryPosition) formatState.getState();
             checkBinlogFile(startPosition.getJournalName());
         } else if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
@@ -235,7 +243,12 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private void checkBinlogFile(String journalName) {
         if (StringUtils.isNotEmpty(journalName)) {
-            if (!new BinlogJournalValidator(binlogConfig.getHost(), binlogConfig.getPort(), binlogConfig.getUsername(), binlogConfig.getPassword()).check(journalName)) {
+            if (!new BinlogJournalValidator(
+                            binlogConfig.getHost(),
+                            binlogConfig.getPort(),
+                            binlogConfig.getUsername(),
+                            binlogConfig.getPassword())
+                    .check(journalName)) {
                 throw new IllegalArgumentException("Can't find journalName: " + journalName);
             }
         }
@@ -268,7 +281,11 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         if (tableName.contains(SCHEMA_SPLIT)) {
             return tableName;
         } else {
-            return stringBuilder.append(schemaName).append(SCHEMA_SPLIT).append(tableName).toString();
+            return stringBuilder
+                    .append(schemaName)
+                    .append(SCHEMA_SPLIT)
+                    .append(tableName)
+                    .toString();
         }
     }
 }

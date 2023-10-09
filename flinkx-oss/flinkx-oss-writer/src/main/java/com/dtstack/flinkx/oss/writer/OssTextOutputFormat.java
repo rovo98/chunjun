@@ -24,6 +24,7 @@ import com.dtstack.flinkx.oss.ECompressType;
 import com.dtstack.flinkx.oss.OssUtil;
 import com.dtstack.flinkx.oss.util.StrUtil;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
@@ -57,9 +58,11 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
 
     @Override
     public void flushDataInternal() throws IOException {
-        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info(
+                "Close current text stream, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
-        if (stream != null){
+        if (stream != null) {
             stream.flush();
             stream.close();
             stream = null;
@@ -67,7 +70,7 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
     }
 
     @Override
-    public float getDeviation(){
+    public float getDeviation() {
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
         return compressType.getDeviation();
     }
@@ -79,7 +82,7 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
     }
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
         if (stream != null) {
@@ -93,27 +96,30 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
             } else {
                 currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             }
-            Path p  = new Path(currentBlockTmpPath);
+            Path p = new Path(currentBlockTmpPath);
 
             ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
             if (ECompressType.TEXT_NONE.equals(compressType)) {
                 stream = fs.create(p);
             } else {
                 p = new Path(currentBlockTmpPath);
-                if (compressType == ECompressType.TEXT_GZIP){
+                if (compressType == ECompressType.TEXT_GZIP) {
                     stream = new GzipCompressorOutputStream(fs.create(p));
-                } else if(compressType == ECompressType.TEXT_BZIP2){
+                } else if (compressType == ECompressType.TEXT_BZIP2) {
                     stream = new BZip2CompressorOutputStream(fs.create(p));
                 } else if (compressType == ECompressType.TEXT_LZO) {
-                    CompressionCodecFactory factory = new CompressionCodecFactory(new Configuration());
-                    stream = factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec").createOutputStream(fs.create(p));
+                    CompressionCodecFactory factory =
+                            new CompressionCodecFactory(new Configuration());
+                    stream =
+                            factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec")
+                                    .createOutputStream(fs.create(p));
                 }
             }
 
             LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
 
             blockIndex++;
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -188,14 +194,14 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
                     sb.append(Integer.valueOf(rowData));
                     break;
                 case BIGINT:
-                    if (column instanceof Timestamp){
-                        column=((Timestamp) column).getTime();
+                    if (column instanceof Timestamp) {
+                        column = ((Timestamp) column).getTime();
                         sb.append(column);
                         break;
                     }
 
                     BigInteger data = new BigInteger(rowData);
-                    if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                    if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0) {
                         sb.append(data);
                     } else {
                         sb.append(Long.valueOf(rowData));
@@ -226,12 +232,12 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
                     sb.append(StrUtil.parseBoolean(rowData));
                     break;
                 case DATE:
-                    column = DateUtil.columnToDate(column,null);
+                    column = DateUtil.columnToDate(column, null);
                     sb.append(DateUtil.dateToString((Date) column));
                     break;
                 case TIMESTAMP:
-                    column = DateUtil.columnToTimestamp(column,null);
-                    sb.append(DateUtil.timestampToString((Date)column));
+                    column = DateUtil.columnToTimestamp(column, null);
+                    sb.append(DateUtil.timestampToString((Date) column));
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported column type: " + columnType);
@@ -241,7 +247,13 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nOssTextOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nOssTextOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + columnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
@@ -253,5 +265,4 @@ public class OssTextOutputFormat extends BaseOssOutputFormat {
             s.close();
         }
     }
-
 }

@@ -22,14 +22,14 @@ import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
 /**
- * The builder for mongodb writer plugin
+ * The builder for mongodb writer plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -40,24 +40,25 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new MongodbOutputFormat();
     }
 
-    public void setMongodbConfig(MongodbConfig mongodbConfig){
+    public void setMongodbConfig(MongodbConfig mongodbConfig) {
         format.mongodbConfig = mongodbConfig;
     }
 
-    public void setColumns(List<MetaColumn> columns){
+    public void setColumns(List<MetaColumn> columns) {
         format.columns = columns;
     }
 
     @Override
     protected void checkFormat() {
-        if(format.mongodbConfig.getCollectionName() == null){
+        if (format.mongodbConfig.getCollectionName() == null) {
             throw new IllegalArgumentException("No collection supplied");
         }
 
-        if(WriteMode.REPLACE.getMode().equals(format.mongodbConfig.getWriteMode())
-                || WriteMode.UPDATE.getMode().equals(format.mongodbConfig.getWriteMode())){
-            if(StringUtils.isEmpty(format.mongodbConfig.getReplaceKey())){
-                throw new IllegalArgumentException("ReplaceKey cannot be empty when the write mode is replace");
+        if (WriteMode.REPLACE.getMode().equals(format.mongodbConfig.getWriteMode())
+                || WriteMode.UPDATE.getMode().equals(format.mongodbConfig.getWriteMode())) {
+            if (StringUtils.isEmpty(format.mongodbConfig.getReplaceKey())) {
+                throw new IllegalArgumentException(
+                        "ReplaceKey cannot be empty when the write mode is replace");
             }
 
             boolean columnContainsReplaceKey = false;
@@ -68,13 +69,14 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
                 }
             }
 
-            if(!columnContainsReplaceKey){
+            if (!columnContainsReplaceKey) {
                 throw new IllegalArgumentException("Cannot find replaceKey in the input fields");
             }
         }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
 }

@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
-
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonDictionaryUtil;
+
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -39,27 +38,28 @@ import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Random;
-import java.util.UUID;
-import java.util.Map;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Abstract record writer wrapper
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public abstract class AbstractRecordWriter {
@@ -86,6 +86,7 @@ public abstract class AbstractRecordWriter {
 
     /**
      * get record index
+     *
      * @param record record
      * @return index
      */
@@ -106,9 +107,9 @@ public abstract class AbstractRecordWriter {
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
         RecordWriter recordWriter = recordWriterList.get(writerNo);
-        if(recordWriter != null) {
+        if (recordWriter != null) {
             recordWriter.close(taskAttemptContextList.get(writerNo));
-            if(counter[writerNo] != 0) {
+            if (counter[writerNo] != 0) {
                 postCloseRecordWriter(writerNo);
             }
         }
@@ -116,8 +117,11 @@ public abstract class AbstractRecordWriter {
 
     protected void postCloseRecordWriter(int writerNo) throws IOException {
         final CarbonLoadModel carbonLoadModel = carbonLoadModelList.get(writerNo);
-        String segmentFileName = SegmentFileStore.writeSegmentFile(carbonTable, carbonLoadModel.getSegmentId(),
-                String.valueOf(carbonLoadModel.getFactTimeStamp()));
+        String segmentFileName =
+                SegmentFileStore.writeSegmentFile(
+                        carbonTable,
+                        carbonLoadModel.getSegmentId(),
+                        String.valueOf(carbonLoadModel.getFactTimeStamp()));
 
         SegmentFileStore.updateSegmentFile(
                 carbonTable,
@@ -126,35 +130,33 @@ public abstract class AbstractRecordWriter {
                 carbonTable.getCarbonTableIdentifier().getTableId(),
                 new SegmentFileStore(carbonTable.getTablePath(), segmentFileName));
 
-
         LoadMetadataDetails metadataDetails = carbonLoadModel.getCurrentLoadMetadataDetail();
         metadataDetails.setSegmentFile(segmentFileName);
 
         CarbonLoaderUtil.populateNewLoadMetaEntry(
-                metadataDetails,
-                SegmentStatus.SUCCESS,
-                carbonLoadModel.getFactTimeStamp(),
-                true);
+                metadataDetails, SegmentStatus.SUCCESS, carbonLoadModel.getFactTimeStamp(), true);
 
-        CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
+        CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(
+                metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
 
-        boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false, false, "");
+        boolean done =
+                CarbonLoaderUtil.recordNewLoadMetadata(
+                        metadataDetails, carbonLoadModel, false, false, "");
 
-        if(!done) {
+        if (!done) {
             throw new RuntimeException("Failed to recordNewLoadMetadata");
         }
 
         new CarbonIndexFileMergeWriter(carbonTable)
-                .mergeCarbonIndexFilesOfSegment(carbonLoadModel.getSegmentId(),
+                .mergeCarbonIndexFilesOfSegment(
+                        carbonLoadModel.getSegmentId(),
                         carbonLoadModel.getTablePath(),
                         false,
-                        String.valueOf(carbonLoadModel.getFactTimeStamp())
-                );
-
+                        String.valueOf(carbonLoadModel.getFactTimeStamp()));
     }
 
     public void close() throws IOException, InterruptedException {
-        if(data.isEmpty()) {
+        if (data.isEmpty()) {
             return;
         }
 
@@ -162,7 +164,7 @@ public abstract class AbstractRecordWriter {
 
         createRecordWriterList();
 
-        for(String[] record : data) {
+        for (String[] record : data) {
             int writerNo = getRecordWriterNumber(record);
             ObjectArrayWritable writable = new ObjectArrayWritable();
             writable.set(record);
@@ -172,20 +174,20 @@ public abstract class AbstractRecordWriter {
 
         data.clear();
 
-        for(int i = 0; i < recordWriterList.size(); ++i) {
+        for (int i = 0; i < recordWriterList.size(); ++i) {
             closeRecordWriter(i);
         }
     }
 
-    /**
-     * add recordWriter to recordWriter list
-     */
+    /** add recordWriter to recordWriter list */
     protected abstract void createRecordWriterList();
 
-    protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context) throws IOException {
+    protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context)
+            throws IOException {
 
         CarbonTableOutputFormat.setLoadModel(context.getConfiguration(), model);
-        CarbonTableOutputFormat.setCarbonTable(context.getConfiguration(), model.getCarbonDataLoadSchema().getCarbonTable());
+        CarbonTableOutputFormat.setCarbonTable(
+                context.getConfiguration(), model.getCarbonDataLoadSchema().getCarbonTable());
         CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();
 
         return carbonTableOutputFormat.getRecordWriter(context);
@@ -195,37 +197,44 @@ public abstract class AbstractRecordWriter {
         CarbonLoadModel carbonLoadModel = new CarbonLoadModel();
         carbonLoadModel.setParentTablePath(null);
         carbonLoadModel.setFactFilePath("");
-        carbonLoadModel.setCarbonTransactionalTable(carbonTable.getTableInfo().isTransactionalTable());
+        carbonLoadModel.setCarbonTransactionalTable(
+                carbonTable.getTableInfo().isTransactionalTable());
         carbonLoadModel.setAggLoadRequest(false);
         carbonLoadModel.setSegmentId("");
 
         fullColumnNames = new ArrayList<>();
         fullColumnTypes = new ArrayList<>();
 
-        List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
-        for(int i = 0; i < columnSchemas.size(); ++i) {
+        List<ColumnSchema> columnSchemas =
+                carbonTable.getTableInfo().getFactTable().getListOfColumns();
+        for (int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
-            if(!columnSchema.isInvisible()) {
+            if (!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
                 fullColumnTypes.add(columnSchema.getDataType());
             }
         }
 
-        Map<String,String> options = Collections.singletonMap("fileheader", StringUtils.join(fullColumnNames, ","));
+        Map<String, String> options =
+                Collections.singletonMap("fileheader", StringUtils.join(fullColumnNames, ","));
 
-        Map<String,String> optionsFinal = null;
+        Map<String, String> optionsFinal = null;
         try {
-            Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
+            Map<String, String> tableProperties =
+                    carbonTable.getTableInfo().getFactTable().getTableProperties();
             optionsFinal = LoadOption.fillOptionWithDefaultValue(options);
-            optionsFinal.put("sort_scope", tableProperties.getOrDefault("sort_scope", CarbonCommonConstants.LOAD_SORT_SCOPE_DEFAULT));
-            new CarbonLoadModelBuilder(carbonTable).build(
-                    options,
-                    optionsFinal,
-                    carbonLoadModel,
-                    FileFactory.getConfiguration(),
-                    new HashMap<>(0),
-                    true
-            );
+            optionsFinal.put(
+                    "sort_scope",
+                    tableProperties.getOrDefault(
+                            "sort_scope", CarbonCommonConstants.LOAD_SORT_SCOPE_DEFAULT));
+            new CarbonLoadModelBuilder(carbonTable)
+                    .build(
+                            options,
+                            optionsFinal,
+                            carbonLoadModel,
+                            FileFactory.getConfiguration(),
+                            new HashMap<>(0),
+                            true);
             CarbonLoaderUtil.readAndUpdateLoadProgressInTableMeta(carbonLoadModel, false);
         } catch (Exception e) {
             throw new RuntimeException(e);

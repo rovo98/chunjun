@@ -28,15 +28,15 @@ import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 /**
- * The reader plugin for PostgreSQL database
+ * The reader plugin for PostgreSQL database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class PostgresqlReader extends JdbcDataReader {
@@ -47,8 +47,16 @@ public class PostgresqlReader extends JdbcDataReader {
         setTypeConverterInterface(new PostgresqlTypeConverter());
         dbUrl = DbUtil.formatJdbcUrl(dbUrl, null);
 
-        String schema = config.getJob().getContent().get(0).getReader().getParameter().getConnection().get(0).getSchema();
-        if (StringUtils.isNotEmpty(schema)){
+        String schema =
+                config.getJob()
+                        .getContent()
+                        .get(0)
+                        .getReader()
+                        .getParameter()
+                        .getConnection()
+                        .get(0)
+                        .getSchema();
+        if (StringUtils.isNotEmpty(schema)) {
             table = schema + ConstantValue.POINT_SYMBOL + table;
         }
     }
@@ -73,7 +81,8 @@ public class PostgresqlReader extends JdbcDataReader {
         builder.setTypeConverter(typeConverter);
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
-        builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setQueryTimeOut(
+                queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncrementConfig(incrementConfig);
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
@@ -85,7 +94,7 @@ public class PostgresqlReader extends JdbcDataReader {
         QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        BaseRichInputFormat format =  builder.finish();
+        BaseRichInputFormat format = builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 }

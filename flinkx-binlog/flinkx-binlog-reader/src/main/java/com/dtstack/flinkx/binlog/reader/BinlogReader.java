@@ -21,6 +21,7 @@ import com.dtstack.flinkx.binlog.format.BinlogInputFormatBuilder;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -40,7 +41,10 @@ public class BinlogReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         try {
-            binlogConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), BinlogConfig.class);
+            binlogConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            BinlogConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("解析binlog Config配置出错:", e);
         }
@@ -57,5 +61,4 @@ public class BinlogReader extends BaseDataReader {
         builder.setTestConfig(testConfig);
         return createInput(builder.finish());
     }
-
 }

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -36,8 +37,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -55,14 +55,13 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     private transient MqttClient client;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
 
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try {
             client = new MqttClient(broker, CLIENT_ID_PRE + jobId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(isCleanSession);
-            if(StringUtils.isNotBlank(username)){
+            if (StringUtils.isNotBlank(username)) {
                 options.setUserName(username);
                 options.setPassword(password.toCharArray());
             }
@@ -70,11 +69,13 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
             client.connect(options);
             LOG.info("emqx is connected = {} ", client.isConnected());
         } catch (MqttException e) {
-            LOG.error("reason = {}, msg = {}, loc = {}, cause = {}, e = {}",
+            LOG.error(
+                    "reason = {}, msg = {}, loc = {}, cause = {}, e = {}",
                     e.getReasonCode(),
                     e.getMessage(),
                     e.getLocalizedMessage(),
-                    e.getCause(), e);
+                    e.getCause(),
+                    e);
         }
     }
 
@@ -83,7 +84,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
             Map<String, Object> map;
-            if(row.getArity() == 1){
+            if (row.getArity() == 1) {
                 Object obj = row.getField(0);
                 if (obj instanceof Map) {
                     map = (Map<String, Object>) obj;
@@ -92,7 +93,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
                 } else {
                     map = Collections.singletonMap("message", row.toString());
                 }
-            }else{
+            } else {
                 map = Collections.singletonMap("message", row.toString());
             }
             MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());

@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
@@ -44,7 +44,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected long rowsOfCurrentBlock;
 
-    protected  long maxFileSize;
+    protected long maxFileSize;
 
     protected long flushInterval = 0;
 
@@ -106,8 +106,8 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         nextBlock();
     }
 
-    protected void initPath(){
-        if(StringUtils.isNotBlank(fileName)) {
+    protected void initPath() {
+        if (StringUtils.isNotBlank(fileName)) {
             outputFilePath = path + SP + fileName;
         } else {
             outputFilePath = path;
@@ -118,8 +118,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
         actionFinishedTag = tmpPath + SP + ACTION_FINISHED + "_" + jobId;
 
-        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
-                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
+        LOG.info(
+                "Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
+                taskNumber,
+                currentBlockFileNamePrefix,
+                tmpPath,
+                finishedPath);
     }
 
     protected void initFileIndex() {
@@ -130,18 +134,20 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         LOG.info("Start block index:{}", blockIndex);
     }
 
-    protected void actionBeforeWriteData(){
-        if(taskNumber > 0){
+    protected void actionBeforeWriteData() {
+        if (taskNumber > 0) {
             waitForActionFinishedBeforeWrite();
             return;
         }
 
         checkOutputDir();
 
-        try{
+        try {
             // 覆盖模式并且不是从检查点恢复时先删除数据目录
-            boolean isCoverageData = !APPEND_MODE.equalsIgnoreCase(writeMode) && (formatState == null || formatState.getState() == null);
-            if(isCoverageData){
+            boolean isCoverageData =
+                    !APPEND_MODE.equalsIgnoreCase(writeMode)
+                            && (formatState == null || formatState.getState() == null);
+            if (isCoverageData) {
                 coverageData();
             }
 
@@ -149,7 +155,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             if (restoreConfig.isRestore() && formatState != null) {
                 cleanDirtyData();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.error("e = {}", ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
@@ -166,10 +172,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore() && !restoreConfig.isStream()){
-            if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
+        if (restoreConfig.isRestore() && !restoreConfig.isStream()) {
+            if (lastRow != null) {
+                readyCheckpoint =
+                        !ObjectUtils.equals(
+                                lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                                row.getField(restoreConfig.getRestoreColumnIndex()));
             }
         }
 
@@ -181,15 +189,15 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     private void checkSize() {
-        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
+        if (numWriteCounter.getLocalValue() < nextNumForCheckDataSize) {
             return;
         }
 
-        if(getCurrentFileSize() > maxFileSize){
+        if (getCurrentFileSize() > maxFileSize) {
             try {
                 flushData();
                 LOG.info("Flush data by check file size");
-            } catch (Exception e){
+            } catch (Exception e) {
                 throw new RuntimeException("Flush data error", e);
             }
 
@@ -199,25 +207,26 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         nextNumForCheckDataSize = getNextNumForCheckDataSize();
     }
 
-    private long getCurrentFileSize(){
-        return  (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
+    private long getCurrentFileSize() {
+        return (long) (getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
     }
 
-    private long getNextNumForCheckDataSize(){
+    private long getNextNumForCheckDataSize() {
         long totalBytesWrite = bytesWriteCounter.getLocalValue();
         long totalRecordWrite = numWriteCounter.getLocalValue();
 
         float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
 
         long currentFileSize = getCurrentFileSize();
-        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
+        long recordNum = (long) ((maxFileSize - currentFileSize) / eachRecordSize);
 
         return totalRecordWrite + recordNum;
     }
 
-    protected void nextBlock(){
-        if (restoreConfig.isRestore()){
-            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
+    protected void nextBlock() {
+        if (restoreConfig.isRestore()) {
+            currentBlockFileName =
+                    "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
         } else {
             currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
         }
@@ -225,35 +234,36 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public FormatState getFormatState() {
-        if (!restoreConfig.isRestore() || lastRow == null){
+        if (!restoreConfig.isRestore() || lastRow == null) {
             return null;
         }
 
-        if (restoreConfig.isStream() || readyCheckpoint){
-            try{
+        if (restoreConfig.isStream() || readyCheckpoint) {
+            try {
                 flushData();
                 lastWriteSize = bytesWriteCounter.getLocalValue();
-            } catch (Exception e){
+            } catch (Exception e) {
                 throw new RuntimeException("Flush data error when create snapshot:", e);
             }
 
-            try{
+            try {
                 if (sumRowsOfBlock != 0) {
                     moveTemporaryDataFileToDirectory();
                 }
-            } catch (Exception e){
-                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
+            } catch (Exception e) {
+                throw new RuntimeException(
+                        "Move temporary file to data directory error when create snapshot:", e);
             }
 
             snapshotWriteCounter.add(sumRowsOfBlock);
             numWriteCounter.add(sumRowsOfBlock);
             formatState.setNumberWrite(numWriteCounter.getLocalValue());
-            if (!restoreConfig.isStream()){
+            if (!restoreConfig.isStream()) {
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
             sumRowsOfBlock = 0;
             formatState.setJobId(jobId);
-            formatState.setFileIndex(blockIndex-1);
+            formatState.setFileIndex(blockIndex - 1);
             LOG.info("jobId = {}, blockIndex = {}", jobId, blockIndex);
 
             super.getFormatState();
@@ -266,10 +276,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     @Override
     public void closeInternal() throws IOException {
         readyCheckpoint = false;
-        //最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
-        if(isTaskEndsNormally()){
+        // 最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
+        if (isTaskEndsNormally()) {
             flushData();
-            //restore == false 需要主动执行
+            // restore == false 需要主动执行
             if (!restoreConfig.isRestore()) {
                 moveTemporaryDataBlockFileToDirectory();
             }
@@ -278,38 +288,38 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void afterCloseInternal()  {
+    protected void afterCloseInternal() {
         try {
-            if(!isTaskEndsNormally()){
+            if (!isTaskEndsNormally()) {
                 return;
             }
 
             if (!restoreConfig.isStream()) {
                 createFinishedTag();
 
-                if(taskNumber == 0) {
+                if (taskNumber == 0) {
                     waitForAllTasksToFinish();
 
-                    //正常被close，触发 .data 目录下的文件移动到数据目录
+                    // 正常被close，触发 .data 目录下的文件移动到数据目录
                     moveAllTemporaryDataFileToDirectory();
 
                     LOG.info("The task ran successfully,clear temporary data files");
                     closeSource();
                     clearTemporaryDataFiles();
                 }
-            }else{
+            } else {
                 closeSource();
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    protected boolean isTaskEndsNormally() throws IOException{
+    protected boolean isTaskEndsNormally() throws IOException {
         String state = getTaskState();
         LOG.info("State of current task is:[{}]", state);
-        if(!RUNNING_STATE.equals(state)){
-            if (!restoreConfig.isRestore()){
+        if (!RUNNING_STATE.equals(state)) {
+            if (!restoreConfig.isRestore()) {
                 LOG.info("The task does not end normally, clear the temporary data file");
                 clearTemporaryDataFiles();
             }
@@ -323,7 +333,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(!restoreConfig.isRestore()) {
+        if (!restoreConfig.isRestore()) {
             LOG.info("Clean temporary data in method tryCleanupOnError");
             clearTemporaryDataFiles();
         }
@@ -338,13 +348,17 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         return path;
     }
 
-    public void flushData() throws IOException{
+    public void flushData() throws IOException {
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
             if (restoreConfig.isRestore()) {
                 moveTemporaryDataBlockFileToDirectory();
                 sumRowsOfBlock += rowsOfCurrentBlock;
-                LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
+                LOG.info(
+                        "flush file:{} rows:{} sumRowsOfBlock:{}",
+                        currentBlockFileName,
+                        rowsOfCurrentBlock,
+                        sumRowsOfBlock);
             }
             rowsOfCurrentBlock = 0;
         }
@@ -354,19 +368,13 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         return lastWriteTime;
     }
 
-    /**
-     * 清除脏数据文件
-     */
+    /** 清除脏数据文件 */
     protected abstract void cleanDirtyData();
 
-    /**
-     * 写数据前由第一个通道完成指定操作之后调用此方法创建结束标制通知其它通道开始写数据
-     */
+    /** 写数据前由第一个通道完成指定操作之后调用此方法创建结束标制通知其它通道开始写数据 */
     protected abstract void createActionFinishedTag();
 
-    /**
-     * 等待第一个通道完成写数据前的操作
-     */
+    /** 等待第一个通道完成写数据前的操作 */
     protected abstract void waitForActionFinishedBeforeWrite();
 
     /**
@@ -391,9 +399,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      */
     protected abstract void createFinishedTag() throws IOException;
 
-    /**
-     * 移动临时数据文件
-     */
+    /** 移动临时数据文件 */
     protected abstract void moveTemporaryDataBlockFileToDirectory();
 
     /**
@@ -424,9 +430,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      */
     protected abstract void moveAllTemporaryDataFileToDirectory() throws IOException;
 
-    /**
-     * 检查写入路径是否存在，是否为目录
-     */
+    /** 检查写入路径是否存在，是否为目录 */
     protected abstract void checkOutputDir();
 
     /**
@@ -452,6 +456,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     /**
      * 获取文件压缩比
+     *
      * @return 压缩比 < 1
      */
     public abstract float getDeviation();

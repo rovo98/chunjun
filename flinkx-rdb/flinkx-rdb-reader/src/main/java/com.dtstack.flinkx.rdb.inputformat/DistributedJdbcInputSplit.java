@@ -19,15 +19,15 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.rdb.DataSource;
+
 import org.apache.flink.core.io.GenericInputSplit;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The split of DistributedJdbcInputFormat
+ * The split of DistributedJdbcInputFormat @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class DistributedJdbcInputSplit extends GenericInputSplit {
@@ -38,16 +38,16 @@ public class DistributedJdbcInputSplit extends GenericInputSplit {
         super(partitionNumber, totalNumberOfPartitions);
     }
 
-    public void addSource(List<DataSource> sourceLeft){
-        if (sourceList == null){
+    public void addSource(List<DataSource> sourceLeft) {
+        if (sourceList == null) {
             this.sourceList = new ArrayList<>();
         }
 
         this.sourceList.addAll(sourceLeft);
     }
 
-    public void addSource(DataSource source){
-        if (sourceList == null){
+    public void addSource(DataSource source) {
+        if (sourceList == null) {
             this.sourceList = new ArrayList<>();
         }
 

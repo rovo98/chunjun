@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 import org.junit.Test;

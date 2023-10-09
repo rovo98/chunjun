@@ -25,6 +25,7 @@ import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.format.RestapiInputFormatBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -38,11 +39,8 @@ import java.util.Collections;
  */
 public class RestapiReader extends BaseDataReader {
 
-    /**
-     * http的请求参数
-     **/
+    /** http的请求参数 */
     private HttpRestConfig httpRestConfig;
-
 
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -50,7 +48,10 @@ public class RestapiReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         try {
-            this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
+            this.httpRestConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            HttpRestConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("analyze httpRest Config failed:", e);
         }
@@ -63,15 +64,27 @@ public class RestapiReader extends BaseDataReader {
         MetaParam.initTimeFormat(httpRestConfig.getParam());
         MetaParam.initTimeFormat(httpRestConfig.getHeader());
 
-        //post请求 如果contentTy没有设置，则默认设置为 application/json
-        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig.getHeader().stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))){
-            if(CollectionUtils.isEmpty(httpRestConfig.getHeader())){
-                httpRestConfig.setHeader( Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER)));
-            }else{
-                httpRestConfig.getHeader().add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+        // post请求 如果contentTy没有设置，则默认设置为 application/json
+        if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode())
+                && httpRestConfig.getHeader().stream()
+                        .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {
+            if (CollectionUtils.isEmpty(httpRestConfig.getHeader())) {
+                httpRestConfig.setHeader(
+                        Collections.singletonList(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER)));
+            } else {
+                httpRestConfig
+                        .getHeader()
+                        .add(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER));
             }
         }
-
     }
 
     @Override

@@ -22,15 +22,15 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The builder of DistributedJdbcInputFormat
+ * The builder of DistributedJdbcInputFormat @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class DistributedJdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -58,31 +58,31 @@ public class DistributedJdbcInputFormatBuilder extends BaseRichInputFormatBuilde
         format.databaseInterface = databaseInterface;
     }
 
-    public void setMetaColumn(List<MetaColumn> metaColumns){
+    public void setMetaColumn(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
 
-    public void setSplitKey(String splitKey){
+    public void setSplitKey(String splitKey) {
         format.splitKey = splitKey;
     }
 
-    public void setSourceList(ArrayList<DataSource> sourceList){
+    public void setSourceList(ArrayList<DataSource> sourceList) {
         format.sourceList = sourceList;
     }
 
-    public void setNumPartitions(int numPartitions){
+    public void setNumPartitions(int numPartitions) {
         format.numPartitions = numPartitions;
     }
 
-    public void setWhere(String where){
+    public void setWhere(String where) {
         format.where = where;
     }
 
-    public void setFetchSize(int fetchSize){
+    public void setFetchSize(int fetchSize) {
         format.fetchSize = fetchSize;
     }
 
-    public void setQueryTimeOut(int queryTimeOut){
+    public void setQueryTimeOut(int queryTimeOut) {
         format.queryTimeOut = queryTimeOut;
     }
 
@@ -90,44 +90,51 @@ public class DistributedJdbcInputFormatBuilder extends BaseRichInputFormatBuilde
     protected void checkFormat() {
 
         boolean hasGlobalCountInfo = true;
-        if(format.username == null || format.password == null){
+        if (format.username == null || format.password == null) {
             hasGlobalCountInfo = false;
         }
 
-        if (format.sourceList == null || format.sourceList.size() == 0){
+        if (format.sourceList == null || format.sourceList.size() == 0) {
             throw new IllegalArgumentException("One or more data sources must be specified");
         }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         String jdbcPrefix = null;
 
         for (DataSource dataSource : format.sourceList) {
-            boolean notSpecifyGlobalCountInfo = !hasGlobalCountInfo && (dataSource.getUserName() == null || dataSource.getPassword() == null);
-            if(notSpecifyGlobalCountInfo){
-                throw new IllegalArgumentException("Must specify a global account or specify an account for each data source");
+            boolean notSpecifyGlobalCountInfo =
+                    !hasGlobalCountInfo
+                            && (dataSource.getUserName() == null
+                                    || dataSource.getPassword() == null);
+            if (notSpecifyGlobalCountInfo) {
+                throw new IllegalArgumentException(
+                        "Must specify a global account or specify an account for each data source");
             }
 
-            if (dataSource.getTable() == null || dataSource.getTable().length() == 0){
+            if (dataSource.getTable() == null || dataSource.getTable().length() == 0) {
                 throw new IllegalArgumentException("table name cannot be empty");
             }
 
-            if (dataSource.getJdbcUrl() == null || dataSource.getJdbcUrl().length() == 0 ){
+            if (dataSource.getJdbcUrl() == null || dataSource.getJdbcUrl().length() == 0) {
                 throw new IllegalArgumentException("'jdbcUrl' cannot be empty");
             }
 
-            if(jdbcPrefix == null){
+            if (jdbcPrefix == null) {
                 jdbcPrefix = dataSource.getJdbcUrl().split("//")[0];
             }
 
-            if(!dataSource.getJdbcUrl().startsWith(jdbcPrefix)){
-                throw new IllegalArgumentException("Multiple data sources must be of the same type");
+            if (!dataSource.getJdbcUrl().startsWith(jdbcPrefix)) {
+                throw new IllegalArgumentException(
+                        "Multiple data sources must be of the same type");
             }
 
-            if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1){
-                throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
+            if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1) {
+                throw new IllegalArgumentException(
+                        "Must specify the split column when the channel is greater than 1");
             }
         }
     }

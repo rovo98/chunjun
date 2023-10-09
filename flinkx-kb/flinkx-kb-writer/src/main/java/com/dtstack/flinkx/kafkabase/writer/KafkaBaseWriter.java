@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -36,8 +37,7 @@ import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TIMEZONE;
 import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TOPIC;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -46,9 +46,9 @@ public class KafkaBaseWriter extends BaseDataWriter {
     protected String topic;
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
-    //是否保证强制有序
+    // 是否保证强制有序
     protected boolean dataCompelOrder;
-    //用户指定kafka分区字段
+    // 用户指定kafka分区字段
     protected List<String> partitionAssignColumns;
 
     @SuppressWarnings("unchecked")
@@ -57,9 +57,11 @@ public class KafkaBaseWriter extends BaseDataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
-        producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
-        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLE_FIELDS);
-        partitionAssignColumns = (List<String>) writerConfig.getParameter().getVal(KEY_ASSIGNER_FIELDS);
+        producerSettings =
+                (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
+        tableFields = (List<String>) writerConfig.getParameter().getVal(KEY_TABLE_FIELDS);
+        partitionAssignColumns =
+                (List<String>) writerConfig.getParameter().getVal(KEY_ASSIGNER_FIELDS);
         dataCompelOrder = writerConfig.getParameter().getBooleanVal(DATA_COMPEL_ORDER, false);
     }
 

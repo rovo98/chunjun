@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
@@ -39,10 +38,9 @@ public abstract class AbstractHiveMetadataParser {
     private static final String ORC_FORMAT = "OrcOutputFormat";
     private static final String PARQUET_FORMAT = "MapredParquetOutputFormat";
 
-    public AbstractHiveMetadataParser() {
-    }
+    public AbstractHiveMetadataParser() {}
 
-    public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result){
+    public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {
         Iterator<Map<String, Object>> iter = result.iterator();
         String colName;
         String dataType;
@@ -63,19 +61,19 @@ public abstract class AbstractHiveMetadataParser {
                     tableInfo.setStore(storedType);
                 }
 
-                if(colName.contains("field.delim")){
+                if (colName.contains("field.delim")) {
                     tableInfo.setDelimiter(dataType);
                 }
             }
         }
     }
 
-    protected String getStoredType(String inputFormatClass){
-        if (inputFormatClass.endsWith(TEXT_FORMAT)){
+    protected String getStoredType(String inputFormatClass) {
+        if (inputFormatClass.endsWith(TEXT_FORMAT)) {
             return TEXT.name();
-        } else if (inputFormatClass.endsWith(ORC_FORMAT)){
+        } else if (inputFormatClass.endsWith(ORC_FORMAT)) {
             return ORC.name();
-        } else if (inputFormatClass.endsWith(PARQUET_FORMAT)){
+        } else if (inputFormatClass.endsWith(PARQUET_FORMAT)) {
             return PARQUET.name();
         } else {
             throw new RuntimeException("Unsupported fileType:" + inputFormatClass);

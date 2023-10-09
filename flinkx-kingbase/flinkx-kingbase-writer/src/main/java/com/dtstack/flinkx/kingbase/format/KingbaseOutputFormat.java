@@ -25,6 +25,7 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.kingbase8.copy.CopyManager;
 import com.kingbase8.core.BaseConnection;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,52 +44,50 @@ import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.INSERT_SQL_MODE
 import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.LINE_DELIMITER;
 
 /**
- * 写入数据到kingbase
- * Company: www.dtstack.com
+ * 写入数据到kingbase Company: www.dtstack.com
+ *
  * @author kunni@dtstack.com
  */
-
 public class KingbaseOutputFormat extends JdbcOutputFormat {
 
-    private static final String COPY_SQL_TEMPL = "COPY %s(%s) FROM STDIN DELIMITER '%s' NULL AS '%s'";
+    private static final String COPY_SQL_TEMPL =
+            "COPY %s(%s) FROM STDIN DELIMITER '%s' NULL AS '%s'";
 
     private String copySql = "";
 
     private CopyManager copyManager;
 
-    /**
-     * schema名
-     */
+    /** schema名 */
     public String schema;
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks){
+    protected void openInternal(int taskNumber, int numTasks) {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DbUtil.getConnection(dbUrl, username, password);
 
-            if (restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 dbConn.setAutoCommit(false);
             }
             // 查询主键时用jdbc的DatabaseMetaData，使用原始table作为表名
-            if(CollectionUtils.isEmpty(fullColumn)) {
+            if (CollectionUtils.isEmpty(fullColumn)) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
 
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
-                if(updateKey == null || updateKey.size() == 0) {
+            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
+                if (updateKey == null || updateKey.size() == 0) {
                     updateKey = probePrimaryKeys(table, dbConn);
                 }
             }
             // 后续为执行sql查询主键和insert操作，使用schema.table作为表名
             table = schema + ConstantValue.POINT_SYMBOL + table;
-            if(fullColumnType == null) {
+            if (fullColumnType == null) {
                 fullColumnType = analyzeTable();
             }
 
-            for(String col : column) {
+            for (String col : column) {
                 for (int i = 0; i < fullColumn.size(); i++) {
-                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                    if (col.equalsIgnoreCase(fullColumn.get(i))) {
                         columnType.add(fullColumnType.get(i));
                         break;
                     }
@@ -113,14 +112,20 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected PreparedStatement prepareTemplates() throws SQLException {
-        if(CollectionUtils.isEmpty(fullColumn)) {
+        if (CollectionUtils.isEmpty(fullColumn)) {
             fullColumn = column;
         }
 
-        //check is use copy mode for insert
+        // check is use copy mode for insert
         if (EWriteMode.INSERT.name().equalsIgnoreCase(mode) && checkIsCopyMode(insertSqlMode)) {
             copyManager = new CopyManager((BaseConnection) dbConn);
-            copySql = String.format(COPY_SQL_TEMPL, table, String.join(COMMA_SYMBOL, column), DEFAULT_FIELD_DELIM, DEFAULT_NULL_DELIM);
+            copySql =
+                    String.format(
+                            COPY_SQL_TEMPL,
+                            table,
+                            String.join(COMMA_SYMBOL, column),
+                            DEFAULT_FIELD_DELIM,
+                            DEFAULT_NULL_DELIM);
             return null;
         }
 
@@ -129,7 +134,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if(!checkIsCopyMode(insertSqlMode)){
+        if (!checkIsCopyMode(insertSqlMode)) {
             if (batchInterval == 1) {
                 super.writeSingleRecordInternal(row);
             } else {
@@ -139,18 +144,18 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
             return;
         }
 
-        //write with copy
+        // write with copy
         int index = 0;
         try {
             StringBuilder sb = new StringBuilder();
             for (; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
-                sb.append(rowData)
-                        .append(DEFAULT_FIELD_DELIM);
+                sb.append(rowData).append(DEFAULT_FIELD_DELIM);
             }
 
             String rowVal = sb.toString();
-            ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
+            ByteArrayInputStream bi =
+                    new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
         } catch (Exception e) {
             processWriteException(e, index, row);
@@ -180,7 +185,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if(!checkIsCopyMode(insertSqlMode)){
+        if (!checkIsCopyMode(insertSqlMode)) {
             writeMultipleRecordsCommit();
             return;
         }
@@ -190,8 +195,8 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
             int lastIndex = row.getArity() - 1;
             for (int index = 0; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
-                sb.append(rowData==null ? DEFAULT_NULL_DELIM : rowData);
-                if(index != lastIndex){
+                sb.append(rowData == null ? DEFAULT_NULL_DELIM : rowData);
+                if (index != lastIndex) {
                     sb.append(DEFAULT_FIELD_DELIM);
                 }
             }
@@ -203,7 +208,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
         copyManager.copyIn(copySql, bi);
 
-        if(restoreConfig.isRestore()){
+        if (restoreConfig.isRestore()) {
             rowsOfCurrentTransaction += rows.size();
         }
     }
@@ -212,7 +217,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         try {
             super.writeMultipleRecordsInternal();
             dbConn.commit();
-        } catch (Exception e){
+        } catch (Exception e) {
             dbConn.rollback();
             throw e;
         }
@@ -222,17 +227,17 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
     protected Object getField(Row row, int index) {
         Object field = super.getField(row, index);
         String type = columnType.get(index);
-        field = typeConverter.convert(field,type);
+        field = typeConverter.convert(field, type);
 
         return field;
     }
 
-    private boolean checkIsCopyMode(String insertMode){
-        if(StringUtils.isEmpty(insertMode)){
+    private boolean checkIsCopyMode(String insertMode) {
+        if (StringUtils.isEmpty(insertMode)) {
             return false;
         }
 
-        if(!INSERT_SQL_MODE_TYPE.equalsIgnoreCase(insertMode)){
+        if (!INSERT_SQL_MODE_TYPE.equalsIgnoreCase(insertMode)) {
             throw new RuntimeException("not support insertSqlMode:" + insertMode);
         }
 
@@ -240,7 +245,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
     }
 
     @Override
-    public void setSchema(String schema){
+    public void setSchema(String schema) {
         this.schema = schema;
     }
 }

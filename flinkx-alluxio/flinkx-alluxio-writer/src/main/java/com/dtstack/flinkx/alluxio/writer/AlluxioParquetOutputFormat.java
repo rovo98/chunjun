@@ -7,6 +7,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
@@ -46,8 +47,8 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
 
     private MessageType schema;
 
-    private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(10, 0);
-
+    private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
+            new ColumnTypeUtil.DecimalInfo(10, 0);
 
     @Override
     protected void openSource() throws IOException {
@@ -69,14 +70,15 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
         try {
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             Path writePath = new Path(currentBlockTmpPath);
-            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
-                    .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                    .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                    .withCompressionCodec(getCompressType())
-                    .withConf(conf)
-                    .withType(schema)
-                    .withDictionaryEncoding(enableDictionary)
-                    .withRowGroupSize(rowGroupSize);
+            ExampleParquetWriter.Builder builder =
+                    ExampleParquetWriter.builder(writePath)
+                            .withWriteMode(ParquetFileWriter.Mode.CREATE)
+                            .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                            .withCompressionCodec(getCompressType())
+                            .withConf(conf)
+                            .withType(schema)
+                            .withDictionaryEncoding(enableDictionary)
+                            .withRowGroupSize(rowGroupSize);
 
             writer = builder.build();
             blockIndex++;
@@ -111,7 +113,9 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected void flushDataInternal() throws IOException {
-        LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info(
+                "Close current parquet record writer, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
         if (writer != null) {
             writer.close();
@@ -139,7 +143,9 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
                 int colIndex = colIndices[i];
                 if (colIndex > -1) {
                     Object valObj = row.getField(colIndex);
-                    if (valObj == null || (valObj.toString().length() == 0 && !ColumnType.isStringType(fullColumnTypes.get(i)))) {
+                    if (valObj == null
+                            || (valObj.toString().length() == 0
+                                    && !ColumnType.isStringType(fullColumnTypes.get(i)))) {
                         continue;
                     }
 
@@ -228,13 +234,21 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
                 ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(colName);
 
                 HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
-                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                hiveDecimal =
+                        HiveDecimal.enforcePrecisionScale(
+                                hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                 if (hiveDecimal == null) {
-                    String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", i, decimalInfo.getPrecision(), decimalInfo.getScale(), valObj);
+                    String msg =
+                            String.format(
+                                    "第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)",
+                                    i, decimalInfo.getPrecision(), decimalInfo.getScale(), valObj);
                     throw new WriteRecordException(msg, new IllegalArgumentException());
                 }
 
-                group.add(colName, AlluxioUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                group.add(
+                        colName,
+                        AlluxioUtil.decimalToBinary(
+                                hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
                 break;
             case "date":
                 Date date = DateUtil.columnToDate(valObj, null);
@@ -248,7 +262,13 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nAlluxioParquetOutputFormat [" + jobName + "] writeRecord error: when converting field[" + fullColumnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nAlluxioParquetOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + fullColumnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
@@ -285,7 +305,10 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
                 case "char":
                 case "varchar":
                 case "string":
-                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);
+                    typeBuilder
+                            .optional(PrimitiveType.PrimitiveTypeName.BINARY)
+                            .as(OriginalType.UTF8)
+                            .named(name);
                     break;
                 case "boolean":
                     typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);
@@ -294,16 +317,24 @@ public class AlluxioParquetOutputFormat extends BaseAlluxioOutputFormat {
                     typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT96).named(name);
                     break;
                 case "date":
-                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);
+                    typeBuilder
+                            .optional(PrimitiveType.PrimitiveTypeName.INT32)
+                            .as(OriginalType.DATE)
+                            .named(name);
                     break;
                 default:
                     if (ColumnTypeUtil.isDecimalType(colType)) {
-                        ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(colType, PARQUET_DEFAULT_DECIMAL_INFO);
-                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
+                        ColumnTypeUtil.DecimalInfo decimalInfo =
+                                ColumnTypeUtil.getDecimalInfo(
+                                        colType, PARQUET_DEFAULT_DECIMAL_INFO);
+                        typeBuilder
+                                .optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(decimalInfo.getPrecision())
                                 .scale(decimalInfo.getScale())
-                                .length(AlluxioUtil.computeMinBytesForPrecision(decimalInfo.getPrecision()))
+                                .length(
+                                        AlluxioUtil.computeMinBytesForPrecision(
+                                                decimalInfo.getPrecision()))
                                 .named(name);
 
                         decimalColInfo.put(name, decimalInfo);

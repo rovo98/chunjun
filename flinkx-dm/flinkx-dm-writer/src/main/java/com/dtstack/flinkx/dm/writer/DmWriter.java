@@ -24,8 +24,7 @@ import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
 /**
- * Date: 2020/03/18
- * Company: www.dtstack.com
+ * Date: 2020/03/18 Company: www.dtstack.com
  *
  * @author tudou
  */

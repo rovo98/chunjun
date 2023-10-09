@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
+import javax.net.ssl.SSLException;
+
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
@@ -26,7 +28,6 @@ import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
@@ -75,7 +76,6 @@ public class MyHttpRequestRetryHandler implements HttpRequestRetryHandler {
         // Retry if the request is considered idempotent
         return !idempotent;
     }
-
 
     public static final class Builder {
         private int executionMaxCount;

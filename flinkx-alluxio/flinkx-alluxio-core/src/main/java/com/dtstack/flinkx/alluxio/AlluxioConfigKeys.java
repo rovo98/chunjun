@@ -39,5 +39,4 @@ public class AlluxioConfigKeys {
     public static final String KEY_ENABLE_DICTIONARY = "enableDictionary";
 
     public static final String KEY_WRITE_TYPE = "writeType";
-
 }

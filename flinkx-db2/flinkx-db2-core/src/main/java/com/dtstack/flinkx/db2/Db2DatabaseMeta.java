@@ -32,16 +32,16 @@ import java.util.List;
 public class Db2DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
-    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
-        String replaceValues = super.makeReplaceValues(column,fullColumn);
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn) {
+        String replaceValues = super.makeReplaceValues(column, fullColumn);
         return "(select " + replaceValues + " from SYSIBM.SYSDUMMY1)";
     }
 
     @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder("SELECT ");
-        for(int i = 0; i < column.size(); ++i) {
-            if(i != 0) {
+        for (int i = 0; i < column.size(); ++i) {
+            if (i != 0) {
                 sb.append(",");
             }
             sb.append("? " + quoteColumn(column.get(i)));
@@ -57,7 +57,11 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSqlQueryColumnFields(List<String> column, String table) {
-        return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " FETCH FIRST  1 ROWS ONLY";
+        return "SELECT "
+                + quoteColumns(column)
+                + " FROM "
+                + quoteTable(table)
+                + " FETCH FIRST  1 ROWS ONLY";
     }
 
     @Override
@@ -66,8 +70,9 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(
+                "mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
@@ -92,6 +97,6 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("'%s' as %s",value,column);
+        return String.format("'%s' as %s", value, column);
     }
 }

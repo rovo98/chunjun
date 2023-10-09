@@ -20,10 +20,8 @@ package com.dtstack.flinkx.polardbd.format;
 import com.dtstack.flinkx.mysqld.format.MysqldInputFormat;
 
 /**
- * Date: 2019/11/13
- * Company: www.dtstack.com
+ * Date: 2019/11/13 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class PolardbdInputFormat extends MysqldInputFormat {
-}
+public class PolardbdInputFormat extends MysqldInputFormat {}

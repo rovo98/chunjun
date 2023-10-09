@@ -26,9 +26,8 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import java.util.List;
 
 /**
- * The builder for mongodb reader plugin
+ * The builder for mongodb reader plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -39,22 +38,23 @@ public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new MongodbInputFormat();
     }
 
-    public void setMetaColumns(List<MetaColumn> metaColumns){
+    public void setMetaColumns(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
 
-    public void setMongodbConfig(MongodbConfig mongodbConfig){
+    public void setMongodbConfig(MongodbConfig mongodbConfig) {
         format.mongodbConfig = mongodbConfig;
     }
 
     @Override
     protected void checkFormat() {
-        if(format.mongodbConfig.getCollectionName() == null){
+        if (format.mongodbConfig.getCollectionName() == null) {
             throw new IllegalArgumentException("No collection supplied");
         }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         if (format.mongodbConfig.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {

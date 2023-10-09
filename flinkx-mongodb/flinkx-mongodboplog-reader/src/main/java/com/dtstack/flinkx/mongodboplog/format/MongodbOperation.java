@@ -1,6 +1,5 @@
 package com.dtstack.flinkx.mongodboplog.format;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,19 +9,13 @@ import java.util.List;
  */
 public enum MongodbOperation {
 
-    /**
-     * 插入
-     */
+    /** 插入 */
     INSERT("i"),
 
-    /**
-     * 更新
-     */
+    /** 更新 */
     UPDATE("u"),
 
-    /**
-     * 删除
-     */
+    /** 删除 */
     DELETE("d");
 
     private String internalName;
@@ -47,7 +40,7 @@ public enum MongodbOperation {
 
     public static MongodbOperation getByName(String name) {
         for (MongodbOperation value : MongodbOperation.values()) {
-            if (value.name().equalsIgnoreCase(name)){
+            if (value.name().equalsIgnoreCase(name)) {
                 return value;
             }
         }
@@ -55,9 +48,9 @@ public enum MongodbOperation {
         throw new RuntimeException("不支持的操作类型:" + name);
     }
 
-    public static MongodbOperation getByInternalNames(String name){
+    public static MongodbOperation getByInternalNames(String name) {
         for (MongodbOperation value : MongodbOperation.values()) {
-            if (value.getInternalName().equalsIgnoreCase(name)){
+            if (value.getInternalName().equalsIgnoreCase(name)) {
                 return value;
             }
         }

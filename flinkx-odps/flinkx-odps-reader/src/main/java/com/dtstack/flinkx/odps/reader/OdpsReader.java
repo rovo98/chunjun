@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -35,16 +36,16 @@ import static com.dtstack.flinkx.odps.OdpsConfigKeys.KEY_TABLE;
 
 /**
  * The reader plugin of Odps
+ *
  * @author huyifan.zju@163.com
  * @date 2018-1-17
  */
 public class OdpsReader extends BaseDataReader {
-    private Map<String,String> odpsConfig;
+    private Map<String, String> odpsConfig;
     private List<MetaColumn> metaColumns;
 
     protected String tableName;
     protected String partition;
-
 
     public OdpsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);

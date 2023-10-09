@@ -22,6 +22,7 @@ import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -41,8 +42,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -78,47 +78,53 @@ public class EmqxInputFormat extends BaseRichInputFormat {
             client = new MqttClient(broker, CLIENT_ID_PRE + jobId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(isCleanSession);
-            if(StringUtils.isNotBlank(username)){
+            if (StringUtils.isNotBlank(username)) {
                 options.setUserName(username);
                 options.setPassword(password.toCharArray());
             }
             options.setAutomaticReconnect(true);
 
-            client.setCallback(new MqttCallback() {
+            client.setCallback(
+                    new MqttCallback() {
 
-                @Override
-                public void connectionLost(Throwable cause) {
-                    LOG.warn("connection lost, e = {}", ExceptionUtil.getErrorMessage(cause));
-                }
+                        @Override
+                        public void connectionLost(Throwable cause) {
+                            LOG.warn(
+                                    "connection lost, e = {}",
+                                    ExceptionUtil.getErrorMessage(cause));
+                        }
 
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String msg = new String(message.getPayload());
-                    if(LOG.isTraceEnabled()){
-                        LOG.trace("msg = {}", msg);
-                    }
-                    Map<String, Object> event = decode.decode(msg);
-                    if (event != null && event.size() > 0) {
-                        processEvent(event);
-                    }
-                }
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message)
+                                throws Exception {
+                            String msg = new String(message.getPayload());
+                            if (LOG.isTraceEnabled()) {
+                                LOG.trace("msg = {}", msg);
+                            }
+                            Map<String, Object> event = decode.decode(msg);
+                            if (event != null && event.size() > 0) {
+                                processEvent(event);
+                            }
+                        }
 
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    if(LOG.isDebugEnabled()){
-                        LOG.debug("deliveryComplete = {}", token.isComplete());
-                    }
-                }
-            });
+                        @Override
+                        public void deliveryComplete(IMqttDeliveryToken token) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("deliveryComplete = {}", token.isComplete());
+                            }
+                        }
+                    });
             client.connect(options);
             client.subscribe(topic, qos);
             LOG.info("emqx is connected = {} ", client.isConnected());
-        }catch (MqttException e){
-            LOG.error("reason = {}, msg = {}, loc = {}, cause = {}, e = {}",
+        } catch (MqttException e) {
+            LOG.error(
+                    "reason = {}, msg = {}, loc = {}, cause = {}, e = {}",
                     e.getReasonCode(),
                     e.getMessage(),
                     e.getLocalizedMessage(),
-                    e.getCause(), e);
+                    e.getCause(),
+                    e);
         }
     }
 
@@ -162,5 +168,4 @@ public class EmqxInputFormat extends BaseRichInputFormat {
             LOG.error("takeEvent interrupted event:{} error:{}", event, e);
         }
     }
-
 }

@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
+
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.PushGateway;
@@ -81,45 +81,52 @@ public class CustomPrometheusReporter {
     private static final String KEY_HOST = "metrics.reporter.promgateway.host";
     private static final String KEY_PORT = "metrics.reporter.promgateway.port";
     private static final String KEY_JOB_NAME = "metrics.reporter.promgateway.jobName";
-    private static final String KEY_RANDOM_JOB_NAME_SUFFIX = "metrics.reporter.promgateway.randomJobNameSuffix";
-    private static final String KEY_DELETE_ON_SHUTDOWN = "metrics.reporter.promgateway.deleteOnShutdown";
+    private static final String KEY_RANDOM_JOB_NAME_SUFFIX =
+            "metrics.reporter.promgateway.randomJobNameSuffix";
+    private static final String KEY_DELETE_ON_SHUTDOWN =
+            "metrics.reporter.promgateway.deleteOnShutdown";
 
     private static final Pattern UN_ALLOWED_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9:_]");
-    private static final CharacterFilter CHARACTER_FILTER = new CharacterFilter() {
-        @Override
-        public String filterCharacters(String input) {
-            return replaceInvalidChars(input);
-        }
-    };
+    private static final CharacterFilter CHARACTER_FILTER =
+            new CharacterFilter() {
+                @Override
+                public String filterCharacters(String input) {
+                    return replaceInvalidChars(input);
+                }
+            };
 
     private static final char SCOPE_SEPARATOR = '_';
     private static final String SCOPE_PREFIX = "flink" + SCOPE_SEPARATOR;
 
-    private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>> collectorsWithCountByMetricName = new HashMap<>();
+    private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>>
+            collectorsWithCountByMetricName = new HashMap<>();
 
     private final Map<String, Metric> metricHashMap = new HashMap<>();
 
     @VisibleForTesting
     static String replaceInvalidChars(final String input) {
         // https://prometheus.io/docs/instrumenting/writing_exporters/
-        // Only [a-zA-Z0-9:_] are valid in metric names, any other characters should be sanitized to an underscore.
+        // Only [a-zA-Z0-9:_] are valid in metric names, any other characters should be sanitized to
+        // an underscore.
         return UN_ALLOWED_CHAR_PATTERN.matcher(input).replaceAll("_");
     }
 
     private CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
 
-    public CustomPrometheusReporter(RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
+    public CustomPrometheusReporter(
+            RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
         this.context = context;
         this.makeTaskFailedWhenReportFailed = makeTaskFailedWhenReportFailed;
         initConfiguration();
     }
 
-    private void initConfiguration(){
+    private void initConfiguration() {
         try {
-            Class<StreamingRuntimeContext> contextClazz = (Class<StreamingRuntimeContext>)context.getClass();
+            Class<StreamingRuntimeContext> contextClazz =
+                    (Class<StreamingRuntimeContext>) context.getClass();
             Field taskEnvironmentField = contextClazz.getDeclaredField("taskEnvironment");
             taskEnvironmentField.setAccessible(true);
-            Environment environment = (Environment)taskEnvironmentField.get(context);
+            Environment environment = (Environment) taskEnvironmentField.get(context);
             this.configuration = environment.getTaskManagerInfo().getConfiguration();
         } catch (Exception e) {
             throw new RuntimeException("获取环境配置出错", e);
@@ -144,14 +151,22 @@ public class CustomPrometheusReporter {
         }
 
         pushGateway = new PushGateway(host + ':' + port);
-        LOG.info("Configured PrometheusPushGatewayReporter with {host:{}, port:{}, jobName: {}, randomJobNameSuffix:{}, deleteOnShutdown:{}}",
-                host, port, jobName, randomSuffix, deleteOnShutdown);
+        LOG.info(
+                "Configured PrometheusPushGatewayReporter with {host:{}, port:{}, jobName: {}, randomJobNameSuffix:{}, deleteOnShutdown:{}}",
+                host,
+                port,
+                jobName,
+                randomSuffix,
+                deleteOnShutdown);
     }
 
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
-        ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
-        FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(reporterScopedSettings, (AbstractMetricGroup)context.getMetricGroup());
+        ReporterScopedSettings reporterScopedSettings =
+                new ReporterScopedSettings(0, ',', Collections.emptySet());
+        FrontMetricGroup front =
+                new FrontMetricGroup<AbstractMetricGroup<?>>(
+                        reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());
         notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front);
     }
 
@@ -169,7 +184,7 @@ public class CustomPrometheusReporter {
         }
     }
 
-    public void close(){
+    public void close() {
         if (deleteOnShutdown && pushGateway != null) {
             try {
                 pushGateway.delete(jobName);
@@ -180,14 +195,16 @@ public class CustomPrometheusReporter {
         }
     }
 
-    private void notifyOfAddedMetric(final Metric metric, final String metricName, final MetricGroup group) {
+    private void notifyOfAddedMetric(
+            final Metric metric, final String metricName, final MetricGroup group) {
         metricHashMap.put(metricName, metric);
 
         List<String> dimensionKeys = new LinkedList<>();
         List<String> dimensionValues = new LinkedList<>();
         for (final Map.Entry<String, String> dimension : group.getAllVariables().entrySet()) {
             final String key = dimension.getKey();
-            dimensionKeys.add(CHARACTER_FILTER.filterCharacters(key.substring(1, key.length() - 1)));
+            dimensionKeys.add(
+                    CHARACTER_FILTER.filterCharacters(key.substring(1, key.length() - 1)));
             dimensionValues.add(labelValueCharactersFilter.filterCharacters(dimension.getValue()));
         }
 
@@ -199,11 +216,18 @@ public class CustomPrometheusReporter {
 
         synchronized (this) {
             if (collectorsWithCountByMetricName.containsKey(scopedMetricName)) {
-                final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName.get(scopedMetricName);
+                final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount =
+                        collectorsWithCountByMetricName.get(scopedMetricName);
                 collector = collectorWithCount.getKey();
                 count = collectorWithCount.getValue();
             } else {
-                collector = createCollector(metric, dimensionKeys, dimensionValues, scopedMetricName, helpString);
+                collector =
+                        createCollector(
+                                metric,
+                                dimensionKeys,
+                                dimensionValues,
+                                scopedMetricName,
+                                helpString);
                 if (null == collector) {
                     return;
                 }
@@ -215,27 +239,43 @@ public class CustomPrometheusReporter {
                 }
             }
             addMetric(metric, dimensionValues, collector);
-            collectorsWithCountByMetricName.put(scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
+            collectorsWithCountByMetricName.put(
+                    scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
         }
     }
 
     private static String getScopedName(String metricName, MetricGroup group) {
-        return SCOPE_PREFIX + getLogicalScope(group) + SCOPE_SEPARATOR + CHARACTER_FILTER.filterCharacters(metricName);
+        return SCOPE_PREFIX
+                + getLogicalScope(group)
+                + SCOPE_SEPARATOR
+                + CHARACTER_FILTER.filterCharacters(metricName);
     }
 
-    private Collector createCollector(Metric metric, List<String> dimensionKeys, List<String> dimensionValues, String scopedMetricName, String helpString) {
+    private Collector createCollector(
+            Metric metric,
+            List<String> dimensionKeys,
+            List<String> dimensionValues,
+            String scopedMetricName,
+            String helpString) {
         Collector collector;
         if (metric instanceof Gauge || metric instanceof Counter || metric instanceof Meter) {
-            collector = io.prometheus.client.Gauge
-                    .build()
-                    .name(scopedMetricName)
-                    .help(helpString)
-                    .labelNames(toArray(dimensionKeys))
-                    .create();
+            collector =
+                    io.prometheus.client.Gauge.build()
+                            .name(scopedMetricName)
+                            .help(helpString)
+                            .labelNames(toArray(dimensionKeys))
+                            .create();
         } else if (metric instanceof Histogram) {
-            collector = new HistogramSummaryProxy((Histogram) metric, scopedMetricName, helpString, dimensionKeys, dimensionValues);
+            collector =
+                    new HistogramSummaryProxy(
+                            (Histogram) metric,
+                            scopedMetricName,
+                            helpString,
+                            dimensionKeys,
+                            dimensionValues);
         } else {
-            LOG.warn("Cannot create collector for unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
+            LOG.warn(
+                    "Cannot create collector for unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
             collector = null;
         }
@@ -244,22 +284,27 @@ public class CustomPrometheusReporter {
 
     private void addMetric(Metric metric, List<String> dimensionValues, Collector collector) {
         if (metric instanceof Gauge) {
-            ((io.prometheus.client.Gauge) collector).setChild(gaugeFrom((Gauge) metric), toArray(dimensionValues));
+            ((io.prometheus.client.Gauge) collector)
+                    .setChild(gaugeFrom((Gauge) metric), toArray(dimensionValues));
         } else if (metric instanceof Counter) {
-            ((io.prometheus.client.Gauge) collector).setChild(gaugeFrom((Counter) metric), toArray(dimensionValues));
+            ((io.prometheus.client.Gauge) collector)
+                    .setChild(gaugeFrom((Counter) metric), toArray(dimensionValues));
         } else if (metric instanceof Meter) {
-            ((io.prometheus.client.Gauge) collector).setChild(gaugeFrom((Meter) metric), toArray(dimensionValues));
+            ((io.prometheus.client.Gauge) collector)
+                    .setChild(gaugeFrom((Meter) metric), toArray(dimensionValues));
         } else if (metric instanceof Histogram) {
             ((HistogramSummaryProxy) collector).addChild((Histogram) metric, dimensionValues);
         } else {
-            LOG.warn("Cannot add unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
+            LOG.warn(
+                    "Cannot add unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
         }
     }
 
     @SuppressWarnings("unchecked")
     private static String getLogicalScope(MetricGroup group) {
-        return ((FrontMetricGroup<AbstractMetricGroup<?>>) group).getLogicalScope(CHARACTER_FILTER, SCOPE_SEPARATOR);
+        return ((FrontMetricGroup<AbstractMetricGroup<?>>) group)
+                .getLogicalScope(CHARACTER_FILTER, SCOPE_SEPARATOR);
     }
 
     @VisibleForTesting
@@ -281,8 +326,10 @@ public class CustomPrometheusReporter {
                 if (value instanceof Boolean) {
                     return ((Boolean) value) ? 1 : 0;
                 }
-                LOG.debug("Invalid type for Gauge {}: {}, only number types and booleans are supported by this reporter.",
-                        gauge, value.getClass().getName());
+                LOG.debug(
+                        "Invalid type for Gauge {}: {}, only number types and booleans are supported by this reporter.",
+                        gauge,
+                        value.getClass().getName());
                 return 0;
             }
         };
@@ -320,7 +367,12 @@ public class CustomPrometheusReporter {
 
         private final Map<List<String>, Histogram> histogramsByLabelValues = new HashMap<>();
 
-        HistogramSummaryProxy(final Histogram histogram, final String metricName, final String helpString, final List<String> labelNames, final List<String> labelValues) {
+        HistogramSummaryProxy(
+                final Histogram histogram,
+                final String metricName,
+                final String helpString,
+                final List<String> labelNames,
+                final List<String> labelValues) {
             this.metricName = metricName;
             this.helpString = helpString;
             this.labelNamesWithQuantile = addToList(labelNames, "quantile");
@@ -329,14 +381,20 @@ public class CustomPrometheusReporter {
 
         @Override
         public List<MetricFamilySamples> collect() {
-            // We cannot use SummaryMetricFamily because it is impossible to get a sum of all values (at least for Dropwizard histograms,
+            // We cannot use SummaryMetricFamily because it is impossible to get a sum of all values
+            // (at least for Dropwizard histograms,
             // whose snapshot's values array only holds a sample of recent values).
 
             List<MetricFamilySamples.Sample> samples = new LinkedList<>();
-            for (Map.Entry<List<String>, Histogram> labelValuesToHistogram : histogramsByLabelValues.entrySet()) {
-                addSamples(labelValuesToHistogram.getKey(), labelValuesToHistogram.getValue(), samples);
+            for (Map.Entry<List<String>, Histogram> labelValuesToHistogram :
+                    histogramsByLabelValues.entrySet()) {
+                addSamples(
+                        labelValuesToHistogram.getKey(),
+                        labelValuesToHistogram.getValue(),
+                        samples);
             }
-            return Collections.singletonList(new MetricFamilySamples(metricName, Type.SUMMARY, helpString, samples));
+            return Collections.singletonList(
+                    new MetricFamilySamples(metricName, Type.SUMMARY, helpString, samples));
         }
 
         void addChild(final Histogram histogram, final List<String> labelValues) {
@@ -347,13 +405,23 @@ public class CustomPrometheusReporter {
             histogramsByLabelValues.remove(labelValues);
         }
 
-        private void addSamples(final List<String> labelValues, final Histogram histogram, final List<MetricFamilySamples.Sample> samples) {
-            samples.add(new MetricFamilySamples.Sample(metricName + "_count",
-                    labelNamesWithQuantile.subList(0, labelNamesWithQuantile.size() - 1), labelValues, histogram.getCount()));
+        private void addSamples(
+                final List<String> labelValues,
+                final Histogram histogram,
+                final List<MetricFamilySamples.Sample> samples) {
+            samples.add(
+                    new MetricFamilySamples.Sample(
+                            metricName + "_count",
+                            labelNamesWithQuantile.subList(0, labelNamesWithQuantile.size() - 1),
+                            labelValues,
+                            histogram.getCount()));
             for (final Double quantile : QUANTILES) {
-                samples.add(new MetricFamilySamples.Sample(metricName, labelNamesWithQuantile,
-                        addToList(labelValues, quantile.toString()),
-                        histogram.getStatistics().getQuantile(quantile)));
+                samples.add(
+                        new MetricFamilySamples.Sample(
+                                metricName,
+                                labelNamesWithQuantile,
+                                addToList(labelValues, quantile.toString()),
+                                histogram.getStatistics().getQuantile(quantile)));
             }
         }
     }

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.kudu.Type;
@@ -46,7 +46,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     protected KuduConfig kuduConfig;
 
-    protected Map<String,Object> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     private transient KuduClient client;
 
@@ -68,7 +68,10 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("execute openInternal,splitNumber = {}, indexOfSubtask  = {}", inputSplit.getSplitNumber(), indexOfSubTask);
+        LOG.info(
+                "execute openInternal,splitNumber = {}, indexOfSubtask  = {}",
+                inputSplit.getSplitNumber(),
+                indexOfSubTask);
         KuduTableSplit kuduTableSplit = (KuduTableSplit) inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
     }
@@ -125,7 +128,9 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
-        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString(), hadoopConfig);
+        List<KuduScanToken> scanTokens =
+                KuduUtil.getKuduScanToken(
+                        kuduConfig, columns, kuduConfig.getFilterString(), hadoopConfig);
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);

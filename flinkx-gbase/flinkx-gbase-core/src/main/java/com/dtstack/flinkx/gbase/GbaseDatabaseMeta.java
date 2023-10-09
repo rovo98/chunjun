@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.gbase;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -43,33 +43,55 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
+        if (updateKey == null || updateKey.isEmpty()) {
             return getInsertStatement(column, table);
         }
 
         List<String> updateColumns = getUpdateColumns(column, updateKey);
-        if(CollectionUtils.isEmpty(updateColumns)){
-            return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                    + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
-                    + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
-                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                    + quoteColumns(column, "T2") + ")";
+        if (CollectionUtils.isEmpty(updateColumns)) {
+            return "MERGE INTO "
+                    + quoteTable(table)
+                    + " T1 USING "
+                    + "(select "
+                    + makeValues(column)
+                    + " from "
+                    + quoteTable(table)
+                    + "  limit 1) T2 ON ("
+                    + updateKeySql(updateKey)
+                    + ") WHEN NOT MATCHED THEN "
+                    + "INSERT ("
+                    + quoteColumns(column)
+                    + ") VALUES ("
+                    + quoteColumns(column, "T2")
+                    + ")";
         } else {
-            return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                    + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
-                    + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                    + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                    + quoteColumns(column, "T2") + ")";
+            return "MERGE INTO "
+                    + quoteTable(table)
+                    + " T1 USING "
+                    + "(select "
+                    + makeValues(column)
+                    + " from "
+                    + quoteTable(table)
+                    + "  limit 1) T2 ON ("
+                    + updateKeySql(updateKey)
+                    + ") WHEN MATCHED THEN UPDATE SET "
+                    + getUpdateSql(updateColumns, "T1", "T2")
+                    + " WHEN NOT MATCHED THEN "
+                    + "INSERT ("
+                    + quoteColumns(column)
+                    + ") VALUES ("
+                    + quoteColumns(column, "T2")
+                    + ")";
         }
     }
 
     @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < column.size(); ++i) {
-            if(i != 0) {
+        for (int i = 0; i < column.size(); ++i) {
+            if (i != 0) {
                 sb.append(",");
             }
             sb.append("? " + quoteColumn(column.get(i)));
@@ -99,7 +121,7 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("'%s' as %s",value,column);
+        return String.format("'%s' as %s", value, column);
     }
 
     @Override
@@ -109,7 +131,8 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
-        return String.format("mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+        return String.format(
+                "mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
@@ -118,12 +141,12 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return Integer.MIN_VALUE;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 }

@@ -18,15 +18,11 @@
 
 package com.dtstack.flinkx.hive;
 
-
 import com.dtstack.flinkx.hive.util.DateUtil;
 
 import java.util.Date;
 
-/**
- * @author toutian
- */
-
+/** @author toutian */
 public class TimePartitionFormat {
 
     private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2L;
@@ -55,8 +51,7 @@ public class TimePartitionFormat {
         return timePartitionFormat;
     }
 
-    private TimePartitionFormat() {
-    }
+    private TimePartitionFormat() {}
 
     public String currentTime() {
         if (PartitionEnum.DAY == partitionEnum) {
@@ -67,7 +62,8 @@ public class TimePartitionFormat {
             return DateUtil.getMinuteFormatter().format(new Date());
         }
 
-        throw new UnsupportedOperationException("partitionEnum=" + partitionEnum + " is undefined!");
+        throw new UnsupportedOperationException(
+                "partitionEnum=" + partitionEnum + " is undefined!");
     }
 
     public static PartitionEnum getPartitionEnum() {
@@ -76,19 +72,13 @@ public class TimePartitionFormat {
 
     public enum PartitionEnum {
 
-        /**
-         * 天分区
-         */
+        /** 天分区 */
         DAY,
 
-        /**
-         * 小时分区
-         */
+        /** 小时分区 */
         HOUR,
 
-        /**
-         * 分钟分区
-         */
+        /** 分钟分区 */
         MINUTE
     }
 
@@ -105,5 +95,4 @@ public class TimePartitionFormat {
             return true;
         }
     }
-
 }

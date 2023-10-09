@@ -21,8 +21,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Date: 2020/12/26
- * Company: www.dtstack.com
+ * Date: 2020/12/26 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -78,10 +77,10 @@ public class kafkaState implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         kafkaState that = (kafkaState) o;
-        return offset.equals(that.offset) &&
-                timestamp.equals(that.timestamp) &&
-                partition.equals(that.partition) &&
-                topic.equals(that.topic);
+        return offset.equals(that.offset)
+                && timestamp.equals(that.timestamp)
+                && partition.equals(that.partition)
+                && topic.equals(that.topic);
     }
 
     @Override
@@ -96,11 +95,16 @@ public class kafkaState implements Serializable {
 
     @Override
     public String toString() {
-        return "kafkaState{" +
-                "topic='" + topic + '\'' +
-                ", partition=" + partition +
-                ", offset=" + offset +
-                ", timestamp=" + timestamp +
-                '}';
+        return "kafkaState{"
+                + "topic='"
+                + topic
+                + '\''
+                + ", partition="
+                + partition
+                + ", offset="
+                + offset
+                + ", timestamp="
+                + timestamp
+                + '}';
     }
 }

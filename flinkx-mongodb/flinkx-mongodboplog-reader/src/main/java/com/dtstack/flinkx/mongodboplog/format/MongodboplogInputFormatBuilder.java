@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.mongodboplog.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
@@ -34,12 +33,10 @@ public class MongodboplogInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = this.format = new MongodboplogInputFormat();
     }
 
-    public void setMongodbConfig(MongodbConfig mongodbConfig){
+    public void setMongodbConfig(MongodbConfig mongodbConfig) {
         format.mongodbConfig = mongodbConfig;
     }
 
     @Override
-    protected void checkFormat() {
-
-    }
+    protected void checkFormat() {}
 }

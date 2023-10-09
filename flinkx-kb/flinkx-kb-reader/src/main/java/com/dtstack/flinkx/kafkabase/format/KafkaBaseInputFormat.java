@@ -31,6 +31,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.InputSplit;
@@ -46,8 +47,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -69,7 +69,6 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected transient BlockingQueue<Row> queue;
     protected transient KafkaBaseConsumer consumer;
     protected transient IDecode decode;
-
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
@@ -112,15 +111,19 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     public void processEvent(Pair<Map<String, Object>, kafkaState> pair) {
         try {
             Row row;
-            if(CollectionUtils.isEmpty(metaColumns)){
+            if (CollectionUtils.isEmpty(metaColumns)) {
                 row = Row.of(pair.getLeft());
-            }else{
+            } else {
                 row = new Row(metaColumns.size());
                 for (int i = 0; i < metaColumns.size(); i++) {
                     MetaColumn metaColumn = metaColumns.get(i);
                     Object value = pair.getLeft().get(metaColumn.getName());
-                    Object obj = StringUtil.string2col(String.valueOf(value), metaColumn.getType(), metaColumn.getTimeFormat());
-                    row.setField(i , obj);
+                    Object obj =
+                            StringUtil.string2col(
+                                    String.valueOf(value),
+                                    metaColumn.getType(),
+                                    metaColumn.getTimeFormat());
+                    row.setField(i, obj);
                 }
             }
             queue.put(row);
@@ -156,9 +159,8 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * 获取kafka版本信息
-     *  0.9:  kakfa09
-     *  0.10: kafka10
+     * 获取kafka版本信息 0.9: kakfa09 0.10: kafka10
+     *
      * @return
      */
     public KafkaVersion getKafkaVersion() {
@@ -167,9 +169,10 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
 
     /**
      * 获取kafka state
+     *
      * @return
      */
-    public Object getState(){
+    public Object getState() {
         return formatState == null ? null : formatState.getState();
     }
 
@@ -184,6 +187,4 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     public StartupMode getMode() {
         return mode;
     }
-
-
 }

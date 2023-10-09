@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,47 +32,43 @@ import java.util.Map;
 import static com.dtstack.flinkx.hive.EStoreType.ORC;
 import static com.dtstack.flinkx.hive.EStoreType.TEXT;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class HiveUtil {
 
     private static Logger logger = LoggerFactory.getLogger(HiveUtil.class);
 
     public static final String LEFT_BRACKETS = "(";
 
-    private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
-    private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
+    private static final String CREATE_PARTITION_TEMPLATE =
+            "alter table %s add if not exists partition (%s)";
+    private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE =
+            "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
 
     private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
 
-    private final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
+    private final List<String> tableExistException =
+            Arrays.asList(
+                    "TableExistsException",
+                    "AlreadyExistsException",
+                    "TableAlreadyExistsException");
 
-    public final static String TABLE_COLUMN_KEY = "key";
-    public final static String TABLE_COLUMN_TYPE = "type";
-    public final static String PARTITION_TEMPLATE = "%s=%s";
+    public static final String TABLE_COLUMN_KEY = "key";
+    public static final String TABLE_COLUMN_TYPE = "type";
+    public static final String PARTITION_TEMPLATE = "%s=%s";
 
     private HiveDbUtil.ConnectionInfo connectionInfo;
 
-    enum HiveReleaseVersion{
-        /**
-         * apache hive 1.x
-         */
+    enum HiveReleaseVersion {
+        /** apache hive 1.x */
         APACHE_1("apache", "1"),
 
-        /**
-         * apache hive 2.x
-         */
+        /** apache hive 2.x */
         APACHE_2("apache", "2"),
 
-        /**
-         * cdh hive 1.x
-         */
+        /** cdh hive 1.x */
         CDH_1("cdh", "1"),
 
-        /**
-         * cdh hive 2.x
-         */
+        /** cdh hive 2.x */
         CDH_2("cdh", "2");
 
         private String name;
@@ -100,12 +97,9 @@ public class HiveUtil {
         }
     }
 
-    public HiveUtil() {
-    }
+    public HiveUtil() {}
 
-    /**
-     * 抛出异常,直接终止hive
-     */
+    /** 抛出异常,直接终止hive */
     public HiveUtil(HiveDbUtil.ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
     }
@@ -124,14 +118,13 @@ public class HiveUtil {
         }
     }
 
-    /**
-     * 创建hive的分区
-     */
+    /** 创建hive的分区 */
     public void createPartition(TableInfo tableInfo, String partition) {
         Connection connection = null;
         try {
             connection = HiveDbUtil.getConnection(connectionInfo);
-            String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
+            String sql =
+                    String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
@@ -157,13 +150,15 @@ public class HiveUtil {
                 throw new RuntimeException("create table happens error", e);
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Not need create table:{}, it's already exist", tableInfo.getTablePath());
+                    logger.debug(
+                            "Not need create table:{}, it's already exist",
+                            tableInfo.getTablePath());
                 }
             }
         }
     }
 
-    private boolean isTableExistsException(String message){
+    private boolean isTableExistsException(String message) {
         if (message == null) {
             return false;
         }
@@ -182,7 +177,9 @@ public class HiveUtil {
             HiveReleaseVersion hiveVersion = getHiveVersion(connection);
             AbstractHiveMetadataParser metadataParser = getMetadataParser(hiveVersion);
 
-            List<Map<String, Object>> result = HiveDbUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
+            List<Map<String, Object>> result =
+                    HiveDbUtil.executeQuery(
+                            connection, "desc formatted " + tableInfo.getTablePath());
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             logger.error("{}", e);
@@ -194,24 +191,25 @@ public class HiveUtil {
         }
     }
 
-    private AbstractHiveMetadataParser getMetadataParser(HiveReleaseVersion hiveVersion){
-        if (HiveReleaseVersion.APACHE_2.equals(hiveVersion) || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
+    private AbstractHiveMetadataParser getMetadataParser(HiveReleaseVersion hiveVersion) {
+        if (HiveReleaseVersion.APACHE_2.equals(hiveVersion)
+                || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
             return new Apache2MetadataParser();
         } else {
             return new Cdh2HiveMetadataParser();
         }
     }
 
-    public HiveReleaseVersion getHiveVersion(Connection connection){
+    public HiveReleaseVersion getHiveVersion(Connection connection) {
         HiveReleaseVersion version = HiveReleaseVersion.APACHE_2;
         try (ResultSet resultSet = connection.createStatement().executeQuery("select version()")) {
             if (resultSet.next()) {
                 String versionMsg = resultSet.getString(1);
-                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())){
+                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())) {
                     // 结果示例：2.1.1-cdh6.3.1 re8d55f408b4f9aa2648bc9e34a8f802d53d6aab3
                     if (versionMsg.startsWith(HiveReleaseVersion.CDH_2.getVersion())) {
                         version = HiveReleaseVersion.CDH_2;
-                    } else if(versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())){
+                    } else if (versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())) {
                         version = HiveReleaseVersion.CDH_1;
                     }
                 } else {
@@ -225,10 +223,13 @@ public class HiveUtil {
     }
 
     public static String getCreateTableHql(TableInfo tableInfo) {
-        //不要使用create table if not exist，可能以后会在业务逻辑中判断表是否已经存在
+        // 不要使用create table if not exist，可能以后会在业务逻辑中判断表是否已经存在
         StringBuilder fieldsb = new StringBuilder("CREATE TABLE %s (");
         for (int i = 0; i < tableInfo.getColumns().size(); i++) {
-            fieldsb.append(String.format("`%s` %s", tableInfo.getColumns().get(i), tableInfo.getColumnTypes().get(i)));
+            fieldsb.append(
+                    String.format(
+                            "`%s` %s",
+                            tableInfo.getColumns().get(i), tableInfo.getColumnTypes().get(i)));
             if (i != tableInfo.getColumns().size() - 1) {
                 fieldsb.append(",");
             }
@@ -245,9 +246,9 @@ public class HiveUtil {
             fieldsb.append(" ROW FORMAT DELIMITED FIELDS TERMINATED BY '");
             fieldsb.append(tableInfo.getDelimiter());
             fieldsb.append("' LINES TERMINATED BY '\\n' STORED AS TEXTFILE ");
-        } else if(ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
+        } else if (ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
             fieldsb.append(" STORED AS ORC ");
-        }else{
+        } else {
             fieldsb.append(" STORED AS PARQUET ");
         }
         return fieldsb.toString();
@@ -259,14 +260,14 @@ public class HiveUtil {
         if (indexOfBrackets > -1) {
             String params = originType.substring(indexOfBrackets);
             int index = params.indexOf(",");
-            int right = Integer.parseInt(params.substring(index+1, params.length()-1).trim());
-            if(right == 0){
+            int right = Integer.parseInt(params.substring(index + 1, params.length() - 1).trim());
+            if (right == 0) {
                 int left = Integer.parseInt(params.substring(1, index).trim());
-                if(left <= 4){
+                if (left <= 4) {
                     return "SMALLINT";
-                }else if(left <= 9){
+                } else if (left <= 9) {
                     return "INT";
-                }else if(left <= 18){
+                } else if (left <= 18) {
                     return "BIGINT";
                 }
             }

@@ -18,13 +18,13 @@
 package com.dtstack.flinkx.kafkabase;
 
 import com.dtstack.flinkx.kafkabase.entity.kafkaState;
+
 import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
 
 /**
- * Date: 2020/12/30
- * Company: www.dtstack.com
+ * Date: 2020/12/30 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -52,9 +52,6 @@ public class KafkaInputSplit implements InputSplit {
 
     @Override
     public String toString() {
-        return "KafkaInputSplit{" +
-                "splitNumber=" + splitNumber +
-                ", list=" + list +
-                '}';
+        return "KafkaInputSplit{" + "splitNumber=" + splitNumber + ", list=" + list + '}';
     }
 }

@@ -21,28 +21,29 @@ package com.dtstack.flinkx.odps;
 /**
  * This class defines configuration keys for OdpsReader and OdpsWriter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsConfigKeys {
 
-    public final static String KEY_ACCESS_ID = "accessId";
+    public static final String KEY_ACCESS_ID = "accessId";
 
-    public final static String KEY_ACCESS_KEY = "accessKey";
+    public static final String KEY_ACCESS_KEY = "accessKey";
 
     public static final String KEY_PROJECT = "project";
 
-    public final static String KEY_TABLE = "table";
+    public static final String KEY_TABLE = "table";
 
-    public final static String KEY_COLUMN_TYPE = "type";
+    public static final String KEY_COLUMN_TYPE = "type";
 
-    public final static String KEY_COLUMN_VALUE = "value";
+    public static final String KEY_COLUMN_VALUE = "value";
 
-    public final static String KEY_ODPS_SERVER = "odpsServer";
+    public static final String KEY_ODPS_SERVER = "odpsServer";
 
-    public final static String KEY_PARTITION = "partition";
+    public static final String KEY_PARTITION = "partition";
 
-    public final static String KEY_ACCOUNT_TYPE = "accountType";
+    public static final String KEY_ACCOUNT_TYPE = "accountType";
 
     public static final String KEY_WRITE_MODE = "writeMode";
 
@@ -55,5 +56,4 @@ public class OdpsConfigKeys {
     public static final String KEY_MODE = "mode";
 
     public static final String KEY_BUFFER_SIZE = "bufferSize";
-
 }

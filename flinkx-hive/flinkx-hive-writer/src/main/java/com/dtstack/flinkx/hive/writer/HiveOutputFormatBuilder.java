@@ -20,19 +20,17 @@ package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     protected HiveOutputFormat format;
-
 
     public HiveOutputFormatBuilder() {
         format = new HiveOutputFormat();
@@ -51,9 +49,7 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         this.format.partitionType = partitionType;
     }
 
-    /**
-     * 字节数量超过 bufferSize 时，outputFormat 进行一次 close，触发输出文件的合并
-     */
+    /** 字节数量超过 bufferSize 时，outputFormat 进行一次 close，触发输出文件的合并 */
     public void setBufferSize(long bufferSize) {
         this.format.bufferSize = bufferSize;
     }
@@ -86,7 +82,7 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         this.format.distributeTableMapping = distributeTableMapping;
     }
 
-    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
@@ -94,7 +90,7 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.delimiter = delimiter;
     }
 
-    public void setRowGroupSize(int rowGroupSize){
+    public void setRowGroupSize(int rowGroupSize) {
         format.rowGroupSize = rowGroupSize;
     }
 
@@ -113,18 +109,18 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     public void setCharSetName(String charsetName) {
         if (StringUtils.isNotEmpty(charsetName)) {
             if (!Charset.isSupported(charsetName)) {
-                throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
+                throw new UnsupportedCharsetException(
+                        "The charset " + charsetName + " is not supported.");
             }
             this.format.charsetName = charsetName;
         }
-
     }
 
-    public void setMaxFileSize(long maxFileSize){
+    public void setMaxFileSize(long maxFileSize) {
         this.format.maxFileSize = maxFileSize;
     }
 
-    public void setSchema(String schema){
+    public void setSchema(String schema) {
         format.schema = schema;
     }
 
@@ -134,11 +130,10 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
             throw new IllegalArgumentException("No tableBasePath supplied.");
         }
 
-        if (this.format.tableInfos.isEmpty()){
+        if (this.format.tableInfos.isEmpty()) {
             throw new IllegalArgumentException("No tableInfos supplied.");
         }
 
         notSupportBatchWrite("HiveWriter");
     }
-
 }

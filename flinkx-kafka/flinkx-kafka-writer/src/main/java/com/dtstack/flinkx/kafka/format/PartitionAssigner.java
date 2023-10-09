@@ -24,16 +24,17 @@ import org.apache.kafka.common.Cluster;
 
 import java.util.Map;
 
-/**
- * @company:www.dtstack.com
- * @Author:shiFang
- * @Date:2021-02-02 20:37
- * @Description:
- */
+/** @company:www.dtstack.com @Author:shiFang @Date:2021-02-02 20:37 @Description: */
 public class PartitionAssigner implements Partitioner {
 
     @Override
-    public int partition(String topic, Object key, byte[] keyBytes, Object value, byte[] valueBytes, Cluster cluster) {
+    public int partition(
+            String topic,
+            Object key,
+            byte[] keyBytes,
+            Object value,
+            byte[] valueBytes,
+            Cluster cluster) {
         if (key == null || StringUtils.isEmpty(key.toString())) {
             return 0;
         }
@@ -42,12 +43,8 @@ public class PartitionAssigner implements Partitioner {
     }
 
     @Override
-    public void close() {
-
-    }
+    public void close() {}
 
     @Override
-    public void configure(Map<String, ?> map) {
-
-    }
+    public void configure(Map<String, ?> map) {}
 }

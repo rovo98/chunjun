@@ -23,7 +23,8 @@ import com.dtstack.flinkx.util.SysUtil;
 /**
  * Latch is a synchronizing Toolkit
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseLatch {
@@ -32,21 +33,22 @@ public abstract class BaseLatch {
 
     /**
      * 从Flink REST API获取累加器里的值
+     *
      * @return 累加器里的值
      */
     public abstract int getVal();
 
     public void waitUntil(int val) {
         int i = 0;
-        for(; i < MAX_RETRY_TIMES; ++i) {
-            if(getVal() == val) {
+        for (; i < MAX_RETRY_TIMES; ++i) {
+            if (getVal() == val) {
                 clear();
                 break;
             }
             sleep();
         }
 
-        if(i == MAX_RETRY_TIMES) {
+        if (i == MAX_RETRY_TIMES) {
             throw new RuntimeException("Can't wait any longer because max retry times exceeded.");
         }
     }
@@ -55,13 +57,8 @@ public abstract class BaseLatch {
         SysUtil.sleep(2000);
     }
 
-    /**
-     * 更新累加器里的值
-     */
+    /** 更新累加器里的值 */
     public abstract void addOne();
 
-    protected void clear() {
-
-    }
-
+    protected void clear() {}
 }

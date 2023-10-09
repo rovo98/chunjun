@@ -24,7 +24,8 @@ import java.util.Map;
 /**
  * The configuration of speed control
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class SpeedConfig extends AbstractConfig {
@@ -43,7 +44,7 @@ public class SpeedConfig extends AbstractConfig {
         super(map);
     }
 
-    public static SpeedConfig defaultConfig(){
+    public static SpeedConfig defaultConfig() {
         Map<String, Object> map = new HashMap<>(2);
         map.put(KEY_BYTES, DEFAULT_SPEED_BYTES);
         map.put(KEY_NUM_CHANNELS, DEFAULT_NUM_CHANNELS);
@@ -65,11 +66,11 @@ public class SpeedConfig extends AbstractConfig {
         return getIntVal(KEY_NUM_CHANNELS, DEFAULT_NUM_CHANNELS);
     }
 
-    public int getReaderChannel(){
+    public int getReaderChannel() {
         return getIntVal(KEY_NUM_READER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
     }
 
-    public int getWriterChannel(){
+    public int getWriterChannel() {
         return getIntVal(KEY_NUM_WRITER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
     }
 

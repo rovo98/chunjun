@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.util;
 
 import com.google.common.collect.Lists;
@@ -35,13 +34,15 @@ public class ResultPrintUtil {
 
     private static Logger LOG = LoggerFactory.getLogger(ResultPrintUtil.class);
 
-    public static void printResult(JobExecutionResult result){
+    public static void printResult(JobExecutionResult result) {
         List<String> names = Lists.newArrayList();
         List<String> values = Lists.newArrayList();
-        result.getAllAccumulatorResults().forEach((name, val) -> {
-            names.add(name);
-            values.add(String.valueOf(val));
-        });
+        result.getAllAccumulatorResults()
+                .forEach(
+                        (name, val) -> {
+                            names.add(name);
+                            values.add(String.valueOf(val));
+                        });
 
         int maxLength = 0;
         for (String name : names) {
@@ -56,7 +57,7 @@ public class ResultPrintUtil {
             builder.append(name + StringUtils.repeat(" ", maxLength - name.length()));
             builder.append("|  ").append(values.get(i));
 
-            if(i+1 < names.size()){
+            if (i + 1 < names.size()) {
                 builder.append("\n");
             }
         }

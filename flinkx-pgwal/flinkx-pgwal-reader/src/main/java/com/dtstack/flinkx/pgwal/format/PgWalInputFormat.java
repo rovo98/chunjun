@@ -24,6 +24,7 @@ import com.dtstack.flinkx.pgwal.PgWalUtil;
 import com.dtstack.flinkx.pgwal.listener.PgWalListener;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -39,8 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 
 /**
- * Date: 2019/12/13
- * Company: www.dtstack.com
+ * Date: 2019/12/13 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -66,7 +66,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     private volatile boolean running = false;
 
     @Override
-    public void openInputFormat() throws IOException{
+    public void openInputFormat() throws IOException {
         super.openInputFormat();
         executor = Executors.newFixedThreadPool(1);
         queue = new SynchronousQueue<>(true);
@@ -75,42 +75,47 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         if (inputSplit.getSplitNumber() != 0) {
-            LOG.info("PgWalInputFormat openInternal split number:{} abort...", inputSplit.getSplitNumber());
+            LOG.info(
+                    "PgWalInputFormat openInternal split number:{} abort...",
+                    inputSplit.getSplitNumber());
             return;
         }
-        LOG.info("PgWalInputFormat openInternal split number:{} start...", inputSplit.getSplitNumber());
+        LOG.info(
+                "PgWalInputFormat openInternal split number:{} start...",
+                inputSplit.getSplitNumber());
         try {
             conn = PgWalUtil.getConnection(url, username, password);
-            if(StringUtils.isBlank(slotName)){
+            if (StringUtils.isBlank(slotName)) {
                 slotName = PgWalUtil.SLOT_PRE + jobId;
             }
-            PgRelicationSlot availableSlot = PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList);
-            if(availableSlot == null){
+            PgRelicationSlot availableSlot =
+                    PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList);
+            if (availableSlot == null) {
                 PgWalUtil.createSlot(conn, slotName, temporary);
             }
-            if(lsn != 0){
+            if (lsn != 0) {
                 startLsn = lsn;
-            }else if(formatState != null && formatState.getState() != null){
-                startLsn = (long)formatState.getState();
+            } else if (formatState != null && formatState.getState() != null) {
+                startLsn = (long) formatState.getState();
             }
 
             executor.submit(new PgWalListener(this));
             running = true;
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.error("PgWalInputFormat open() failed, e = {}", ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException("PgWalInputFormat open() failed, e = " + ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(
+                    "PgWalInputFormat open() failed, e = " + ExceptionUtil.getErrorMessage(e));
         }
         LOG.info("PgWalInputFormat[{}]open: end", jobName);
-
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         try {
             Map<String, Object> map = queue.take();
-            if(map.size() == 1){
+            if (map.size() == 1) {
                 throw new IOException((String) map.get("e"));
-            }else{
+            } else {
                 startLsn = (long) map.get("lsn");
                 row = Row.of(map);
             }
@@ -118,7 +123,6 @@ public class PgWalInputFormat extends BaseRichInputFormat {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return row;
-
     }
 
     @Override
@@ -142,7 +146,6 @@ public class PgWalInputFormat extends BaseRichInputFormat {
             running = false;
             LOG.warn("shutdown SqlServerCdcListener......");
         }
-
     }
 
     @Override
@@ -163,10 +166,12 @@ public class PgWalInputFormat extends BaseRichInputFormat {
         try {
             queue.put(event);
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", event, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "takeEvent interrupted event:{} error:{}",
+                    event,
+                    ExceptionUtil.getErrorMessage(e));
         }
     }
-
 
     public boolean isPavingData() {
         return pavingData;

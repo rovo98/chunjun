@@ -23,8 +23,7 @@ import org.apache.flink.core.io.GenericInputSplit;
 import java.util.Vector;
 
 /**
- * Date: 2020/09/29
- * Company: www.dtstack.com
+ * Date: 2020/09/29 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -36,10 +35,11 @@ public class Phoenix5InputSplit extends GenericInputSplit {
     /**
      * Creates a generic input split with the given split number.
      *
-     * @param partitionNumber         The number of the split's partition.
+     * @param partitionNumber The number of the split's partition.
      * @param totalNumberOfPartitions The total number of the splits (partitions).
      */
-    public Phoenix5InputSplit(int partitionNumber, int totalNumberOfPartitions, Vector<Pair<byte[], byte[]>> splits) {
+    public Phoenix5InputSplit(
+            int partitionNumber, int totalNumberOfPartitions, Vector<Pair<byte[], byte[]>> splits) {
         super(partitionNumber, totalNumberOfPartitions);
         this.splits = splits;
     }

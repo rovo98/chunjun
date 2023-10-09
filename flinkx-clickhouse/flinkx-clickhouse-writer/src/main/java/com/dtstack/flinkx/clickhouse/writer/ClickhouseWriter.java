@@ -25,8 +25,7 @@ import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
 /**
- * Date: 2019/11/05
- * Company: www.dtstack.com
+ * Date: 2019/11/05 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,10 +33,11 @@ public class ClickhouseWriter extends JdbcDataWriter {
 
     public ClickhouseWriter(DataTransferConfig config) {
         super(config);
-        if(config.getJob().getSetting().getSpeed().getChannel() != 1){
-            throw new UnsupportedOperationException("clickhouse writer's channel setting must be 1");
+        if (config.getJob().getSetting().getSpeed().getChannel() != 1) {
+            throw new UnsupportedOperationException(
+                    "clickhouse writer's channel setting must be 1");
         }
-        if(!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
+        if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
             throw new UnsupportedOperationException(mode + " mode is not supported");
         }
         setDatabaseInterface(new ClickhouseDatabaseMeta());

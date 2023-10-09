@@ -23,6 +23,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -41,9 +42,8 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
 import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
- * OutputFormat for writing data to redis database.
+ * OutputFormat for writing data to redis database. @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class RedisOutputFormat extends BaseRichOutputFormat {
@@ -83,24 +83,22 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         super.configure(parameters);
 
         Properties properties = new Properties();
-        properties.put(KEY_HOST_PORT,hostPort);
-        if(StringUtils.isNotBlank(password)){
-            properties.put(KEY_PASSWORD,password);
+        properties.put(KEY_HOST_PORT, hostPort);
+        if (StringUtils.isNotBlank(password)) {
+            properties.put(KEY_PASSWORD, password);
         }
-        properties.put(KEY_TIMEOUT,timeout);
-        properties.put(KEY_DB,database);
+        properties.put(KEY_TIMEOUT, timeout);
+        properties.put(KEY_DB, database);
 
         jedis = JedisUtil.getJedis(properties);
 
-        if (StringUtils.isNotBlank(dateFormat)){
+        if (StringUtils.isNotBlank(dateFormat)) {
             sdf = new SimpleDateFormat(dateFormat);
         }
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-
-    }
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {}
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
@@ -108,48 +106,49 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         String key = concatKey(row);
         String[] values = getValues(row);
 
-        if(type == DataType.STRING){
-            jedis.set(key,concatValues(row));
-        } else if(type == DataType.LIST){
-            if(dataMode == DataMode.L_PUSH){
-                jedis.lpush(key,values);
-            } else if(dataMode == DataMode.R_PUSH){
-                jedis.rpush(key,values);
+        if (type == DataType.STRING) {
+            jedis.set(key, concatValues(row));
+        } else if (type == DataType.LIST) {
+            if (dataMode == DataMode.L_PUSH) {
+                jedis.lpush(key, values);
+            } else if (dataMode == DataMode.R_PUSH) {
+                jedis.rpush(key, values);
             }
-        } else if(type == DataType.SET){
-            jedis.sadd(key,values);
-        } else if(type == DataType.Z_SET){
+        } else if (type == DataType.SET) {
+            jedis.sadd(key, values);
+        } else if (type == DataType.Z_SET) {
             List<Object> scoreValue = getFieldAndValue(row);
-            jedis.zadd(key,(Integer)scoreValue.get(0),String.valueOf(scoreValue.get(1)));
-        } else if(type == DataType.HASH){
+            jedis.zadd(key, (Integer) scoreValue.get(0), String.valueOf(scoreValue.get(1)));
+        } else if (type == DataType.HASH) {
             List<Object> fieldValue = getFieldAndValue(row);
-            jedis.hset(key,String.valueOf(fieldValue.get(0)),String.valueOf(fieldValue.get(1)));
+            jedis.hset(key, String.valueOf(fieldValue.get(0)), String.valueOf(fieldValue.get(1)));
         }
 
-        if(expireTime > 0){
-            if (expireTime > CRITICAL_TIME){
-                jedis.expireAt(key,expireTime);
+        if (expireTime > 0) {
+            if (expireTime > CRITICAL_TIME) {
+                jedis.expireAt(key, expireTime);
             } else {
-                jedis.expire(key,(int)expireTime);
+                jedis.expire(key, (int) expireTime);
             }
         }
     }
 
-    private void processTimeFormat(Row row){
+    private void processTimeFormat(Row row) {
         for (int i = 0; i < row.getArity(); i++) {
-            if(row.getField(i) instanceof Date){
-                if (StringUtils.isNotBlank(dateFormat)){
-                    row.setField(i,sdf.format((Date)row.getField(i)));
-                }else {
-                    row.setField(i,((Date)row.getField(i)).getTime());
+            if (row.getField(i) instanceof Date) {
+                if (StringUtils.isNotBlank(dateFormat)) {
+                    row.setField(i, sdf.format((Date) row.getField(i)));
+                } else {
+                    row.setField(i, ((Date) row.getField(i)).getTime());
                 }
             }
         }
     }
 
-    private List<Object> getFieldAndValue(Row row){
-        if(row.getArity() - keyIndexes.size() != KEY_VALUE_SIZE){
-            throw new IllegalArgumentException("Each row record can have only one pair of attributes and values except key");
+    private List<Object> getFieldAndValue(Row row) {
+        if (row.getArity() - keyIndexes.size() != KEY_VALUE_SIZE) {
+            throw new IllegalArgumentException(
+                    "Each row record can have only one pair of attributes and values except key");
         }
 
         List<Object> values = new ArrayList<>(row.getArity());
@@ -158,17 +157,17 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         }
 
         for (Integer keyIndex : keyIndexes) {
-            values.remove((int)keyIndex);
+            values.remove((int) keyIndex);
         }
 
         return values;
     }
 
-    private String[] getValues(Row row){
+    private String[] getValues(Row row) {
         List<String> values = new ArrayList<>();
 
         for (int i = 0; i < row.getArity(); i++) {
-            if(!keyIndexes.contains(i)){
+            if (!keyIndexes.contains(i)) {
                 values.add(String.valueOf(row.getField(i)));
             }
         }
@@ -176,12 +175,12 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         return values.toArray(new String[values.size()]);
     }
 
-    private String concatValues(Row row){
-        return StringUtils.join(getValues(row),valueFieldDelimiter);
+    private String concatValues(Row row) {
+        return StringUtils.join(getValues(row), valueFieldDelimiter);
     }
 
-    private String concatKey(Row row){
-        if (keyIndexes.size() == 1){
+    private String concatKey(Row row) {
+        if (keyIndexes.size() == 1) {
             return String.valueOf(row.getField(keyIndexes.get(0)));
         } else {
             List<String> keys = new ArrayList<>(keyIndexes.size());
@@ -189,7 +188,7 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
                 keys.add(String.valueOf(row.getField(keyIndexes.get(index))));
             }
 
-            return StringUtils.join(keys,keyFieldDelimiter);
+            return StringUtils.join(keys, keyFieldDelimiter);
         }
     }
 

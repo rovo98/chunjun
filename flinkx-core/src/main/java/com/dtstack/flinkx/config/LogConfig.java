@@ -21,8 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Date: 2019/12/17
- * Company: www.dtstack.com
+ * Date: 2019/12/17 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,23 +34,24 @@ public class LogConfig extends AbstractConfig {
     public static final boolean DEFAULT_ISLOGGER = false;
     public static final String DEFAULT_LEVEL = "info";
     public static final String DEFAULT_PATH = "/tmp/dtstack/flinkx/";
-    public static final String DEFAULT_LOG4J_PATTERN = "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n";
-    public static final String DEFAULT_LOGBACK_PATTERN = "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n";
-
+    public static final String DEFAULT_LOG4J_PATTERN =
+            "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n";
+    public static final String DEFAULT_LOGBACK_PATTERN =
+            "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n";
 
     public LogConfig(Map<String, Object> map) {
         super(map);
     }
 
-    public static LogConfig defaultConfig(){
+    public static LogConfig defaultConfig() {
         Map<String, Object> map = new HashMap<>(8);
-        map.put(KEY_ISLOGGER,DEFAULT_ISLOGGER);
-        map.put(KEY_LEVEL,DEFAULT_LEVEL);
-        map.put(KEY_PATH,DEFAULT_PATH);
+        map.put(KEY_ISLOGGER, DEFAULT_ISLOGGER);
+        map.put(KEY_LEVEL, DEFAULT_LEVEL);
+        map.put(KEY_PATH, DEFAULT_PATH);
         return new LogConfig(map);
     }
 
-    public boolean isLogger(){
+    public boolean isLogger() {
         return getBooleanVal(KEY_ISLOGGER, DEFAULT_ISLOGGER);
     }
 

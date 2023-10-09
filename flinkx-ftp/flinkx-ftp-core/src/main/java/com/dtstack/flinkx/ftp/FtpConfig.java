@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.ftp;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -140,7 +139,7 @@ public class FtpConfig implements Serializable {
         this.port = port;
     }
 
-    public void setDefaultPort(){
+    public void setDefaultPort() {
         if (SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
             port = FtpConfigConstants.DEFAULT_SFTP_PORT;
         } else {

@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.saphana;
 
-
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -30,7 +30,8 @@ import java.util.Map;
 /**
  * The class of SapHana database prototype
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class SaphanaDatabaseMeta extends BaseDatabaseMeta {
@@ -67,28 +68,39 @@ public class SaphanaDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("\"%s\" as %s",value,column);
+        return String.format("\"%s\" as %s", value, column);
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
-        return "REPLACE INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
+    public String getReplaceStatement(
+            List<String> column,
+            List<String> fullColumn,
+            String table,
+            Map<String, List<String>> updateKey) {
+        return "REPLACE INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") values "
                 + makeValues(column.size());
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
+        return "INSERT INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") values "
                 + makeValues(column.size())
                 + " ON DUPLICATE KEY UPDATE "
                 + makeUpdatePart(column);
     }
 
-    private String makeUpdatePart (List<String> column) {
+    private String makeUpdatePart(List<String> column) {
         List<String> updateList = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             String quotedCol = quoteColumn(col);
             updateList.add(quotedCol + "=values(" + quotedCol + ")");
         }
@@ -101,8 +113,9 @@ public class SaphanaDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(
+                "%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
@@ -120,12 +133,12 @@ public class SaphanaDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 }

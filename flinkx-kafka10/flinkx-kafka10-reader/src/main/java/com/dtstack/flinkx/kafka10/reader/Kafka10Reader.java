@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.kafka10.format.Kafka10InputFormat;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -35,7 +36,7 @@ public class Kafka10Reader extends KafkaBaseReader {
     }
 
     @Override
-    public KafkaBaseInputFormatBuilder getBuilder(){
+    public KafkaBaseInputFormatBuilder getBuilder() {
         return new KafkaBaseInputFormatBuilder(new Kafka10InputFormat());
     }
 }

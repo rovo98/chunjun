@@ -22,6 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
+
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -33,7 +34,6 @@ import org.apache.hadoop.fs.PathFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * The oss implementation of OutputFormat
@@ -73,9 +73,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
 
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    /**
-     * 如果key为string类型的值是map 或者 list 会使用gson转为json格式存入
-     */
+    /** 如果key为string类型的值是map 或者 list 会使用gson转为json格式存入 */
     protected transient Gson gson;
 
     @Override
@@ -93,15 +91,18 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
 
             if (fs.exists(dir)) {
                 if (fs.getFileStatus(dir).isFile()) {
-                    throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
-                            + "One can only write new files under directories");
+                    throw new RuntimeException(
+                            "Can't write new files under common file: "
+                                    + dir
+                                    + "\n"
+                                    + "One can only write new files under directories");
                 }
             } else {
                 if (!makeDir) {
                     throw new RuntimeException("Output path not exists:" + outputFilePath);
                 }
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException("Check output path error", e);
         }
     }
@@ -114,7 +115,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
             } else {
                 LOG.warn("Failed to create action finished tag:{}", actionFinishedTag);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("create action finished tag error:", e);
         }
     }
@@ -143,27 +144,28 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     protected void cleanDirtyData() {
         int fileIndex = formatState.getFileIndex();
         String lastJobId = formatState.getJobId();
-        LOG.info("start to cleanDirtyData, fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        LOG.info("start to cleanDirtyData, fileIndex = {}, lastJobId = {}", fileIndex, lastJobId);
         if (StringUtils.isBlank(lastJobId)) {
             return;
         }
 
-        PathFilter filter = new PathFilter() {
-            @Override
-            public boolean accept(Path path) {
-                String fileName = path.getName();
-                if (!fileName.contains(lastJobId)) {
-                    return false;
-                }
+        PathFilter filter =
+                new PathFilter() {
+                    @Override
+                    public boolean accept(Path path) {
+                        String fileName = path.getName();
+                        if (!fileName.contains(lastJobId)) {
+                            return false;
+                        }
 
-                String[] splits = fileName.split("\\.");
-                if (splits.length == FILE_NAME_PART_SIZE) {
-                    return Integer.parseInt(splits[2]) > fileIndex;
-                }
+                        String[] splits = fileName.split("\\.");
+                        if (splits.length == FILE_NAME_PART_SIZE) {
+                            return Integer.parseInt(splits[2]) > fileIndex;
+                        }
 
-                return false;
-            }
-        };
+                        return false;
+                    }
+                };
 
         try {
             FileStatus[] dirtyData = fs.listStatus(new Path(outputFilePath), filter);
@@ -180,7 +182,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void openSource() throws IOException{
+    protected void openSource() throws IOException {
         try {
             conf = new Configuration();
             conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
@@ -222,16 +224,17 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void moveTemporaryDataBlockFileToDirectory(){
+    protected void moveTemporaryDataBlockFileToDirectory() {
         try {
-            if (currentBlockFileName != null && currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)) {
+            if (currentBlockFileName != null
+                    && currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)) {
                 Path src = new Path(tmpPath + SP + currentBlockFileName);
                 if (!fs.exists(src)) {
                     LOG.warn("block file {} not exists", currentBlockFileName);
                     return;
                 }
 
-                String dataFileName = currentBlockFileName.replaceFirst("\\.","");
+                String dataFileName = currentBlockFileName.replaceFirst("\\.", "");
                 Path dist = new Path(tmpPath + SP + dataFileName);
 
                 if (fs.rename(src, dist)) {
@@ -240,14 +243,14 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
                     LOG.info("Failed to rename temporary data block file:{} to:{}", src, dist);
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.error("Failed to rename file with exception : " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    protected void clearTemporaryDataFiles() throws IOException{
+    protected void clearTemporaryDataFiles() throws IOException {
         Path finishedDir = null, tmpDir = null;
         if (outputFilePath.endsWith("/")) {
             finishedDir = new Path(outputFilePath, FINISHED_SUBDIR);
@@ -278,7 +281,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void createFinishedTag() throws IOException{
+    protected void createFinishedTag() throws IOException {
         if (fs != null) {
             fs.createNewFile(new Path(finishedPath));
             LOG.info("Create finished tag dir:{}", finishedPath);
@@ -286,7 +289,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void waitForAllTasksToFinish() throws IOException{
+    protected void waitForAllTasksToFinish() throws IOException {
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         final int maxRetryTime = 100;
         int i = 0;
@@ -310,7 +313,7 @@ public abstract class BaseOssOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void coverageData() throws IOException{
+    protected void coverageData() throws IOException {
         LOG.info("Overwrite the original data");
 
         Path dir = new Path(outputFilePath);

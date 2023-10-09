@@ -16,11 +16,9 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.reader;
 
 import org.apache.flink.core.io.InputSplit;
-
 
 /**
  * @author jiangbo

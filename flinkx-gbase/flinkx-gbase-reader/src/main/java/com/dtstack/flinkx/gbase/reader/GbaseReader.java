@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.gbase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -24,6 +23,7 @@ import com.dtstack.flinkx.gbase.GbaseDatabaseMeta;
 import com.dtstack.flinkx.gbase.format.GbaseInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**

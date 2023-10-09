@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.mongodboplog.format;
 
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
 import org.apache.flink.types.Row;
 import org.bson.BsonTimestamp;
 import org.bson.Document;
@@ -33,15 +33,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class MongodbEventHandler {
 
-    public final static String EVENT_KEY_OP = "op";
-    public final static String EVENT_KEY_NS = "ns";
-    public final static String EVENT_KEY_TS = "ts";
-    public final static String EVENT_KEY_DATA = "o";
+    public static final String EVENT_KEY_OP = "op";
+    public static final String EVENT_KEY_NS = "ns";
+    public static final String EVENT_KEY_TS = "ts";
+    public static final String EVENT_KEY_DATA = "o";
 
     private static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
-    public static Row handleEvent(final Document event, AtomicLong offset, boolean excludeDocId, boolean pavingData){
-        MongodbOperation mongodbOperation = MongodbOperation.getByInternalNames(event.getString(EVENT_KEY_OP));
+    public static Row handleEvent(
+            final Document event, AtomicLong offset, boolean excludeDocId, boolean pavingData) {
+        MongodbOperation mongodbOperation =
+                MongodbOperation.getByInternalNames(event.getString(EVENT_KEY_OP));
         Map<String, Object> eventMap = new LinkedHashMap<>();
         eventMap.put("type", mongodbOperation.name());
 
@@ -50,9 +52,9 @@ public class MongodbEventHandler {
         BsonTimestamp timestamp = event.get(EVENT_KEY_TS, BsonTimestamp.class);
         eventMap.put("ts", idWorker.nextId());
 
-        final Document data = (Document)event.get(EVENT_KEY_DATA);
+        final Document data = (Document) event.get(EVENT_KEY_DATA);
         Set<String> keys = data.keySet();
-        if(excludeDocId){
+        if (excludeDocId) {
             keys.remove("_id");
         }
 
@@ -74,7 +76,8 @@ public class MongodbEventHandler {
         return Row.of(eventMap);
     }
 
-    private static Map<String,Object> processColumnList(Set<String> keys, Document data, boolean valueNull) {
+    private static Map<String, Object> processColumnList(
+            Set<String> keys, Document data, boolean valueNull) {
         Map<String, Object> map = new HashMap<>(keys.size());
         for (String key : keys) {
             if (valueNull) {
@@ -87,7 +90,7 @@ public class MongodbEventHandler {
         return map;
     }
 
-    private static void parseDbAndCollection(final Document event, Map<String, Object> eventMap){
+    private static void parseDbAndCollection(final Document event, Map<String, Object> eventMap) {
         String dbCollection = event.getString(EVENT_KEY_NS);
         String[] split = dbCollection.split("\\.");
         eventMap.put("schema", split[0]);

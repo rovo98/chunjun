@@ -21,7 +21,8 @@ package com.dtstack.flinkx.hbase2;
 /**
  * The class containing Hbase configuration constants
  *
- * Company: cmss
+ * <p>Company: cmss
+ *
  * @author wangyulei_yewu@cmss.chinamobile.com
  */
 public class HbaseConfigConstants {
@@ -41,5 +42,4 @@ public class HbaseConfigConstants {
     public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
 
     public static final boolean DEFAULT_WAL_FLAG = false;
-
 }

@@ -21,7 +21,8 @@ package com.dtstack.flinkx.odps;
 /**
  * The class containing Odps configuration constants
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsConfigConstants {
@@ -31,5 +32,4 @@ public class OdpsConfigConstants {
     public static final String DEFAULT_ODPS_SERVER = "http://service.odps.aliyun.com/api";
 
     public static final String PACKAGE_AUTHORIZED_PROJECT = "packageAuthorizedProject";
-
 }

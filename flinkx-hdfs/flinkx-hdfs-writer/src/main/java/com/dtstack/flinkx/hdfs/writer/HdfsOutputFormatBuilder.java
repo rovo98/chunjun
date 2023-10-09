@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -28,7 +29,8 @@ import java.util.Map;
 /**
  * The builder class of HdfsOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
@@ -36,7 +38,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
     private BaseHdfsOutputFormat format;
 
     public HdfsOutputFormatBuilder(String type) {
-        switch(type.toUpperCase()) {
+        switch (type.toUpperCase()) {
             case "TEXT":
                 format = new HdfsTextOutputFormat();
                 break;
@@ -61,7 +63,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.columnTypes = columnTypes;
     }
 
-    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
@@ -73,7 +75,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.delimiter = delimiter;
     }
 
-    public void setRowGroupSize(int rowGroupSize){
+    public void setRowGroupSize(int rowGroupSize) {
         format.rowGroupSize = rowGroupSize;
     }
 
@@ -92,7 +94,6 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
     @Override
     protected void checkFormat() {
 
-
         StringBuilder errorMessage = new StringBuilder(256);
 
         if (format.getPath() == null || format.getPath().length() == 0) {
@@ -101,9 +102,8 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
 
         if (StringUtils.isBlank(format.defaultFs)) {
             errorMessage.append("No defaultFS supplied. \n");
-        }else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
+        } else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
         }
     }
-
 }

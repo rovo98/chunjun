@@ -44,9 +44,9 @@ public class FunctionFactory {
                 function = new ConstantFunction();
                 break;
             default:
-                throw new UnsupportedOperationException(String.format("function name[%s] don't exist!", functionName));
+                throw new UnsupportedOperationException(
+                        String.format("function name[%s] don't exist!", functionName));
         }
         return function;
     }
-
 }

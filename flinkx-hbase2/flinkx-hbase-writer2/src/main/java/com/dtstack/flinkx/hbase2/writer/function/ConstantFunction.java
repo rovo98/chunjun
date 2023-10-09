@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hbase2.writer.function;
 
 /**
@@ -27,8 +26,7 @@ public class ConstantFunction implements IFunction {
 
     private Object value;
 
-    public ConstantFunction() {
-    }
+    public ConstantFunction() {}
 
     public ConstantFunction(Object value) {
         this.value = value;

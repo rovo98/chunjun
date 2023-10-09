@@ -18,10 +18,10 @@
 package com.dtstack.flinkx.pgwal;
 
 /**
- * Date: 2019/12/14
- * Company: www.dtstack.com
+ * Date: 2019/12/14 Company: www.dtstack.com
  *
- * reference to https://github.com/debezium/debezium & http://www.postgres.cn/docs/10/protocol-logicalrep-message-formats.html
+ * <p>reference to https://github.com/debezium/debezium &
+ * http://www.postgres.cn/docs/10/protocol-logicalrep-message-formats.html
  *
  * @author tudou
  */
@@ -37,15 +37,24 @@ public enum PgMessageTypeEnum {
 
     public static PgMessageTypeEnum forType(char type) {
         switch (type) {
-            case 'R': return RELATION;
-            case 'B': return BEGIN;
-            case 'C': return COMMIT;
-            case 'I': return INSERT;
-            case 'U': return UPDATE;
-            case 'D': return DELETE;
-            case 'Y': return TYPE;
-            case 'O': return ORIGIN;
-            default: throw new IllegalArgumentException("Unsupported message type: " + type);
+            case 'R':
+                return RELATION;
+            case 'B':
+                return BEGIN;
+            case 'C':
+                return COMMIT;
+            case 'I':
+                return INSERT;
+            case 'U':
+                return UPDATE;
+            case 'D':
+                return DELETE;
+            case 'Y':
+                return TYPE;
+            case 'O':
+                return ORIGIN;
+            default:
+                throw new IllegalArgumentException("Unsupported message type: " + type);
         }
     }
 }

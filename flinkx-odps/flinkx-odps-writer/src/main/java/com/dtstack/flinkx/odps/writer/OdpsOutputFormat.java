@@ -18,6 +18,13 @@
 
 package com.dtstack.flinkx.odps.writer;
 
+import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.odps.OdpsUtil;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.writer.WriteMode;
+
 import com.aliyun.odps.Odps;
 import com.aliyun.odps.Table;
 import com.aliyun.odps.data.Binary;
@@ -25,14 +32,9 @@ import com.aliyun.odps.data.Record;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.aliyun.odps.tunnel.TunnelException;
 import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
-import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.odps.OdpsUtil;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +43,8 @@ import java.util.Map;
 /**
  * The Odps implementation of OutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsOutputFormat extends BaseRichOutputFormat {
@@ -58,7 +61,7 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     protected String tableName;
 
-    protected Map<String,String> odpsConfig;
+    protected Map<String, String> odpsConfig;
 
     protected long bufferSize;
 
@@ -83,10 +86,10 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void beforeOpenInternal() {
-        if(taskNumber == 0) {
+        if (taskNumber == 0) {
             Table table = OdpsUtil.getTable(odps, projectName, tableName);
             boolean truncate = false;
-            if(WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
+            if (WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
                 truncate = true;
             }
             OdpsUtil.checkTable(odps, table, partition, truncate);
@@ -105,11 +108,11 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException{
+    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
         Record record = row2record(row, columnTypes);
         try {
             recordWriter.write(record);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
     }
@@ -126,7 +129,7 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
             for (; i < row.getArity(); ++i) {
                 Object column = row.getField(i);
 
-                if(column == null) {
+                if (column == null) {
                     continue;
                 }
 
@@ -166,19 +169,24 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
                         record.set(i, DateUtil.columnToDate(column, null));
                         break;
                     case TIMESTAMP:
-                        record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
+                        record.setDatetime(i, DateUtil.columnToTimestamp(column, null));
                         break;
                     case BINARY:
                         record.set(i, new Binary(rowData.getBytes(StandardCharsets.UTF_8)));
                         break;
                     default:
-                        record.set(i,column);
+                        record.set(i, column);
                 }
-
             }
 
-        } catch(Exception ex) {
-            String msg = getClass().getName() + " Writing record error: when converting field[" + i + "] in Row(" + row + ")";
+        } catch (Exception ex) {
+            String msg =
+                    getClass().getName()
+                            + " Writing record error: when converting field["
+                            + i
+                            + "] in Row("
+                            + row
+                            + ")";
             throw new WriteRecordException(msg, ex, i, row);
         }
 
@@ -187,16 +195,14 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(recordWriter != null) {
+        if (recordWriter != null) {
             recordWriter.close();
         }
 
         try {
             session.commit();
         } catch (TunnelException e) {
-            throw new IOException("commit session error:",e);
+            throw new IOException("commit session error:", e);
         }
-
     }
-
 }

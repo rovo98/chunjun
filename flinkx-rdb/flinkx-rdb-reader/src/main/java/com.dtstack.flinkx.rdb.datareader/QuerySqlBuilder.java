@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -68,8 +68,15 @@ public class QuerySqlBuilder {
         orderByColumn = reader.orderByColumn;
     }
 
-    public QuerySqlBuilder(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                           String splitKey,String customFilter,boolean isSplitByKey,boolean isIncrement,boolean isRestore) {
+    public QuerySqlBuilder(
+            DatabaseInterface databaseInterface,
+            String table,
+            List<MetaColumn> metaColumns,
+            String splitKey,
+            String customFilter,
+            boolean isSplitByKey,
+            boolean isIncrement,
+            boolean isRestore) {
         this.databaseInterface = databaseInterface;
         this.table = table;
         this.metaColumns = metaColumns;
@@ -80,9 +87,9 @@ public class QuerySqlBuilder {
         this.isRestore = isRestore;
     }
 
-    public String buildSql(){
+    public String buildSql() {
         String query;
-        if (StringUtils.isNotEmpty(customSql)){
+        if (StringUtils.isNotEmpty(customSql)) {
             query = buildQuerySqlWithCustomSql();
         } else {
             query = buildQuerySql();
@@ -91,50 +98,54 @@ public class QuerySqlBuilder {
         return query;
     }
 
-    protected String buildQuerySql(){
+    protected String buildQuerySql() {
         List<String> selectColumns = DbUtil.buildSelectColumns(databaseInterface, metaColumns);
-        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
+        boolean splitWithRowNum =
+                addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
+        sb.append("SELECT ").append(StringUtils.join(selectColumns, ",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
         sb.append(" WHERE 1=1 ");
 
         StringBuilder filter = new StringBuilder();
 
-        if(isSplitByKey && !splitWithRowNum) {
+        if (isSplitByKey && !splitWithRowNum) {
             filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
-        if (customFilter != null){
+        if (customFilter != null) {
             customFilter = customFilter.trim();
-            if (customFilter.length() > 0){
+            if (customFilter.length() > 0) {
                 filter.append(" AND ").append(customFilter);
             }
         }
 
-        if(isIncrement){
+        if (isIncrement) {
             filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
-        if(isRestore){
+        if (isRestore) {
             filter.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
         sb.append(filter);
 
-        if(isSplitByKey && splitWithRowNum){
-            return String.format(SQL_SPLIT_WITH_ROW_NUM, sb.toString(), databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
+        if (isSplitByKey && splitWithRowNum) {
+            return String.format(
+                    SQL_SPLIT_WITH_ROW_NUM,
+                    sb.toString(),
+                    databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
         } else {
             return sb.toString();
         }
     }
 
-    protected String buildOrderSql(){
+    protected String buildOrderSql() {
         String column;
-        if(isIncrement){
+        if (isIncrement) {
             column = incrementColumn;
-        } else if(isRestore){
+        } else if (isRestore) {
             column = restoreColumn;
         } else {
             column = orderByColumn;
@@ -143,26 +154,29 @@ public class QuerySqlBuilder {
         return StringUtils.isEmpty(column) ? "" : String.format(" order by %s", column);
     }
 
-    protected String buildQuerySqlWithCustomSql(){
+    protected String buildQuerySqlWithCustomSql() {
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         querySql.append(" WHERE 1=1 ");
 
-        if (isSplitByKey){
-            querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
+        if (isSplitByKey) {
+            querySql.append(" And ")
+                    .append(
+                            databaseInterface.getSplitFilterWithTmpTable(
+                                    TEMPORARY_TABLE_NAME, splitKey));
         }
 
-        if(isIncrement){
+        if (isIncrement) {
             querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
-        if(isRestore){
+        if (isRestore) {
             querySql.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
-        if (customFilter != null){
+        if (customFilter != null) {
             customFilter = customFilter.trim();
-            if (customFilter.length() > 0){
+            if (customFilter.length() > 0) {
                 querySql.append(" AND ").append(customFilter);
             }
         }
@@ -170,12 +184,19 @@ public class QuerySqlBuilder {
         return querySql.toString();
     }
 
-    protected static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, boolean isSplitByKey,String splitKey){
-        if(!isSplitByKey || !splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
+    protected static boolean addRowNumColumn(
+            DatabaseInterface databaseInterface,
+            List<String> selectColumns,
+            boolean isSplitByKey,
+            String splitKey) {
+        if (!isSplitByKey || !splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)) {
             return false;
         }
 
-        String orderBy = splitKey.substring(splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL)+1, splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
+        String orderBy =
+                splitKey.substring(
+                        splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL) + 1,
+                        splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
         selectColumns.add(databaseInterface.getRowNumColumn(orderBy));
 
         return true;

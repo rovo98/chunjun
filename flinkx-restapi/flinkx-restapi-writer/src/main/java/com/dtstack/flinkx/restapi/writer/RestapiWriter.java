@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.restapi.common.RestapiKeys;
 import com.dtstack.flinkx.restapi.outputformat.RestapiOutputFormatBuilder;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -44,7 +45,7 @@ public class RestapiWriter extends BaseDataWriter {
 
     protected Map<String, String> header = Maps.newHashMap();
 
-    protected Map<String, Object> body =Maps.newHashMap();
+    protected Map<String, Object> body = Maps.newHashMap();
 
     protected ArrayList<String> column = Lists.newArrayList();
 

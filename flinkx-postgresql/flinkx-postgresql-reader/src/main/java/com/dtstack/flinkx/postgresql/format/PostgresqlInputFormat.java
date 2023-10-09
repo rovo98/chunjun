@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
@@ -27,8 +28,7 @@ import java.io.IOException;
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -44,8 +44,8 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(columnTypeList)) {
                         obj = typeConverter.convert(obj, columnTypeList.get(pos));
                     }
                     obj = clobToString(obj);
@@ -54,7 +54,7 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }

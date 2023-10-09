@@ -17,21 +17,17 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Properties;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author sishu.yss
  */
 public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -66,7 +62,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.postSql = postSql;
     }
 
-    public void setUpdateKey(Map<String,List<String>> updateKey) {
+    public void setUpdateKey(Map<String, List<String>> updateKey) {
         format.updateKey = updateKey;
     }
 
@@ -74,7 +70,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.databaseInterface = databaseInterface;
     }
 
-    public void setProperties(Properties properties){
+    public void setProperties(Properties properties) {
         format.properties = properties;
     }
 
@@ -94,19 +90,17 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.fullColumn = fullColumn;
     }
 
-    public void setTypeConverter(TypeConverterInterface typeConverter ){
+    public void setTypeConverter(TypeConverterInterface typeConverter) {
         format.typeConverter = typeConverter;
     }
 
-    public void setInsertSqlMode(String insertSqlMode){
+    public void setInsertSqlMode(String insertSqlMode) {
         format.insertSqlMode = insertSqlMode;
     }
 
-
-    public void setSchema(String schema){
+    public void setSchema(String schema) {
         format.setSchema(schema);
     }
-
 
     @Override
     protected void checkFormat() {
@@ -123,9 +117,9 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
             throw new IllegalArgumentException("No driver supplied");
         }
 
-        if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){
-            throw new IllegalArgumentException("Batch Size must greater than 1 when checkpoint is open");
+        if (format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1) {
+            throw new IllegalArgumentException(
+                    "Batch Size must greater than 1 when checkpoint is open");
         }
     }
-
 }

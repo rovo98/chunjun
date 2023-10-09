@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.pgwal.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
 /**
- * Date: 2019/12/13
- * Company: www.dtstack.com
+ * Date: 2019/12/13 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -106,8 +106,9 @@ public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(format.cat)) {
             throw new IllegalArgumentException("No cat supplied");
         }
-        if(!format.allowCreateSlot && StringUtils.isBlank(format.slotName)){
-            throw new IllegalArgumentException("slotName can not be null if allowCreateSlot is false");
+        if (!format.allowCreateSlot && StringUtils.isBlank(format.slotName)) {
+            throw new IllegalArgumentException(
+                    "slotName can not be null if allowCreateSlot is false");
         }
     }
 }

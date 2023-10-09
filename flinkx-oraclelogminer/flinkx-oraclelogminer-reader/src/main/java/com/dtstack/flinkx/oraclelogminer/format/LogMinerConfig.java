@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,23 +37,17 @@ public class LogMinerConfig implements Serializable {
 
     private String password;
 
-    /**
-     * LogMiner从v$logmnr_contents视图中批量拉取条数，值越大，消费存量数据越快
-     */
+    /** LogMiner从v$logmnr_contents视图中批量拉取条数，值越大，消费存量数据越快 */
     private int fetchSize = 1000;
 
     private String listenerTables;
 
     private String cat = "UPDATE,INSERT,DELETE";
 
-    /**
-     * 读取位置: all, current, time, scn
-     */
+    /** 读取位置: all, current, time, scn */
     private String readPosition = "current";
 
-    /**
-     * 毫秒级时间戳
-     */
+    /** 毫秒级时间戳 */
     private long startTime = 0;
 
     @JsonProperty("startSCN")
@@ -64,14 +57,10 @@ public class LogMinerConfig implements Serializable {
 
     private List<String> table;
 
-    /**
-     * LogMiner执行查询SQL的超时参数，单位秒
-     */
+    /** LogMiner执行查询SQL的超时参数，单位秒 */
     private Long queryTimeout = 300L;
 
-    /**
-     * Oracle 12c第二个版本之后LogMiner不支持自动添加日志
-     */
+    /** Oracle 12c第二个版本之后LogMiner不支持自动添加日志 */
     private boolean supportAutoAddLog;
 
     public boolean getSupportAutoAddLog() {

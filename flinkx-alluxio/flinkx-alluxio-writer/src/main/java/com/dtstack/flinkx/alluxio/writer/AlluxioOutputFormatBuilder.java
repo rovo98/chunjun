@@ -75,5 +75,4 @@ public class AlluxioOutputFormatBuilder extends FileOutputFormatBuilder {
             throw new IllegalArgumentException("Path should start with alluxio://");
         }
     }
-
 }

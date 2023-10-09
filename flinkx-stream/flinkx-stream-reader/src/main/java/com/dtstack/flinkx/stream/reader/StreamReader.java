@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -31,9 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Read plugin for reading static data
+ * Read plugin for reading static data @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class StreamReader extends BaseDataReader {
@@ -48,8 +48,8 @@ public class StreamReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         sliceRecordCount = new ArrayList<>();
-        List list = (List)readerConfig.getParameter().getVal("sliceRecordCount");
-        if(CollectionUtils.isNotEmpty(list)){
+        List list = (List) readerConfig.getParameter().getVal("sliceRecordCount");
+        if (CollectionUtils.isNotEmpty(list)) {
             for (Object item : list) {
                 sliceRecordCount.add(Double.valueOf(item.toString()).longValue());
             }

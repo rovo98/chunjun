@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs;
 
 import com.dtstack.flinkx.enums.ColumnType;
+
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -36,11 +37,11 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.parquet.io.api.Binary;
 
-
 /**
  * Utilities for HdfsReader and HdfsWriter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsUtil {
@@ -59,27 +60,27 @@ public class HdfsUtil {
         Class<?> clz = writable.getClass();
         Object ret = null;
 
-        if(clz == IntWritable.class) {
+        if (clz == IntWritable.class) {
             ret = ((IntWritable) writable).get();
-        } else if(clz == Text.class) {
+        } else if (clz == Text.class) {
             ret = ((Text) writable).toString();
-        } else if(clz == LongWritable.class) {
+        } else if (clz == LongWritable.class) {
             ret = ((LongWritable) writable).get();
-        } else if(clz == ByteWritable.class) {
+        } else if (clz == ByteWritable.class) {
             ret = ((ByteWritable) writable).get();
-        } else if(clz == DateWritable.class) {
+        } else if (clz == DateWritable.class) {
             ret = ((DateWritable) writable).get();
-        } else if(writable instanceof DoubleWritable){
+        } else if (writable instanceof DoubleWritable) {
             ret = ((DoubleWritable) writable).get();
-        } else if(writable instanceof TimestampWritable){
+        } else if (writable instanceof TimestampWritable) {
             ret = ((TimestampWritable) writable).getTimestamp();
-        }else if (writable instanceof DateWritable){
+        } else if (writable instanceof DateWritable) {
             ret = ((DateWritable) writable).get();
-        }else if (writable instanceof FloatWritable){
+        } else if (writable instanceof FloatWritable) {
             ret = ((FloatWritable) writable).get();
-        }else if (writable instanceof BooleanWritable){
+        } else if (writable instanceof BooleanWritable) {
             ret = ((BooleanWritable) writable).get();
-        }else  {
+        } else {
             ret = writable.toString();
         }
         return ret;
@@ -87,51 +88,78 @@ public class HdfsUtil {
 
     public static ObjectInspector columnTypeToObjectInspetor(ColumnType columnType) {
         ObjectInspector objectInspector = null;
-        switch(columnType) {
+        switch (columnType) {
             case TINYINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case SMALLINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case INT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BIGINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case FLOAT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DOUBLE:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DECIMAL:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(HiveDecimalWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                HiveDecimalWritable.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case TIMESTAMP:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Timestamp.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                java.sql.Timestamp.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DATE:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Date.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                java.sql.Date.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case STRING:
             case VARCHAR:
             case CHAR:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BOOLEAN:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BINARY:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(BytesWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                BytesWritable.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             default:
                 throw new IllegalArgumentException("You should not be here");
         }
         return objectInspector;
     }
-
 
     public static Binary decimalToBinary(final HiveDecimal hiveDecimal, int prec, int scale) {
         byte[] decimalBytes = hiveDecimal.setScale(scale).unscaledValue().toByteArray();
@@ -152,11 +180,12 @@ public class HdfsUtil {
         }
 
         // Padding leading zeroes/ones.
-        System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
+        System.arraycopy(
+                decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
         return Binary.fromReusedByteArray(tgt);
     }
 
-    public static int computeMinBytesForPrecision(int precision){
+    public static int computeMinBytesForPrecision(int precision) {
         int numBytes = 1;
         while (Math.pow(SCALE_TWO, BIT_SIZE * numBytes - 1.0) < Math.pow(SCALE_TEN, precision)) {
             numBytes += 1;
@@ -164,7 +193,7 @@ public class HdfsUtil {
         return numBytes;
     }
 
-    public static byte[] longToByteArray(long data){
+    public static byte[] longToByteArray(long data) {
         long nano = data * 1000_000;
 
         int julianDays = (int) ((nano / NANO_SECONDS_PER_DAY) + JULIAN_EPOCH_OFFSET_DAYS);
@@ -184,26 +213,24 @@ public class HdfsUtil {
     }
 
     private static byte[] getBytes(long i) {
-        byte[] bytes=new byte[8];
-        bytes[0]=(byte)((i >> 56) & 0xFF);
-        bytes[1]=(byte)((i >> 48) & 0xFF);
-        bytes[2]=(byte)((i >> 40) & 0xFF);
-        bytes[3]=(byte)((i >> 32) & 0xFF);
-        bytes[4]=(byte)((i >> 24) & 0xFF);
-        bytes[5]=(byte)((i >> 16) & 0xFF);
-        bytes[6]=(byte)((i >> 8) & 0xFF);
-        bytes[7]=(byte)(i & 0xFF);
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) ((i >> 56) & 0xFF);
+        bytes[1] = (byte) ((i >> 48) & 0xFF);
+        bytes[2] = (byte) ((i >> 40) & 0xFF);
+        bytes[3] = (byte) ((i >> 32) & 0xFF);
+        bytes[4] = (byte) ((i >> 24) & 0xFF);
+        bytes[5] = (byte) ((i >> 16) & 0xFF);
+        bytes[6] = (byte) ((i >> 8) & 0xFF);
+        bytes[7] = (byte) (i & 0xFF);
         return bytes;
     }
 
-    /**
-     * @param bytes
-     */
+    /** @param bytes */
     private static void flip(byte[] bytes) {
-        for(int i=0,j=bytes.length-1;i<j;i++,j--) {
-            byte t=bytes[i];
-            bytes[i]=bytes[j];
-            bytes[j]=t;
+        for (int i = 0, j = bytes.length - 1; i < j; i++, j--) {
+            byte t = bytes[i];
+            bytes[i] = bytes[j];
+            bytes[j] = t;
         }
     }
 }

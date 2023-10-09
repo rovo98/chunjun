@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,30 +34,30 @@ public class AddressUtil {
 
     private static Logger logger = LoggerFactory.getLogger(AddressUtil.class);
 
-    public static boolean telnet(String ip,int port){
+    public static boolean telnet(String ip, int port) {
         TelnetClient client = null;
-        try{
+        try {
             client = new TelnetClient();
             client.setConnectTimeout(3000);
-            client.connect(ip,port);
+            client.connect(ip, port);
             return true;
-        }catch(Exception e){
+        } catch (Exception e) {
             return false;
         } finally {
             try {
-                if (client != null){
+                if (client != null) {
                     client.disconnect();
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.error("{}", ExceptionUtil.getErrorMessage(e));
             }
         }
     }
 
-    public static boolean ping(String ip){
-        try{
+    public static boolean ping(String ip) {
+        try {
             return InetAddress.getByName(ip).isReachable(3000);
-        }catch(Exception e){
+        } catch (Exception e) {
             return false;
         }
     }

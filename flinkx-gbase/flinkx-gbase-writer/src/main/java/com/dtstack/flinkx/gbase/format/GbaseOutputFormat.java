@@ -20,10 +20,8 @@ package com.dtstack.flinkx.gbase.format;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class GbaseOutputFormat extends JdbcOutputFormat {
-}
+public class GbaseOutputFormat extends JdbcOutputFormat {}

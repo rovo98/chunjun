@@ -24,15 +24,14 @@ import com.dtstack.flinkx.kafkabase.enums.KafkaVersion;
 import com.dtstack.flinkx.kafkabase.enums.StartupMode;
 import com.dtstack.flinkx.kafkabase.util.KafkaUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * Date: 2020/12/07
- * Company: www.dtstack.com
+ * Date: 2020/12/07 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -83,31 +82,34 @@ public class KafkaBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(128);
-        if(StringUtils.isBlank(format.topic)){
+        if (StringUtils.isBlank(format.topic)) {
             sb.append("No kafka topic supplied;\n");
         }
 
-        if(StartupMode.TIMESTAMP.equals(format.mode) || StartupMode.SPECIFIC_OFFSETS.equals(format.mode)){
-            if(format.topic.split(ConstantValue.COMMA_SYMBOL).length > 1){
+        if (StartupMode.TIMESTAMP.equals(format.mode)
+                || StartupMode.SPECIFIC_OFFSETS.equals(format.mode)) {
+            if (format.topic.split(ConstantValue.COMMA_SYMBOL).length > 1) {
                 sb.append("mode [")
                         .append(format.mode)
-                        .append("] is not supported when the number of kafka topic bigger than 1;\n");
-            }else if(StartupMode.TIMESTAMP.equals(format.mode) && format.timestamp < 0){
+                        .append(
+                                "] is not supported when the number of kafka topic bigger than 1;\n");
+            } else if (StartupMode.TIMESTAMP.equals(format.mode) && format.timestamp < 0) {
                 sb.append("No kafka timestamp supplied when mode is [")
                         .append(StartupMode.TIMESTAMP.name())
                         .append("];\n");
-            }else if(StartupMode.SPECIFIC_OFFSETS.equals(format.mode)){
+            } else if (StartupMode.SPECIFIC_OFFSETS.equals(format.mode)) {
                 try {
                     KafkaUtil.parseSpecificOffsetsString(format.topic, format.offset);
-                }catch (IllegalArgumentException e){
+                } catch (IllegalArgumentException e) {
                     sb.append(e.getMessage()).append("\n");
                 }
             }
-        }else if(StartupMode.UNKNOWN.equals(format.mode)){
-            sb.append("parameter [mode] config error, the value of mode must in [group-offsets, earliest-offset, latest-offset, timestamp, specific-offsets]\n");
+        } else if (StartupMode.UNKNOWN.equals(format.mode)) {
+            sb.append(
+                    "parameter [mode] config error, the value of mode must in [group-offsets, earliest-offset, latest-offset, timestamp, specific-offsets]\n");
         }
 
-        if(!KafkaVersion.kafka09.equals(format.getKafkaVersion())){
+        if (!KafkaVersion.kafka09.equals(format.getKafkaVersion())) {
             if (!format.consumerSettings.containsKey(KafkaConfigKeys.BOOTSTRAP_SERVERS)) {
                 sb.append("parameter [")
                         .append(KafkaConfigKeys.BOOTSTRAP_SERVERS)
@@ -115,7 +117,7 @@ public class KafkaBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
             }
         }
 
-        if(sb.length() > 0){
+        if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
     }

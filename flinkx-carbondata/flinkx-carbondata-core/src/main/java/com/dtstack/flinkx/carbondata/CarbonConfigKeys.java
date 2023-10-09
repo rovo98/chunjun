@@ -20,7 +20,8 @@ package com.dtstack.flinkx.carbondata;
 /**
  * This class defines configuration keys for CarbondataReader and CarbondataWriter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonConfigKeys {
@@ -44,5 +45,4 @@ public class CarbonConfigKeys {
     public static final String KEY_DEFAULT_FS = "defaultFS";
 
     public static final String KEY_PARTITION = "partition";
-
 }

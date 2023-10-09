@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.options;
 
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
@@ -36,12 +37,13 @@ import java.util.Map;
 /**
  * The Parser of Launcher commandline options
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OptionParser {
 
-    private final static String OPTION_JOB = "job";
+    private static final String OPTION_JOB = "job";
 
     private org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
 
@@ -53,52 +55,56 @@ public class OptionParser {
         initOptions(addOptions(args));
     }
 
-    private CommandLine addOptions(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
+    private CommandLine addOptions(String[] args)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException,
+                    ParseException {
         Class cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
-        for(Field field:fields){
+        for (Field field : fields) {
             String name = field.getName();
             OptionRequired optionRequired = field.getAnnotation(OptionRequired.class);
-            if(optionRequired != null){
-                options.addOption(name,optionRequired.hasArg(),optionRequired.description());
+            if (optionRequired != null) {
+                options.addOption(name, optionRequired.hasArg(), optionRequired.description());
             }
         }
         CommandLine cl = parser.parse(options, args);
         return cl;
     }
 
-    private void initOptions(CommandLine cl) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
+    private void initOptions(CommandLine cl)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException,
+                    ParseException {
         Class cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
-        for(Field field:fields){
+        for (Field field : fields) {
             String name = field.getName();
             String value = cl.getOptionValue(name);
             OptionRequired optionRequired = field.getAnnotation(OptionRequired.class);
-            if(optionRequired != null){
-                if(optionRequired.required()&&StringUtils.isBlank(value)){
-                    throw new RuntimeException(String.format("parameters of %s is required",name));
+            if (optionRequired != null) {
+                if (optionRequired.required() && StringUtils.isBlank(value)) {
+                    throw new RuntimeException(String.format("parameters of %s is required", name));
                 }
             }
-            if(StringUtils.isNotBlank(value)){
+            if (StringUtils.isNotBlank(value)) {
                 field.setAccessible(true);
-                field.set(properties,value);
+                field.set(properties, value);
             }
         }
     }
 
-    public Options getOptions(){
+    public Options getOptions() {
         return properties;
     }
 
     public List<String> getProgramExeArgList() throws Exception {
-        Map<String,Object> mapConf = MapUtil.objectToMap(properties);
+        Map<String, Object> mapConf = MapUtil.objectToMap(properties);
         List<String> args = new ArrayList<>();
-        for(Map.Entry<String, Object> one : mapConf.entrySet()){
+        for (Map.Entry<String, Object> one : mapConf.entrySet()) {
             String key = one.getKey();
             Object value = one.getValue();
-            if(value == null){
+            if (value == null) {
                 continue;
-            }else if(OPTION_JOB.equalsIgnoreCase(key)){
+            } else if (OPTION_JOB.equalsIgnoreCase(key)) {
                 File file = new File(value.toString());
                 try (FileInputStream in = new FileInputStream(file)) {
                     byte[] filecontent = new byte[(int) file.length()];

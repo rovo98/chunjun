@@ -23,7 +23,8 @@ import java.util.Map;
 /**
  * The configuration of dirty data management
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class DirtyConfig extends AbstractConfig {

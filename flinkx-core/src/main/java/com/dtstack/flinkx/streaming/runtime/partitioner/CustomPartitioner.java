@@ -19,26 +19,26 @@ package com.dtstack.flinkx.streaming.runtime.partitioner;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.runtime.io.network.api.writer.SubtaskStateMapper;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
+import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.types.Row;
-import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
 
 /**
- * Rewrite the [DTRebalancePartitioner] to distribute data based on the channel specified in the data
+ * Rewrite the [DTRebalancePartitioner] to distribute data based on the channel specified in the
+ * data
  *
  * @param <T> Type of the elements in the Stream being rebalanced
- *
- * @author jiangbo
- * TODO 这个类后面会删掉
+ * @author jiangbo TODO 这个类后面会删掉
  */
 @Internal
 public class CustomPartitioner<T> extends StreamPartitioner<T> {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public int selectChannel(SerializationDelegate<StreamRecord<T>> streamRecordSerializationDelegate) {
+    public int selectChannel(
+            SerializationDelegate<StreamRecord<T>> streamRecordSerializationDelegate) {
         Row row = (Row) streamRecordSerializationDelegate.getInstance().getValue();
-        return (Integer)row.getField(row.getArity() - 1);
+        return (Integer) row.getField(row.getArity() - 1);
     }
 
     @Override

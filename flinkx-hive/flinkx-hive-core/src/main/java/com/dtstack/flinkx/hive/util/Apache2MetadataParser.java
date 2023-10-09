@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
@@ -28,10 +27,9 @@ import java.util.Map;
  * @author jiangbo
  * @date 2019/11/29
  */
-public class Apache2MetadataParser extends AbstractHiveMetadataParser{
+public class Apache2MetadataParser extends AbstractHiveMetadataParser {
 
-    public Apache2MetadataParser() {
-    }
+    public Apache2MetadataParser() {}
 
     @Override
     public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {

@@ -18,15 +18,17 @@
 package com.dtstack.flinkx.carbondata.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+
 import org.apache.flink.util.Preconditions;
+
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Carbondata InputFormat Builder
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -37,7 +39,7 @@ public class CarbondataInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new CarbondataInputFormat();
     }
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String, String> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
@@ -85,9 +87,9 @@ public class CarbondataInputFormatBuilder extends BaseRichInputFormatBuilder {
         Preconditions.checkArgument(format.columnName.size() == format.columnType.size());
         Preconditions.checkArgument(format.columnName.size() == format.columnValue.size());
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
-
 }

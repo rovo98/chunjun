@@ -21,6 +21,7 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.flink.types.Row;
 
 import java.sql.Connection;
@@ -35,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2020/03/18
- * Company: www.dtstack.com
+ * Date: 2020/03/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -46,16 +46,17 @@ public class DmOutputFormat extends JdbcOutputFormat {
         Object field = super.getField(row, index);
         String type = columnType.get(index);
 
-        if (!(field instanceof Timestamp)){
+        if (!(field instanceof Timestamp)) {
             return field;
         }
 
-        if (type.equalsIgnoreCase(ColumnType.VARCHAR.name()) || type.equalsIgnoreCase(ColumnType.VARCHAR2.name())){
+        if (type.equalsIgnoreCase(ColumnType.VARCHAR.name())
+                || type.equalsIgnoreCase(ColumnType.VARCHAR2.name())) {
             SimpleDateFormat format = DateUtil.getDateTimeFormatter();
-            field= format.format(field);
+            field = format.format(field);
         }
 
-        if (type.equalsIgnoreCase(ColumnType.LONG.name()) ){
+        if (type.equalsIgnoreCase(ColumnType.LONG.name())) {
             field = ((Timestamp) field).getTime();
         }
         return field;
@@ -63,41 +64,42 @@ public class DmOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected List<String> probeFullColumns(String table, Connection dbConn) throws SQLException {
-        String schema =null;
+        String schema = null;
 
         String[] parts = table.split("\\.");
-        if(parts.length == BaseDatabaseMeta.DB_TABLE_PART_SIZE) {
+        if (parts.length == BaseDatabaseMeta.DB_TABLE_PART_SIZE) {
             schema = parts[0].toUpperCase();
             table = parts[1];
         }
 
         List<String> ret = new ArrayList<>();
         ResultSet rs = dbConn.getMetaData().getColumns(null, schema, table, null);
-        while(rs.next()) {
+        while (rs.next()) {
             ret.add(rs.getString("COLUMN_NAME"));
         }
         return ret;
     }
 
     @Override
-    protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
+    protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn)
+            throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
 
-        try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
-             ResultSet rs = ps.executeQuery()) {
-            while(rs.next()) {
+        try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL, table));
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
                 String indexName = rs.getString("INDEX_NAME");
-                if(!map.containsKey(indexName)) {
-                    map.put(indexName,new ArrayList<>());
+                if (!map.containsKey(indexName)) {
+                    map.put(indexName, new ArrayList<>());
                 }
                 map.get(indexName).add(rs.getString("COLUMN_NAME"));
             }
 
-            Map<String,List<String>> retMap = new HashMap<>(16);
-            for(Map.Entry<String,List<String>> entry: map.entrySet()) {
+            Map<String, List<String>> retMap = new HashMap<>(16);
+            for (Map.Entry<String, List<String>> entry : map.entrySet()) {
                 String k = entry.getKey();
                 List<String> v = entry.getValue();
-                if(v!=null && v.size() != 0 && v.get(0) != null) {
+                if (v != null && v.size() != 0 && v.get(0) != null) {
                     retMap.put(k, v);
                 }
             }

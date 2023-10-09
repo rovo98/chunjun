@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 import org.apache.flink.api.java.tuple.Tuple2;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -28,7 +28,6 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
-
 /**
  * Helper functions for converting between internal and external date and time representations.
  * Dates are exposed externally as java.sql.Date and are represented internally as the number of
@@ -36,13 +35,15 @@ import java.util.TimeZone;
  * and are stored internally as longs, which are capable of storing timestamps with 100 nanosecond
  * precision.
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class DateTimeUtils {
 
-    /** see http://stackoverflow.com/questions/466321/convert-unix-timestamp-to-julian
-     *it's 2440587.5, rounding up to compatible with Hive
+    /**
+     * see http://stackoverflow.com/questions/466321/convert-unix-timestamp-to-julian it's
+     * 2440587.5, rounding up to compatible with Hive
      */
     public static final long SECONDS_PER_DAY = 60 * 60 * 24L;
 
@@ -76,49 +77,49 @@ public class DateTimeUtils {
     public static final int DAY_IN_YEAR_304 = 304;
     public static final int DAY_IN_YEAR_334 = 334;
 
-    public static final ThreadLocal<TimeZone> THREAD_LOCAL_LOCAL_TIMEZONE = new ThreadLocal<TimeZone>() {
-        @Override
-        public TimeZone initialValue() {
-            return Calendar.getInstance().getTimeZone();
-        }
-    };
+    public static final ThreadLocal<TimeZone> THREAD_LOCAL_LOCAL_TIMEZONE =
+            new ThreadLocal<TimeZone>() {
+                @Override
+                public TimeZone initialValue() {
+                    return Calendar.getInstance().getTimeZone();
+                }
+            };
 
-    public static final ThreadLocal<DateFormat> THREAD_LOCAL_TIMESTAMP_FORMAT = new ThreadLocal<DateFormat>() {
-        @Override
-        public SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        }
-    };
+    public static final ThreadLocal<DateFormat> THREAD_LOCAL_TIMESTAMP_FORMAT =
+            new ThreadLocal<DateFormat>() {
+                @Override
+                public SimpleDateFormat initialValue() {
+                    return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+                }
+            };
 
-    public static final ThreadLocal<DateFormat> THREAD_LOCAL_DATE_FORMAT = new ThreadLocal<DateFormat>() {
-        @Override
-        public SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        }
-    };
+    public static final ThreadLocal<DateFormat> THREAD_LOCAL_DATE_FORMAT =
+            new ThreadLocal<DateFormat>() {
+                @Override
+                public SimpleDateFormat initialValue() {
+                    return new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                }
+            };
 
     private DateTimeUtils() {
         // hehe
     }
 
-    /**
-     * Converts Timestamp to string according to Hive TimestampWritable convention.
-     */
+    /** Converts Timestamp to string according to Hive TimestampWritable convention. */
     public static String timestampToString(long us) {
         Timestamp ts = toJavaTimeStamp(us);
         String timestampString = ts.toString();
         String formatted = THREAD_LOCAL_TIMESTAMP_FORMAT.get().format(ts);
 
-        if(timestampString.length() > TIMESTAMP_STRING_LENGTH
-                && !TIMESTAMP_ZERO_SUFFIX.equals(timestampString.substring(TIMESTAMP_STRING_LENGTH))) {
+        if (timestampString.length() > TIMESTAMP_STRING_LENGTH
+                && !TIMESTAMP_ZERO_SUFFIX.equals(
+                        timestampString.substring(TIMESTAMP_STRING_LENGTH))) {
             formatted += timestampString.substring(TIMESTAMP_STRING_LENGTH);
         }
         return formatted;
     }
 
-    /**
-     * Returns a java.sql.Timestamp from number of micros since epoch.
-     */
+    /** Returns a java.sql.Timestamp from number of micros since epoch. */
     public static Timestamp toJavaTimeStamp(long us) {
         // setNanos() will overwrite the millisecond part, so the milliseconds should be
         // cut off at seconds
@@ -134,31 +135,30 @@ public class DateTimeUtils {
         return t;
     }
 
-
     public static String dateToString(int days) {
         return THREAD_LOCAL_DATE_FORMAT.get().format(toJavaDate(days));
     }
-
 
     public static Date toJavaDate(int daysSinceEpoch) {
         return new Date(daysToMillis(daysSinceEpoch));
     }
 
-
     /**
      * reverse of millisToDays
+     *
      * @param days
      * @return
      */
     public static long daysToMillis(int days) {
-        long millisLocal = (long)days * MILLIS_PER_DAY;
-        return millisLocal - getOffsetFromLocalMillis(millisLocal, THREAD_LOCAL_LOCAL_TIMEZONE.get());
+        long millisLocal = (long) days * MILLIS_PER_DAY;
+        return millisLocal
+                - getOffsetFromLocalMillis(millisLocal, THREAD_LOCAL_LOCAL_TIMEZONE.get());
     }
 
     /**
-     * Lookup the offset for given millis seconds since 1970-01-01 00:00:00 in given timezone.
-     * TODO: Improve handling of normalization differences.
-     * TODO: Replace with JSR-310 or similar system - see SPARK-16788
+     * Lookup the offset for given millis seconds since 1970-01-01 00:00:00 in given timezone. TODO:
+     * Improve handling of normalization differences. TODO: Replace with JSR-310 or similar system -
+     * see SPARK-16788
      */
     public static long getOffsetFromLocalMillis(long millisLocal, TimeZone tz) {
         int guess = tz.getRawOffset();
@@ -167,7 +167,7 @@ public class DateTimeUtils {
         if (offset != guess) {
             // fallback to do the reverse lookup using java.sql.Timestamp
             // this should only happen near the start or end of DST
-            int days = (int) Math.floor((double)millisLocal / MILLIS_PER_DAY);
+            int days = (int) Math.floor((double) millisLocal / MILLIS_PER_DAY);
             int year = getYear(days);
             int month = getMonth(days);
             int day = getDayOfMonth(days);
@@ -189,43 +189,40 @@ public class DateTimeUtils {
         return guess;
     }
 
-    /**
-     * Returns the year value for the given date. The date is expressed in days
-     * since 1.1.1970.
-     */
+    /** Returns the year value for the given date. The date is expressed in days since 1.1.1970. */
     public static int getYear(int date) {
         return getYearAndDayInYear(date).getField(0);
     }
 
     /**
-     * Calculates the year and and the number of the day in the year for the given
-     * number of days. The given days is the number of days since 1.1.1970.
+     * Calculates the year and and the number of the day in the year for the given number of days.
+     * The given days is the number of days since 1.1.1970.
      *
-     * The calculation uses the fact that the period 1.1.2001 until 31.12.2400 is
-     * equals to the period 1.1.1601 until 31.12.2000.
+     * <p>The calculation uses the fact that the period 1.1.2001 until 31.12.2400 is equals to the
+     * period 1.1.1601 until 31.12.2000.
      */
-    public static Tuple2<Integer,Integer> getYearAndDayInYear(int daysSince1970) {
+    public static Tuple2<Integer, Integer> getYearAndDayInYear(int daysSince1970) {
         int daysNormalized = daysSince1970 + TO_YEAR_ZERO;
         int numOfQuarterCenturies = daysNormalized / DAYS_IN_400_YEARS;
         int daysInThis400 = daysNormalized % DAYS_IN_400_YEARS + 1;
-        Tuple2<Integer,Integer> tuple2 = numYears(daysInThis400);
+        Tuple2<Integer, Integer> tuple2 = numYears(daysInThis400);
         int years = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
         int year = (2001 - 20000) + 400 * numOfQuarterCenturies + years;
         return new Tuple2<>(year, dayInYear);
     }
 
-
     /**
-     * Calculates the number of years for the given number of days. This depends
-     * on a 400 year period.
+     * Calculates the number of years for the given number of days. This depends on a 400 year
+     * period.
+     *
      * @param days days since the beginning of the 400 year period
      * @return (number of year, days in year)
      */
-    public static Tuple2<Integer,Integer> numYears(int days) {
+    public static Tuple2<Integer, Integer> numYears(int days) {
         int year = days / 365;
         int boundary = yearBoundary(year);
-        if(days > boundary) {
+        if (days > boundary) {
             return new Tuple2<>(year, days - boundary);
         } else {
             return new Tuple2<>(year - 1, days - yearBoundary(year - 1));
@@ -233,20 +230,19 @@ public class DateTimeUtils {
     }
 
     public static int yearBoundary(int year) {
-        return year * 365 + ((year / 4 ) - (year / 100) + (year / 400));
+        return year * 365 + ((year / 4) - (year / 100) + (year / 400));
     }
 
     public static boolean isLeapYear(int year) {
         return (year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0);
     }
 
-
     /**
-     * Returns the month value for the given date. The date is expressed in days
-     * since 1.1.1970. January is month 1.
+     * Returns the month value for the given date. The date is expressed in days since 1.1.1970.
+     * January is month 1.
      */
     public static int getMonth(int date) {
-        Tuple2<Integer,Integer> tuple2 = getYearAndDayInYear(date);
+        Tuple2<Integer, Integer> tuple2 = getYearAndDayInYear(date);
         int year = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
         if (isLeapYear(year)) {
@@ -283,13 +279,12 @@ public class DateTimeUtils {
         }
     }
 
-
     /**
-     * Returns the 'day of month' value for the given date. The date is expressed in days
-     * since 1.1.1970.
+     * Returns the 'day of month' value for the given date. The date is expressed in days since
+     * 1.1.1970.
      */
     public static int getDayOfMonth(int date) {
-        Tuple2<Integer,Integer> tuple2 = getYearAndDayInYear(date);
+        Tuple2<Integer, Integer> tuple2 = getYearAndDayInYear(date);
         int year = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
         if (isLeapYear(year)) {
@@ -327,9 +322,9 @@ public class DateTimeUtils {
         }
     }
 
-
     /**
      * we should use the exact day as Int, for example, (year, month, day) -> day
+     *
      * @param millisUtc
      * @return
      */
@@ -337,7 +332,6 @@ public class DateTimeUtils {
         // SPARK-6785: use Math.floor so negative number of days (dates before 1970)
         // will correctly work as input for function toJavaDate(Int)
         long millisLocal = millisUtc + THREAD_LOCAL_LOCAL_TIMEZONE.get().getOffset(millisUtc);
-        return (int) Math.floor((double)millisLocal / MILLIS_PER_DAY);
+        return (int) Math.floor((double) millisLocal / MILLIS_PER_DAY);
     }
-
 }

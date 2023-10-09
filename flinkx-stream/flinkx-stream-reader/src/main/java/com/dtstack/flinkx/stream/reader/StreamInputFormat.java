@@ -20,6 +20,7 @@ package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -30,6 +31,7 @@ import java.util.List;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class StreamInputFormat extends BaseRichInputFormat {
@@ -46,11 +48,15 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        if(CollectionUtils.isNotEmpty(sliceRecordCount) && sliceRecordCount.size() > inputSplit.getSplitNumber()){
+        if (CollectionUtils.isNotEmpty(sliceRecordCount)
+                && sliceRecordCount.size() > inputSplit.getSplitNumber()) {
             channelRecordNum = sliceRecordCount.get(inputSplit.getSplitNumber());
         }
 
-        LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
+        LOG.info(
+                "The record number of channel:[{}] is [{}]",
+                inputSplit.getSplitNumber(),
+                channelRecordNum);
     }
 
     @Override
@@ -72,7 +78,7 @@ public class StreamInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new GenericInputSplit(i,minNumSplits);
+            inputSplits[i] = new GenericInputSplit(i, minNumSplits);
         }
 
         return inputSplits;

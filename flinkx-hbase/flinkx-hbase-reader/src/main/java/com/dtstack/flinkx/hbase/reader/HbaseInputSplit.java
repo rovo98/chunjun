@@ -23,7 +23,8 @@ import org.apache.flink.core.io.InputSplit;
 /**
  * The Class describing each InputSplit of HBase
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseInputSplit implements InputSplit {

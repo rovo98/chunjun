@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.pgwal.PgWalConfigKeys;
 import com.dtstack.flinkx.pgwal.format.PgWalInputFormatBuilder;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -30,8 +31,7 @@ import org.apache.flink.types.Row;
 import java.util.List;
 
 /**
- * Date: 2019/12/13
- * Company: www.dtstack.com
+ * Date: 2019/12/13 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -58,12 +58,18 @@ public class PgwalReader extends BaseDataReader {
         url = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_URL);
         databaseName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_DATABASE_NAME);
         cat = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_CATALOG);
-        pavingData = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_PAVING_DATA, false);
-        tableList = (List<String>) readerConfig.getParameter().getVal(PgWalConfigKeys.KEY_TABLE_LIST);
-        statusInterval = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_STATUS_INTERVAL, 20000);
+        pavingData =
+                readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_PAVING_DATA, false);
+        tableList =
+                (List<String>) readerConfig.getParameter().getVal(PgWalConfigKeys.KEY_TABLE_LIST);
+        statusInterval =
+                readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_STATUS_INTERVAL, 20000);
         lsn = readerConfig.getParameter().getLongVal(PgWalConfigKeys.KEY_LSN, 0);
         slotName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_SLOT_NAME);
-        allowCreateSlot = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_ALLOW_CREATE_SLOT, true);
+        allowCreateSlot =
+                readerConfig
+                        .getParameter()
+                        .getBooleanVal(PgWalConfigKeys.KEY_ALLOW_CREATE_SLOT, true);
         temporary = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_TEMPORARY, true);
     }
 

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -35,6 +36,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,15 +46,17 @@ import java.util.Map;
 /**
  * Utilities for ElasticSearch 6.x
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class Es6xUtil {
 
-    public static RestHighLevelClient getClient(String address, String username, String password, Map<String,Object> config) {
+    public static RestHighLevelClient getClient(
+            String address, String username, String password, Map<String, Object> config) {
         List<HttpHost> httpHostList = new ArrayList<>();
         String[] addr = address.split(",");
-        for(String add : addr) {
+        for (String add : addr) {
             String[] pair = add.split(":");
             TelnetUtil.telnet(pair[0], Integer.parseInt(pair[1]));
             httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), "http"));
@@ -61,33 +65,36 @@ public class Es6xUtil {
         RestClientBuilder builder = RestClient.builder(httpHostList.toArray(new HttpHost[0]));
 
         Integer timeout = MapUtils.getInteger(config, EsConfigKeys.KEY_TIMEOUT);
-        if (timeout != null){
+        if (timeout != null) {
             builder.setMaxRetryTimeoutMillis(timeout * 1000);
         }
 
         String pathPrefix = MapUtils.getString(config, EsConfigKeys.KEY_PATH_PREFIX);
-        if (StringUtils.isNotEmpty(pathPrefix)){
+        if (StringUtils.isNotEmpty(pathPrefix)) {
             builder.setPathPrefix(pathPrefix);
         }
-        if(StringUtils.isNotBlank(username)){
+        if (StringUtils.isNotBlank(username)) {
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-            builder.setHttpClientConfigCallback(httpClientBuilder -> {
-                httpClientBuilder.disableAuthCaching();
-                return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            });
+            credentialsProvider.setCredentials(
+                    AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            builder.setHttpClientConfigCallback(
+                    httpClientBuilder -> {
+                        httpClientBuilder.disableAuthCaching();
+                        return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                    });
         }
 
         return new RestHighLevelClient(builder);
     }
 
-    public static Row jsonMapToRow(Map<String,Object> map, List<String> fields, List<String> types, List<String> values) {
+    public static Row jsonMapToRow(
+            Map<String, Object> map, List<String> fields, List<String> types, List<String> values) {
         Preconditions.checkArgument(types.size() == fields.size());
         Row row = new Row(fields.size());
 
         for (int i = 0; i < fields.size(); ++i) {
             String field = fields.get(i);
-            if(StringUtils.isNotBlank(field)) {
+            if (StringUtils.isNotBlank(field)) {
                 String[] parts = field.split("\\.");
                 Object value = readMapValue(map, parts);
                 row.setField(i, value);
@@ -95,61 +102,65 @@ public class Es6xUtil {
                 Object value = convertValueToAssignType(types.get(i), values.get(i));
                 row.setField(i, value);
             }
-
         }
 
         return row;
     }
 
-    public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) throws WriteRecordException {
+    public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types)
+            throws WriteRecordException {
         Preconditions.checkArgument(row.getArity() == fields.size());
-        Map<String,Object> jsonMap = new HashMap<>((fields.size()<<2)/3);
+        Map<String, Object> jsonMap = new HashMap<>((fields.size() << 2) / 3);
         int i = 0;
         try {
-            for(; i < fields.size(); ++i) {
+            for (; i < fields.size(); ++i) {
                 String field = fields.get(i);
                 String[] parts = field.split("\\.");
                 Map<String, Object> currMap = jsonMap;
-                for(int j = 0; j < parts.length - 1; ++j) {
+                for (int j = 0; j < parts.length - 1; ++j) {
                     String key = parts[j];
-                    if(currMap.get(key) == null) {
-                        currMap.put(key, new HashMap<String,Object>(16));
+                    if (currMap.get(key) == null) {
+                        currMap.put(key, new HashMap<String, Object>(16));
                     }
                     currMap = (Map<String, Object>) currMap.get(key);
                 }
                 String key = parts[parts.length - 1];
                 Object col = row.getField(i);
-                if(col != null) {
+                if (col != null) {
                     col = StringUtil.string2col(String.valueOf(col), types.get(i), null);
                 }
 
                 currMap.put(key, col);
             }
-        } catch(Exception ex) {
-            String msg = "EsUtil.rowToJsonMap Writing record error: when converting field[" + i + "] in Row(" + row + ")";
+        } catch (Exception ex) {
+            String msg =
+                    "EsUtil.rowToJsonMap Writing record error: when converting field["
+                            + i
+                            + "] in Row("
+                            + row
+                            + ")";
             throw new WriteRecordException(msg, ex, i, row);
         }
 
         return jsonMap;
     }
 
-
-    private static Object readMapValue(Map<String,Object> jsonMap, String[] fieldParts) {
-        Map<String,Object> current = jsonMap;
+    private static Object readMapValue(Map<String, Object> jsonMap, String[] fieldParts) {
+        Map<String, Object> current = jsonMap;
         int i = 0;
-        for(; i < fieldParts.length - 1; ++i) {
-            if(current.containsKey(fieldParts[i])) {
+        for (; i < fieldParts.length - 1; ++i) {
+            if (current.containsKey(fieldParts[i])) {
                 current = (Map<String, Object>) current.get(fieldParts[i]);
             } else {
                 return null;
             }
         }
-        return  current.get(fieldParts[i]);
+        return current.get(fieldParts[i]);
     }
 
     private static Object convertValueToAssignType(String columnType, String constantValue) {
-        Object column  = null;
-        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
+        Object column = null;
+        if (org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
             return column;
         }
 
@@ -170,7 +181,7 @@ public class Es6xUtil {
                 column = constantValue;
                 break;
             case "DATE":
-                column = DateUtil.stringToDate(constantValue,null);
+                column = DateUtil.stringToDate(constantValue, null);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported column type: " + columnType);
@@ -178,16 +189,16 @@ public class Es6xUtil {
         return column;
     }
 
-    public static String[] getStringArray(Object value){
-        if(value == null){
+    public static String[] getStringArray(Object value) {
+        if (value == null) {
             return null;
         }
 
-        if(value instanceof String){
+        if (value instanceof String) {
             String stringValue = value.toString();
             return stringValue.split(",");
-        } else if(value instanceof List){
-            List list = (List)value;
+        } else if (value instanceof List) {
+            List list = (List) value;
             String[] array = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 array[i] = list.get(i).toString();
@@ -195,7 +206,7 @@ public class Es6xUtil {
 
             return array;
         } else {
-            return new String[]{value.toString()};
+            return new String[] {value.toString()};
         }
     }
 }

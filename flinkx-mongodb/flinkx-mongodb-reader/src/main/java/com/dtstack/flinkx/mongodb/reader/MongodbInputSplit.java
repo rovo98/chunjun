@@ -21,9 +21,8 @@ package com.dtstack.flinkx.mongodb.reader;
 import org.apache.flink.core.io.InputSplit;
 
 /**
- * The split for mongodb Reader plugin
+ * The split for mongodb Reader plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbInputSplit implements InputSplit {
@@ -58,12 +57,8 @@ public class MongodbInputSplit implements InputSplit {
         return 0;
     }
 
-
     @Override
     public String toString() {
-        return "MongodbInputSplit{" +
-                "skip=" + skip +
-                ", limit=" + limit +
-                '}';
+        return "MongodbInputSplit{" + "skip=" + skip + ", limit=" + limit + '}';
     }
 }

@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Date: 2020/12/31
- * Company: www.dtstack.com
+ * Date: 2020/12/31 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -36,14 +35,19 @@ public class KafkaUtil {
 
     /**
      * 解析kafka offset字符串
+     *
      * @param topic
      * @param offsetString
      * @return
      * @throws IllegalArgumentException
      */
-    public static List<kafkaState> parseSpecificOffsetsString(String topic, String offsetString) throws IllegalArgumentException{
+    public static List<kafkaState> parseSpecificOffsetsString(String topic, String offsetString)
+            throws IllegalArgumentException {
         final String[] pairs = offsetString.split(ConstantValue.SEMICOLON_SYMBOL);
-        final String validationExceptionMessage = "Invalid properties [offset] should follow the format 'partition:0,offset:42;partition:1,offset:300', but is '" + offsetString + "';";
+        final String validationExceptionMessage =
+                "Invalid properties [offset] should follow the format 'partition:0,offset:42;partition:1,offset:300', but is '"
+                        + offsetString
+                        + "';";
 
         if (pairs.length == 0) {
             throw new IllegalArgumentException(validationExceptionMessage);
@@ -56,9 +60,7 @@ public class KafkaUtil {
             }
 
             final String[] kv = pair.split(ConstantValue.COMMA_SYMBOL);
-            if (kv.length != 2 ||
-                    !kv[0].startsWith("partition:") ||
-                    !kv[1].startsWith("offset:")) {
+            if (kv.length != 2 || !kv[0].startsWith("partition:") || !kv[1].startsWith("offset:")) {
                 throw new IllegalArgumentException(validationExceptionMessage);
             }
 
@@ -77,11 +79,13 @@ public class KafkaUtil {
 
     /**
      * 构造kafka properties
+     *
      * @param consumerSettings
      * @param mode
      * @return
      */
-    public static Properties geneConsumerProp(Map<String, String> consumerSettings, StartupMode mode) {
+    public static Properties geneConsumerProp(
+            Map<String, String> consumerSettings, StartupMode mode) {
         Properties props = new Properties();
         props.put("max.poll.interval.ms", "86400000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
@@ -92,7 +96,7 @@ public class KafkaUtil {
             String v = entry.getValue();
             props.put(k, v);
         }
-        switch (mode){
+        switch (mode) {
             case EARLIEST:
                 props.put("auto.offset.reset", "earliest");
             case LATEST:

@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.carbondata.writer.dict;
 
-
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.carbondata.core.cache.Cache;
 import org.apache.carbondata.core.cache.CacheProvider;
 import org.apache.carbondata.core.cache.CacheType;
@@ -43,11 +43,11 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Carbon Type Converter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonTypeConverter {
@@ -60,68 +60,72 @@ public class CarbonTypeConverter {
         return objectToString(value, serializationNullFormat, false);
     }
 
-
     /**
      * Return a String representation of the input value
+     *
      * @param value input value
      * @param serializationNullFormat string for null value
      * @param isVarcharType whether it is varchar type. A varchar type has no string length limit
      */
-    public static String objectToString(Object value, String serializationNullFormat, boolean isVarcharType) {
-        if(value == null) {
+    public static String objectToString(
+            Object value, String serializationNullFormat, boolean isVarcharType) {
+        if (value == null) {
             return serializationNullFormat;
         } else {
-            if(value instanceof String) {
+            if (value instanceof String) {
                 String s = (String) value;
-                if(!isVarcharType && s.length() > CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT) {
-                    throw new IllegalArgumentException("Dataload failed, String length cannot exceed " + CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT + " characters");
+                if (!isVarcharType
+                        && s.length() > CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT) {
+                    throw new IllegalArgumentException(
+                            "Dataload failed, String length cannot exceed "
+                                    + CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT
+                                    + " characters");
                 }
                 return s;
             }
-            if(value instanceof BigDecimal) {
+            if (value instanceof BigDecimal) {
                 BigDecimal d = (BigDecimal) value;
                 return d.toPlainString();
             }
-            if(value instanceof Integer) {
+            if (value instanceof Integer) {
                 Integer i = (Integer) value;
                 return i.toString();
             }
-            if(value instanceof Long) {
+            if (value instanceof Long) {
                 Long l = (Long) value;
                 return l.toString();
             }
-            if(value instanceof Double) {
+            if (value instanceof Double) {
                 Double d = (Double) value;
                 return d.toString();
             }
-            if(value instanceof Timestamp) {
+            if (value instanceof Timestamp) {
                 Timestamp t = (Timestamp) value;
-                return  DateUtil.getDateTimeFormatter().format(t);
+                return DateUtil.getDateTimeFormatter().format(t);
             }
-            if(value instanceof java.sql.Date) {
+            if (value instanceof java.sql.Date) {
                 java.sql.Date d = (java.sql.Date) value;
                 return DateUtil.getDateFormatter().format(d);
             }
-            if(value instanceof Boolean) {
+            if (value instanceof Boolean) {
                 Boolean b = (Boolean) value;
                 return b.toString();
             }
-            if(value instanceof Short) {
+            if (value instanceof Short) {
                 Short s = (Short) value;
                 return s.toString();
             }
 
-            if(value instanceof Float) {
+            if (value instanceof Float) {
                 Float f = (Float) value;
                 return f.toString();
             }
-
         }
         return value.toString();
     }
 
-
-    public static void checkStringType(String s, String serializationNullFormat, DataType dataType) throws ParseException {
+    public static void checkStringType(String s, String serializationNullFormat, DataType dataType)
+            throws ParseException {
         if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
             return;
         }
@@ -148,18 +152,20 @@ public class CarbonTypeConverter {
         } else {
             throw new IllegalArgumentException("Unsupported data type: " + dataType);
         }
-
     }
 
     /**
      * Update partition values as per the right date and time format
+     *
      * @return updated partition spec
      */
-    public static Map<String,String> updatePartitions(Map<String,String> partitionSpec, CarbonTable table) {
+    public static Map<String, String> updatePartitions(
+            Map<String, String> partitionSpec, CarbonTable table) {
         CacheProvider cacheProvider = CacheProvider.getInstance();
-        Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache = cacheProvider.createCache(CacheType.FORWARD_DICTIONARY);
-        Map<String,String> map = new HashMap<>((partitionSpec.size()<<2)/3);
-        for (Map.Entry<String,String> entry : partitionSpec.entrySet()) {
+        Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache =
+                cacheProvider.createCache(CacheType.FORWARD_DICTIONARY);
+        Map<String, String> map = new HashMap<>((partitionSpec.size() << 2) / 3);
+        for (Map.Entry<String, String> entry : partitionSpec.entrySet()) {
             String col = entry.getKey();
             String pvalue = entry.getValue();
             String value = pvalue;
@@ -168,13 +174,16 @@ public class CarbonTypeConverter {
             } else if (pvalue.equals(CarbonCommonConstants.MEMBER_DEFAULT_VAL)) {
                 value = "";
             }
-            CarbonColumn carbonColumn = table.getColumnByName(table.getTableName(), col.toLowerCase());
+            CarbonColumn carbonColumn =
+                    table.getColumnByName(table.getTableName(), col.toLowerCase());
             try {
-                if(value.equals(HIVE_DEFAULT_PARTITION)) {
+                if (value.equals(HIVE_DEFAULT_PARTITION)) {
                     map.put(col, value);
                 } else {
-                    String convertedString = convertToCarbonFormat(value, carbonColumn, forwardDictionaryCache, table);
-                    if(convertedString == null) {
+                    String convertedString =
+                            convertToCarbonFormat(
+                                    value, carbonColumn, forwardDictionaryCache, table);
+                    if (convertedString == null) {
                         map.put(col, HIVE_DEFAULT_PARTITION);
                     } else {
                         map.put(col, convertedString);
@@ -185,62 +194,84 @@ public class CarbonTypeConverter {
                 map.put(col, value);
             }
         }
-        Map<String,String> ret = new HashMap<>((map.size()<<2)/3);
-        for(Map.Entry<String,String> entry : map.entrySet()) {
+        Map<String, String> ret = new HashMap<>((map.size() << 2) / 3);
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            ret.put(ExternalCatalogUtils.escapePathName(key), ExternalCatalogUtils.escapePathName(value));
+            ret.put(
+                    ExternalCatalogUtils.escapePathName(key),
+                    ExternalCatalogUtils.escapePathName(value));
         }
         return ret;
     }
 
-    public static String convertToCarbonFormat(String value, CarbonColumn column, Cache<DictionaryColumnUniqueIdentifier,Dictionary> forwardDictionaryCache, CarbonTable table) throws IOException {
-        if(column.hasEncoding(Encoding.DICTIONARY)) {
+    public static String convertToCarbonFormat(
+            String value,
+            CarbonColumn column,
+            Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache,
+            CarbonTable table)
+            throws IOException {
+        if (column.hasEncoding(Encoding.DICTIONARY)) {
             if (column.hasEncoding(Encoding.DIRECT_DICTIONARY)) {
                 if (column.getDataType().equals(DataTypes.TIMESTAMP)) {
-                    Object time = DirectDictionaryKeyGeneratorFactory.getDirectDictionaryGenerator(
-                            column.getDataType(),
-                            CarbonCommonConstants.CARBON_TIMESTAMP_DEFAULT_FORMAT
-                    ).getValueFromSurrogate(Integer.parseInt(value));
-                    if(time == null) {
+                    Object time =
+                            DirectDictionaryKeyGeneratorFactory.getDirectDictionaryGenerator(
+                                            column.getDataType(),
+                                            CarbonCommonConstants.CARBON_TIMESTAMP_DEFAULT_FORMAT)
+                                    .getValueFromSurrogate(Integer.parseInt(value));
+                    if (time == null) {
                         return null;
                     }
                     return DateTimeUtils.timestampToString(Long.valueOf(time.toString()) * 1000);
                 } else if (column.getDataType().equals(DataTypes.DATE)) {
-                    Object date = DirectDictionaryKeyGeneratorFactory.getDirectDictionaryGenerator(
-                            column.getDataType(),
-                            CarbonCommonConstants.CARBON_DATE_DEFAULT_FORMAT
-                    ).getValueFromSurrogate(Integer.parseInt(value));
-                    if(date == null) {
+                    Object date =
+                            DirectDictionaryKeyGeneratorFactory.getDirectDictionaryGenerator(
+                                            column.getDataType(),
+                                            CarbonCommonConstants.CARBON_DATE_DEFAULT_FORMAT)
+                                    .getValueFromSurrogate(Integer.parseInt(value));
+                    if (date == null) {
                         return null;
                     }
                     return DateTimeUtils.dateToString(Integer.valueOf(date.toString()));
                 }
             }
-            String dictionaryPath = table.getTableInfo().getFactTable().getTableProperties().get(CarbonCommonConstants.DICTIONARY_PATH);
-            DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier = new DictionaryColumnUniqueIdentifier(
-                    table.getAbsoluteTableIdentifier(),
-                    column.getColumnIdentifier(), column.getDataType(),
-                    dictionaryPath);
-            return forwardDictionaryCache.get(
-                    dictionaryColumnUniqueIdentifier).getDictionaryValueForKey(Integer.parseInt(value));
+            String dictionaryPath =
+                    table.getTableInfo()
+                            .getFactTable()
+                            .getTableProperties()
+                            .get(CarbonCommonConstants.DICTIONARY_PATH);
+            DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
+                    new DictionaryColumnUniqueIdentifier(
+                            table.getAbsoluteTableIdentifier(),
+                            column.getColumnIdentifier(),
+                            column.getDataType(),
+                            dictionaryPath);
+            return forwardDictionaryCache
+                    .get(dictionaryColumnUniqueIdentifier)
+                    .getDictionaryValueForKey(Integer.parseInt(value));
         }
         try {
             DataType dataType = column.getDataType();
-            if(dataType == DataTypes.TIMESTAMP) {
+            if (dataType == DataTypes.TIMESTAMP) {
                 return DateTimeUtils.timestampToString(Long.parseLong(value) * 1000);
-            } else if(dataType == DataTypes.DATE) {
-                return DateTimeUtils.dateToString(DateTimeUtils.millisToDays(Long.parseLong(value)));
+            } else if (dataType == DataTypes.DATE) {
+                return DateTimeUtils.dateToString(
+                        DateTimeUtils.millisToDays(Long.parseLong(value)));
             }
             return value;
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage());
             return value;
         }
-
     }
 
-    public static Object string2col(String s, DataType dataType, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) throws ParseException {
+    public static Object string2col(
+            String s,
+            DataType dataType,
+            String serializationNullFormat,
+            SimpleDateFormat timeStampFormat,
+            SimpleDateFormat dateFormat)
+            throws ParseException {
         if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
             return null;
         }
@@ -268,5 +299,4 @@ public class CarbonTypeConverter {
             throw new IllegalArgumentException("Unsupported data type: " + dataType);
         }
     }
-
 }

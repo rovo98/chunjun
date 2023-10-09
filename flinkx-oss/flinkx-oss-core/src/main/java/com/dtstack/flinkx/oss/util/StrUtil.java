@@ -19,16 +19,15 @@
 package com.dtstack.flinkx.oss.util;
 
 /**
- *
  * @author wangyulei
  * @date 2021-06-29
  */
 public class StrUtil {
     /**
-     * <p>Check if a String starts with a specified prefix.</p>
+     * Check if a String starts with a specified prefix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case sensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case sensitive.
      *
      * <pre>
      * StringUtils.startsWith(null, null)      = true
@@ -39,10 +38,10 @@ public class StrUtil {
      * </pre>
      *
      * @see java.lang.String#startsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param prefix the prefix to find, may be null
-     * @return <code>true</code> if the String starts with the prefix, case sensitive, or
-     *  both <code>null</code>
+     * @return <code>true</code> if the String starts with the prefix, case sensitive, or both
+     *     <code>null</code>
      * @since 2.4
      */
     public static boolean startsWith(String str, String prefix) {
@@ -50,10 +49,10 @@ public class StrUtil {
     }
 
     /**
-     * <p>Case insensitive check if a String starts with a specified prefix.</p>
+     * Case insensitive check if a String starts with a specified prefix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case insensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case insensitive.
      *
      * <pre>
      * StringUtils.startsWithIgnoreCase(null, null)      = true
@@ -64,10 +63,10 @@ public class StrUtil {
      * </pre>
      *
      * @see java.lang.String#startsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param prefix the prefix to find, may be null
-     * @return <code>true</code> if the String starts with the prefix, case insensitive, or
-     *  both <code>null</code>
+     * @return <code>true</code> if the String starts with the prefix, case insensitive, or both
+     *     <code>null</code>
      * @since 2.4
      */
     public static boolean startsWithIgnoreCase(String str, String prefix) {
@@ -75,31 +74,30 @@ public class StrUtil {
     }
 
     /**
-     * <p>Check if a String starts with a specified prefix (optionally case insensitive).</p>
+     * Check if a String starts with a specified prefix (optionally case insensitive).
      *
      * @see java.lang.String#startsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param prefix the prefix to find, may be null
-     * @param ignoreCase inidicates whether the compare should ignore case
-     *  (case insensitive) or not.
-     * @return <code>true</code> if the String starts with the prefix or
-     *  both <code>null</code>
+     * @param ignoreCase inidicates whether the compare should ignore case (case insensitive) or
+     *     not.
+     * @return <code>true</code> if the String starts with the prefix or both <code>null</code>
      */
     private static boolean startsWith(String str, String prefix, boolean ignoreCase) {
         if (str == null || prefix == null) {
-          return (str == null && prefix == null);
+            return (str == null && prefix == null);
         }
         if (prefix.length() > str.length()) {
-          return false;
+            return false;
         }
         return str.regionMatches(ignoreCase, 0, prefix, 0, prefix.length());
     }
 
     /**
-     * <p>Check if a String ends with a specified suffix.</p>
+     * Check if a String ends with a specified suffix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case sensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case sensitive.
      *
      * <pre>
      * StringUtils.endsWith(null, null)      = true
@@ -111,10 +109,10 @@ public class StrUtil {
      * </pre>
      *
      * @see java.lang.String#endsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param suffix the suffix to find, may be null
-     * @return <code>true</code> if the String ends with the suffix, case sensitive, or
-     *  both <code>null</code>
+     * @return <code>true</code> if the String ends with the suffix, case sensitive, or both <code>
+     *     null</code>
      * @since 2.4
      */
     public static boolean endsWith(String str, String suffix) {
@@ -122,10 +120,10 @@ public class StrUtil {
     }
 
     /**
-     * <p>Case insensitive check if a String ends with a specified suffix.</p>
+     * Case insensitive check if a String ends with a specified suffix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case insensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case insensitive.
      *
      * <pre>
      * StringUtils.endsWithIgnoreCase(null, null)      = true
@@ -137,10 +135,10 @@ public class StrUtil {
      * </pre>
      *
      * @see java.lang.String#endsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param suffix the suffix to find, may be null
-     * @return <code>true</code> if the String ends with the suffix, case insensitive, or
-     *  both <code>null</code>
+     * @return <code>true</code> if the String ends with the suffix, case insensitive, or both
+     *     <code>null</code>
      * @since 2.4
      */
     public static boolean endsWithIgnoreCase(String str, String suffix) {
@@ -148,22 +146,21 @@ public class StrUtil {
     }
 
     /**
-     * <p>Check if a String ends with a specified suffix (optionally case insensitive).</p>
+     * Check if a String ends with a specified suffix (optionally case insensitive).
      *
      * @see java.lang.String#endsWith(String)
-     * @param str  the String to check, may be null
+     * @param str the String to check, may be null
      * @param suffix the suffix to find, may be null
-     * @param ignoreCase inidicates whether the compare should ignore case
-     *  (case insensitive) or not.
-     * @return <code>true</code> if the String starts with the prefix or
-     *  both <code>null</code>
+     * @param ignoreCase inidicates whether the compare should ignore case (case insensitive) or
+     *     not.
+     * @return <code>true</code> if the String starts with the prefix or both <code>null</code>
      */
     private static boolean endsWith(String str, String suffix, boolean ignoreCase) {
         if (str == null || suffix == null) {
-          return (str == null && suffix == null);
+            return (str == null && suffix == null);
         }
         if (suffix.length() > str.length()) {
-          return false;
+            return false;
         }
         int strOffset = str.length() - suffix.length();
         return str.regionMatches(ignoreCase, strOffset, suffix, 0, suffix.length());

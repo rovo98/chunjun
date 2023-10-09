@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
-
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.PartitionInfo;
 import org.apache.carbondata.core.metadata.schema.partition.PartitionType;
@@ -33,6 +32,7 @@ import org.apache.carbondata.core.scan.partition.RangePartitioner;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -41,11 +41,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-
 /**
  * record writer for carbon parititional table
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
@@ -77,45 +77,51 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
         initDateFormat();
 
         PartitionInfo partitionInfo = carbonTable.getPartitionInfo();
-        partitionIds =  partitionInfo.getPartitionIds();
+        partitionIds = partitionInfo.getPartitionIds();
         counter = new int[partitionIds.size()];
-        for(Integer partitionId : partitionIds) {
+        for (Integer partitionId : partitionIds) {
             CarbonLoadModel carbonLoadModel = createCarbonLoadModel();
             carbonLoadModelList.add(carbonLoadModel);
             TaskAttemptContext context = createTaskContext();
-            context.getConfiguration().set("carbon.outputformat.taskno", String.valueOf(partitionId));
+            context.getConfiguration()
+                    .set("carbon.outputformat.taskno", String.valueOf(partitionId));
             taskAttemptContextList.add(context);
         }
 
-        List<ColumnSchema> columnSchemaList =  partitionInfo.getColumnSchemaList();
-        if(columnSchemaList.isEmpty()) {
+        List<ColumnSchema> columnSchemaList = partitionInfo.getColumnSchemaList();
+        if (columnSchemaList.isEmpty()) {
             throw new IllegalArgumentException("no partition column");
         }
-        if(columnSchemaList.size() > 1) {
-            throw new UnsupportedOperationException("does not support more than one partition column");
+        if (columnSchemaList.size() > 1) {
+            throw new UnsupportedOperationException(
+                    "does not support more than one partition column");
         }
 
         partitionColNumber = -1;
-        List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
-        for(int i = 0; i < columnSchemas.size(); ++i) {
+        List<ColumnSchema> columnSchemas =
+                carbonTable.getTableInfo().getFactTable().getListOfColumns();
+        for (int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
-            if(!columnSchema.isInvisible() && columnSchema.getColumnName().equalsIgnoreCase(columnSchemaList.get(0).getColumnName())) {
+            if (!columnSchema.isInvisible()
+                    && columnSchema
+                            .getColumnName()
+                            .equalsIgnoreCase(columnSchemaList.get(0).getColumnName())) {
                 partitionColNumber = i;
                 break;
             }
         }
 
-        if(partitionColNumber == -1) {
+        if (partitionColNumber == -1) {
             throw new RuntimeException("partition column not found in table schema");
         }
 
         partitionType = partitionInfo.getPartitionType();
         int partitionNum = partitionInfo.getNumPartitions();
-        if(partitionType == PartitionType.HASH) {
+        if (partitionType == PartitionType.HASH) {
             partitioner = new HashPartitioner(partitionNum);
-        } else if(partitionType == PartitionType.LIST) {
+        } else if (partitionType == PartitionType.LIST) {
             partitioner = new ListPartitioner(partitionInfo);
-        } else if(partitionType == PartitionType.RANGE) {
+        } else if (partitionType == PartitionType.RANGE) {
             partitioner = new RangePartitioner(partitionInfo);
         } else {
             throw new IllegalArgumentException("Unsupported Partitioner");
@@ -126,16 +132,18 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
     protected int getRecordWriterNumber(String[] record) {
         Object v = record[partitionColNumber];
         DataType dataType = fullColumnTypes.get(partitionColNumber);
-        if(v != null && !v.equals(NULL_FORMAT)) {
+        if (v != null && !v.equals(NULL_FORMAT)) {
             try {
-                v = CarbonTypeConverter.string2col((String)v, dataType, NULL_FORMAT, timestampFormat, dateFormat);
+                v =
+                        CarbonTypeConverter.string2col(
+                                (String) v, dataType, NULL_FORMAT, timestampFormat, dateFormat);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
-            if(v instanceof Date) {
+            if (v instanceof Date) {
                 Date date = (Date) v;
                 v = date.getTime();
-            } else if(v instanceof String && partitioner instanceof RangePartitioner) {
+            } else if (v instanceof String && partitioner instanceof RangePartitioner) {
                 String s = (String) v;
                 v = s.getBytes(StandardCharsets.UTF_8);
             }
@@ -148,15 +156,16 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
 
     @Override
     protected void createRecordWriterList() {
-        for(int i = 0; i < partitionIds.size(); ++i) {
+        for (int i = 0; i < partitionIds.size(); ++i) {
             RecordWriter recordWriter = null;
             try {
-                recordWriter = createRecordWriter(carbonLoadModelList.get(i), taskAttemptContextList.get(i));
+                recordWriter =
+                        createRecordWriter(
+                                carbonLoadModelList.get(i), taskAttemptContextList.get(i));
                 recordWriterList.add(recordWriter);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
-
 }

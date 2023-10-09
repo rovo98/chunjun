@@ -20,15 +20,15 @@ package com.dtstack.flinkx.cassandra.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * The builder for cassandra reader plugin
+ * The builder for cassandra reader plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author wuhui
  */
 public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -39,21 +39,31 @@ public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new CassandraInputFormat();
     }
 
-    public void setTable(String table){
+    public void setTable(String table) {
         format.table = table;
     }
 
-    public void setWhere(String where) {format.whereString = where;}
+    public void setWhere(String where) {
+        format.whereString = where;
+    }
 
-    public void setConsistancyLevel(String consistancyLevel) {format.consistancyLevel = consistancyLevel;}
+    public void setConsistancyLevel(String consistancyLevel) {
+        format.consistancyLevel = consistancyLevel;
+    }
 
-    public void setAllowFiltering(boolean allowFiltering) {format.allowFiltering = allowFiltering;}
+    public void setAllowFiltering(boolean allowFiltering) {
+        format.allowFiltering = allowFiltering;
+    }
 
-    public void setKeySpace(String keySpace) {format.keySpace = keySpace;}
+    public void setKeySpace(String keySpace) {
+        format.keySpace = keySpace;
+    }
 
-    public void setColumn(List<MetaColumn> column) {format.columnMeta = column;}
+    public void setColumn(List<MetaColumn> column) {
+        format.columnMeta = column;
+    }
 
-    public void setCassandraConfig(Map<String,Object> cassandraConfig){
+    public void setCassandraConfig(Map<String, Object> cassandraConfig) {
         format.cassandraConfig = cassandraConfig;
     }
 
@@ -61,8 +71,9 @@ public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder {
     protected void checkFormat() {
         Preconditions.checkNotNull(format.table, "table must not null");
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -35,17 +36,17 @@ public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new StreamInputFormat();
     }
 
-    public void setSliceRecordCount(List<Long> sliceRecordCount){
+    public void setSliceRecordCount(List<Long> sliceRecordCount) {
         format.sliceRecordCount = sliceRecordCount;
     }
 
-    public void setColumns(List<MetaColumn> columns){
+    public void setColumns(List<MetaColumn> columns) {
         format.columns = columns;
     }
 
     @Override
     protected void checkFormat() {
-        if (format.columns == null || format.columns.size() == 0){
+        if (format.columns == null || format.columns.size() == 0) {
             throw new IllegalArgumentException("columns can not be empty");
         }
     }

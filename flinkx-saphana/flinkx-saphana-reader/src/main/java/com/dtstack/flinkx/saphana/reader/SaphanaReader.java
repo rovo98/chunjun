@@ -24,6 +24,7 @@ import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.saphana.SaphanaDatabaseMeta;
 import com.dtstack.flinkx.saphana.format.SaphanaInputFormat;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Collections;
@@ -31,7 +32,8 @@ import java.util.Collections;
 /**
  * SapHana reader plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class SaphanaReader extends JdbcDataReader {
@@ -39,7 +41,9 @@ public class SaphanaReader extends JdbcDataReader {
     public SaphanaReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new SaphanaDatabaseMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        dbUrl =
+                DbUtil.formatJdbcUrl(
+                        dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override

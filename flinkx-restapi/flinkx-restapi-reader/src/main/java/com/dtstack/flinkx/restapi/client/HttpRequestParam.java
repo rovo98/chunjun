@@ -26,15 +26,13 @@ import java.util.Map;
 /**
  * HttpRequestParam 一次http请求的所有参数
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/25
+ * @author by dujie@dtstack.com @Date 2020/9/25
  */
 public class HttpRequestParam {
 
     private Map<String, String> body = new HashMap<>(32);
     private Map<String, String> header = new HashMap<>(32);
     private Map<String, String> param = new HashMap<>(32);
-
 
     public void putValue(ParamType type, String name, String value) {
         switch (type) {
@@ -48,10 +46,15 @@ public class HttpRequestParam {
                 param.put(name, value);
                 break;
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + type + " to put value, name is " + name + " value is " + value);
+                throw new UnsupportedOperationException(
+                        "HttpRequestParam not supported "
+                                + type
+                                + " to put value, name is "
+                                + name
+                                + " value is "
+                                + value);
         }
     }
-
 
     public String getValue(ParamType type, String key) {
         switch (type) {
@@ -62,7 +65,8 @@ public class HttpRequestParam {
             case PARAM:
                 return param.get(key);
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + type + " to get value, key is " + key);
+                throw new UnsupportedOperationException(
+                        "HttpRequestParam not supported " + type + " to get value, key is " + key);
         }
     }
 
@@ -76,9 +80,12 @@ public class HttpRequestParam {
             case PARAM:
                 return param.containsKey(key);
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported  to judge contains key when type is " + type.name() + " ,key is  " + key);
+                throw new UnsupportedOperationException(
+                        "HttpRequestParam not supported  to judge contains key when type is "
+                                + type.name()
+                                + " ,key is  "
+                                + key);
         }
-
     }
 
     public Map<String, String> getBody() {
@@ -95,24 +102,23 @@ public class HttpRequestParam {
 
     public static HttpRequestParam copy(HttpRequestParam source) {
         HttpRequestParam requestParam = new HttpRequestParam();
-        source.getBody().forEach((k, v) ->
-                requestParam.putValue(ParamType.BODY, k, v));
+        source.getBody().forEach((k, v) -> requestParam.putValue(ParamType.BODY, k, v));
 
+        source.getParam().forEach((k, v) -> requestParam.putValue(ParamType.PARAM, k, v));
 
-        source.getParam().forEach((k, v) ->
-                requestParam.putValue(ParamType.PARAM, k, v));
-
-        source.getHeader().forEach((k, v) ->
-                requestParam.putValue(ParamType.HEADER, k, v));
+        source.getHeader().forEach((k, v) -> requestParam.putValue(ParamType.HEADER, k, v));
         return requestParam;
     }
 
     @Override
     public String toString() {
-        return "HttpRequestParam{" +
-                "body=" + GsonUtil.GSON.toJson(body) +
-                ", header=" + GsonUtil.GSON.toJson(header) +
-                ", param=" + GsonUtil.GSON.toJson(param) +
-                '}';
+        return "HttpRequestParam{"
+                + "body="
+                + GsonUtil.GSON.toJson(body)
+                + ", header="
+                + GsonUtil.GSON.toJson(header)
+                + ", param="
+                + GsonUtil.GSON.toJson(param)
+                + '}';
     }
 }

@@ -17,13 +17,13 @@
  */
 package com.dtstack.flinkx.carbondata.writer;
 
-
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
@@ -34,22 +34,23 @@ import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
  * Carbondata Output Format
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupWhenUnsuccessful {
 
-    protected Map<String,String> hadoopConfig;
+    protected Map<String, String> hadoopConfig;
 
     protected String defaultFs;
 
@@ -93,38 +94,38 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
 
     private final List<String> oldSegmentIds = new ArrayList<>();
 
-
     @Override
     public void configure(Configuration parameters) {
         CarbondataUtil.initFileFactory(hadoopConfig, defaultFs);
     }
 
-    private void parsePartition(){
-        if(partition == null || partition.trim().length() == 0) {
-            throw new IllegalArgumentException("The table have partition field，'partition' should not be empty");
+    private void parsePartition() {
+        if (partition == null || partition.trim().length() == 0) {
+            throw new IllegalArgumentException(
+                    "The table have partition field，'partition' should not be empty");
         }
 
         partition = partition.trim();
-        if(partition.startsWith(SLASH)) {
+        if (partition.startsWith(SLASH)) {
             partition = partition.substring(1);
         }
 
-        if(partition.endsWith(SLASH)) {
+        if (partition.endsWith(SLASH)) {
             partition = partition.substring(0, partition.length() - 1);
         }
 
         String[] splits = partition.split(SLASH);
 
-        Preconditions.checkArgument(splits.length == carbonTable.getPartitionInfo().getColumnSchemaList().size());
+        Preconditions.checkArgument(
+                splits.length == carbonTable.getPartitionInfo().getColumnSchemaList().size());
 
-        for(String split : splits) {
+        for (String split : splits) {
             String[] pair = split.split(ASSIGN);
             String name = pair[0];
             String val = pair[1];
             partitionColIndex.add(fullColumnNames.indexOf(name));
             partitionColValue.add(val);
         }
-
     }
 
     @Override
@@ -138,14 +139,12 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
 
         inferFullColumnInfo();
 
-        if(isHivePartitioned) {
+        if (isHivePartitioned) {
             parsePartition();
         }
 
         recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
-
     }
-
 
     private void inferFullColumnInfo() {
         fullColumnIndices = new ArrayList<>();
@@ -154,54 +153,56 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
 
         column = column.stream().map(String::toLowerCase).collect(Collectors.toList());
 
-        List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
-        for(int i = 0; i < columnSchemas.size(); ++i) {
+        List<ColumnSchema> columnSchemas =
+                carbonTable.getTableInfo().getFactTable().getListOfColumns();
+        for (int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
-            if(!columnSchema.isInvisible()) {
+            if (!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
                 fullColumnTypes.add(columnSchema.getDataType());
             }
         }
 
-        for(int i = 0; i < fullColumnNames.size(); ++i) {
+        for (int i = 0; i < fullColumnNames.size(); ++i) {
             fullColumnIndices.add(column.indexOf(fullColumnNames.get(i)));
         }
     }
-
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         int i = 0;
         try {
             String[] record = new String[fullColumnNames.size()];
-            for(; i < fullColumnIndices.size(); ++i) {
+            for (; i < fullColumnIndices.size(); ++i) {
                 int index = fullColumnIndices.get(i);
-                if(index == -1) {
+                if (index == -1) {
                     record[i] = DEFAULT_SERIAL_NULL_FORMAT;
                 } else {
                     Object column = row.getField(index);
-                    String s = CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT);
-                    CarbonTypeConverter.checkStringType(s, DEFAULT_SERIAL_NULL_FORMAT, fullColumnTypes.get(i));
+                    String s =
+                            CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT);
+                    CarbonTypeConverter.checkStringType(
+                            s, DEFAULT_SERIAL_NULL_FORMAT, fullColumnTypes.get(i));
                     record[i] = s;
                 }
             }
-            if(isHivePartitioned) {
-                for(int j = 0; j < partitionColIndex.size(); ++j) {
+            if (isHivePartitioned) {
+                for (int j = 0; j < partitionColIndex.size(); ++j) {
                     int index = partitionColIndex.get(j);
-                    if(index != -1) {
+                    if (index != -1) {
                         record[index] = partitionColValue.get(j);
                     }
                 }
             }
             recordWriterAssemble.write(record);
-        } catch(Exception e) {
-            if(i < row.getArity()) {
+        } catch (Exception e) {
+            if (i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
         numWrites++;
-        if(numWrites == batchSize) {
+        if (numWrites == batchSize) {
             try {
                 closeInternal();
                 openInternal(taskNumber, numTasks);
@@ -229,12 +230,13 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
 
     @Override
     protected void beforeOpenInternal() {
-        if(taskNumber == 0 && overwrite) {
+        if (taskNumber == 0 && overwrite) {
             String metaPath = path + SLASH + "/Metadata";
-            LoadMetadataDetails[] loadMetadataDetailsArr = SegmentStatusManager.readLoadMetadata(metaPath);
-            if(loadMetadataDetailsArr != null) {
-                for(LoadMetadataDetails loadMetadataDetails : loadMetadataDetailsArr) {
-                    if(loadMetadataDetails.getSegmentStatus() == SegmentStatus.SUCCESS) {
+            LoadMetadataDetails[] loadMetadataDetailsArr =
+                    SegmentStatusManager.readLoadMetadata(metaPath);
+            if (loadMetadataDetailsArr != null) {
+                for (LoadMetadataDetails loadMetadataDetails : loadMetadataDetailsArr) {
+                    if (loadMetadataDetails.getSegmentStatus() == SegmentStatus.SUCCESS) {
                         oldSegmentIds.add(loadMetadataDetails.getLoadName());
                     }
                 }
@@ -244,7 +246,7 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
 
     @Override
     public void closeInternal() throws IOException {
-        if(recordWriterAssemble != null) {
+        if (recordWriterAssemble != null) {
             try {
                 recordWriterAssemble.close();
             } catch (InterruptedException e) {
@@ -259,13 +261,17 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
     }
 
     @Override
-    protected void afterCloseInternal()  {
-        if(taskNumber == 0 && overwrite) {
-            if(!oldSegmentIds.isEmpty()) {
+    protected void afterCloseInternal() {
+        if (taskNumber == 0 && overwrite) {
+            if (!oldSegmentIds.isEmpty()) {
                 String metaPath = path + SLASH + "/Metadata";
                 try {
-                    List<String> invalidLoadIds = SegmentStatusManager.updateDeletionStatus(carbonTable.getAbsoluteTableIdentifier(), oldSegmentIds, metaPath);
-                    if(invalidLoadIds.isEmpty()) {
+                    List<String> invalidLoadIds =
+                            SegmentStatusManager.updateDeletionStatus(
+                                    carbonTable.getAbsoluteTableIdentifier(),
+                                    oldSegmentIds,
+                                    metaPath);
+                    if (invalidLoadIds.isEmpty()) {
                         LOG.info("Delete segment by Id is successfull");
                     } else {
                         LOG.error("Delete segment by Id is failed");
@@ -276,5 +282,4 @@ public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupW
             }
         }
     }
-
 }

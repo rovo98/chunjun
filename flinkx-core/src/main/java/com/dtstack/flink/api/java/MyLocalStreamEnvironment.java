@@ -18,6 +18,8 @@
 
 package com.dtstack.flink.api.java;
 
+import javax.annotation.Nonnull;
+
 import org.apache.flink.annotation.Public;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobExecutionResult;
@@ -31,19 +33,17 @@ import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.apache.flink.runtime.minicluster.MiniClusterConfiguration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.graph.StreamGraph;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * The LocalStreamEnvironment is a StreamExecutionEnvironment that runs the program locally,
- * multi-threaded, in the JVM where the environment is instantiated. It spawns an embedded
- * Flink cluster in the background and executes the program on that cluster.
+ * multi-threaded, in the JVM where the environment is instantiated. It spawns an embedded Flink
+ * cluster in the background and executes the program on that cluster.
  *
  * <p>When this environment is instantiated, it uses a default parallelism of {@code 1}. The default
  * parallelism can be set via {@link #setParallelism(int)}.
@@ -53,7 +53,9 @@ import java.util.List;
 @Public
 public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
-    private static final Logger LOG = LoggerFactory.getLogger(org.apache.flink.streaming.api.environment.LocalStreamEnvironment.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(
+                    org.apache.flink.streaming.api.environment.LocalStreamEnvironment.class);
 
     private final Configuration configuration;
 
@@ -73,23 +75,22 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         this.settings = settings;
     }
 
-    /**
-     * Creates a new mini cluster stream environment that uses the default configuration.
-     */
+    /** Creates a new mini cluster stream environment that uses the default configuration. */
     public MyLocalStreamEnvironment() {
         this(new Configuration());
     }
 
     /**
-     * Creates a new mini cluster stream environment that configures its local executor with the given configuration.
+     * Creates a new mini cluster stream environment that configures its local executor with the
+     * given configuration.
      *
      * @param configuration The configuration used to configure the local executor.
      */
     public MyLocalStreamEnvironment(@Nonnull Configuration configuration) {
         if (!ExecutionEnvironment.areExplicitEnvironmentsAllowed()) {
             throw new InvalidProgramException(
-                    "The LocalStreamEnvironment cannot be used when submitting a program through a client, " +
-                            "or running in a TestEnvironment context.");
+                    "The LocalStreamEnvironment cannot be used when submitting a program through a client, "
+                            + "or running in a TestEnvironment context.");
         }
         this.configuration = configuration;
         setParallelism(1);
@@ -101,11 +102,9 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
     }
 
     /**
-     * Executes the JobGraph of the on a mini cluster of CLusterUtil with a user
-     * specified name.
+     * Executes the JobGraph of the on a mini cluster of CLusterUtil with a user specified name.
      *
-     * @param jobName
-     *            name of the job
+     * @param jobName name of the job
      * @return The result of the job execution, containing elapsed time and accumulators.
      */
     @Override
@@ -117,14 +116,15 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         JobGraph jobGraph = streamGraph.getJobGraph();
         jobGraph.setClasspaths(classpaths);
 
-        if (settings != null){
+        if (settings != null) {
             jobGraph.setSavepointRestoreSettings(settings);
         }
 
         Configuration configuration = new Configuration();
         configuration.addAll(jobGraph.getJobConfiguration());
         configuration.setString(TaskManagerOptions.MANAGED_MEMORY_SIZE.key(), "512M");
-        configuration.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, jobGraph.getMaximumParallelism());
+        configuration.setInteger(
+                TaskManagerOptions.NUM_TASK_SLOTS, jobGraph.getMaximumParallelism());
 
         // add (and override) the settings with what the user defined
         configuration.addAll(this.configuration);
@@ -133,12 +133,15 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
             configuration.setString(RestOptions.BIND_PORT, "0");
         }
 
-        int numSlotsPerTaskManager = configuration.getInteger(TaskManagerOptions.NUM_TASK_SLOTS, jobGraph.getMaximumParallelism());
+        int numSlotsPerTaskManager =
+                configuration.getInteger(
+                        TaskManagerOptions.NUM_TASK_SLOTS, jobGraph.getMaximumParallelism());
 
-        MiniClusterConfiguration cfg = new MiniClusterConfiguration.Builder()
-                .setConfiguration(configuration)
-                .setNumSlotsPerTaskManager(numSlotsPerTaskManager)
-                .build();
+        MiniClusterConfiguration cfg =
+                new MiniClusterConfiguration.Builder()
+                        .setConfiguration(configuration)
+                        .setNumSlotsPerTaskManager(numSlotsPerTaskManager)
+                        .build();
 
         if (LOG.isInfoEnabled()) {
             LOG.info("Running job on local embedded Flink mini cluster");
@@ -148,11 +151,11 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
         try {
             miniCluster.start();
-            configuration.setInteger(RestOptions.PORT, miniCluster.getRestAddress().get().getPort());
+            configuration.setInteger(
+                    RestOptions.PORT, miniCluster.getRestAddress().get().getPort());
 
             return miniCluster.executeJobBlocking(jobGraph);
-        }
-        finally {
+        } finally {
             transformations.clear();
             miniCluster.close();
         }

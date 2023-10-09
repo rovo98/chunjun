@@ -24,6 +24,7 @@ import com.dtstack.flinkx.pgwal.Table;
 import com.dtstack.flinkx.pgwal.format.PgWalInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.jdbc.PgConnection;
@@ -38,8 +39,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Date: 2019/12/14
- * Company: www.dtstack.com
+ * Date: 2019/12/14 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -67,19 +67,20 @@ public class PgWalListener implements Runnable {
         this.pavingData = format.isPavingData();
     }
 
-    public void init() throws Exception{
+    public void init() throws Exception {
         decoder = new PgDecoder(PgWalUtil.queryTypes(conn));
-        ChainedLogicalStreamBuilder builder = conn.getReplicationAPI()
-                .replicationStream()
-                .logical()
-                .withSlotName(format.getSlotName())
-                //协议版本。当前仅支持版本1
-                .withSlotOption("proto_version", "1")
-                //逗号分隔的要订阅的发布名称列表（接收更改）。 单个发布名称被视为标准对象名称，并可根据需要引用
-                .withSlotOption("publication_names", PgWalUtil.PUBLICATION_NAME)
-                .withStatusInterval(format.getStatusInterval(), TimeUnit.MILLISECONDS);
+        ChainedLogicalStreamBuilder builder =
+                conn.getReplicationAPI()
+                        .replicationStream()
+                        .logical()
+                        .withSlotName(format.getSlotName())
+                        // 协议版本。当前仅支持版本1
+                        .withSlotOption("proto_version", "1")
+                        // 逗号分隔的要订阅的发布名称列表（接收更改）。 单个发布名称被视为标准对象名称，并可根据需要引用
+                        .withSlotOption("publication_names", PgWalUtil.PUBLICATION_NAME)
+                        .withStatusInterval(format.getStatusInterval(), TimeUnit.MILLISECONDS);
         long lsn = format.getStartLsn();
-        if(lsn != 0){
+        if (lsn != 0) {
             builder.withStartPosition(LogSequenceNumber.valueOf(lsn));
         }
         stream = builder.start();
@@ -99,17 +100,17 @@ public class PgWalListener implements Runnable {
                     continue;
                 }
                 Table table = decoder.decode(buffer);
-                if(StringUtils.isBlank(table.getId())){
+                if (StringUtils.isBlank(table.getId())) {
                     continue;
                 }
                 String type = table.getType().name().toLowerCase();
-                if(!cat.contains(type)){
+                if (!cat.contains(type)) {
                     continue;
                 }
-                if(!tableSet.contains(table.getId())){
+                if (!tableSet.contains(table.getId())) {
                     continue;
                 }
-                LOG.trace("table = {}",gson.toJson(table));
+                LOG.trace("table = {}", gson.toJson(table));
                 Map<String, Object> map = new LinkedHashMap<>();
                 map.put("type", type);
                 map.put("schema", table.getSchema());
@@ -117,14 +118,14 @@ public class PgWalListener implements Runnable {
                 map.put("lsn", table.getCurrentLsn());
                 map.put("ts", table.getTs());
                 map.put("ingestion", System.nanoTime());
-                if(pavingData){
+                if (pavingData) {
                     int i = 0;
                     for (MetaColumn column : table.getColumnList()) {
                         map.put("before_" + column.getName(), table.getOldData()[i]);
                         map.put("after_" + column.getName(), table.getNewData()[i]);
                         i++;
                     }
-                }else {
+                } else {
                     Map<String, Object> before = new LinkedHashMap<>();
                     Map<String, Object> after = new LinkedHashMap<>();
                     int i = 0;
@@ -138,11 +139,10 @@ public class PgWalListener implements Runnable {
                 }
                 format.processEvent(map);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             String errorMessage = ExceptionUtil.getErrorMessage(e);
             LOG.error(errorMessage);
             format.processEvent(Collections.singletonMap("e", errorMessage));
-
         }
     }
 }

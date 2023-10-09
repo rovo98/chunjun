@@ -22,9 +22,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class TableInfo implements Serializable {
 
     private List<String> columns;
@@ -126,16 +124,32 @@ public class TableInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "TableInfo{" +
-                ", columns=" + columns +
-                ", columnTypes=" + columnTypes +
-                ", createTableSql='" + createTableSql + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", tablePath='" + tablePath + '\'' +
-                ", path='" + path + '\'' +
-                ", store='" + store + '\'' +
-                ", delimiter='" + delimiter + '\'' +
-                ", partitions='" + partitions + '\'' +
-                '}';
+        return "TableInfo{"
+                + ", columns="
+                + columns
+                + ", columnTypes="
+                + columnTypes
+                + ", createTableSql='"
+                + createTableSql
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", tablePath='"
+                + tablePath
+                + '\''
+                + ", path='"
+                + path
+                + '\''
+                + ", store='"
+                + store
+                + '\''
+                + ", delimiter='"
+                + delimiter
+                + '\''
+                + ", partitions='"
+                + partitions
+                + '\''
+                + '}';
     }
 }

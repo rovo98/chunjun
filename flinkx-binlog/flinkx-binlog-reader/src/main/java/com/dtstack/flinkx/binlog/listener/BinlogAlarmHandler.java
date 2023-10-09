@@ -17,20 +17,20 @@
  */
 package com.dtstack.flinkx.binlog.listener;
 
+import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
+
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
-import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class BinlogAlarmHandler extends AbstractCanalLifeCycle implements CanalAlarmHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BinlogAlarmHandler.class);
 
-    private static final String BINARY_LOG_LOST = "Could not find first log file name in binary log index file";
+    private static final String BINARY_LOG_LOST =
+            "Could not find first log file name in binary log index file";
     private BinlogInputFormat format;
 
     public BinlogAlarmHandler(BinlogInputFormat format) {
@@ -39,10 +39,9 @@ public class BinlogAlarmHandler extends AbstractCanalLifeCycle implements CanalA
 
     @Override
     public void sendAlarm(String destination, String msg) {
-        logger.error("destination:{}[{}]", new Object[] { destination, msg });
-        if (msg.contains(BINARY_LOG_LOST)){
+        logger.error("destination:{}[{}]", new Object[] {destination, msg});
+        if (msg.contains(BINARY_LOG_LOST)) {
             System.exit(-1);
         }
     }
-
 }

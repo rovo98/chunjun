@@ -18,8 +18,7 @@
 package com.dtstack.flinkx.phoenix5;
 
 /**
- * Date: 2020/09/29
- * Company: www.dtstack.com
+ * Date: 2020/09/29 Company: www.dtstack.com
  *
  * @author tudou
  */

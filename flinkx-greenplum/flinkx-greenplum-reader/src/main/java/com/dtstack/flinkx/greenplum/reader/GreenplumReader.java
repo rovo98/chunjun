@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.greenplum.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.greenplum.GreenplumDatabaseMeta;
 import com.dtstack.flinkx.greenplum.format.GreenplumInputFormat;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
@@ -26,18 +27,16 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlQuerySqlBuilder;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.greenplum.GreenplumDatabaseMeta;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 /**
- * The reader plugin for Greenplum database
+ * The reader plugin for Greenplum database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
-
 public class GreenplumReader extends JdbcDataReader {
     public GreenplumReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -65,7 +64,8 @@ public class GreenplumReader extends JdbcDataReader {
         builder.setTypeConverter(typeConverter);
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
-        builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setQueryTimeOut(
+                queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncrementConfig(incrementConfig);
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
@@ -77,8 +77,7 @@ public class GreenplumReader extends JdbcDataReader {
         QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        BaseRichInputFormat format =  builder.finish();
+        BaseRichInputFormat format = builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
-
 }

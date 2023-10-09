@@ -33,7 +33,7 @@ public class RowUtilTest {
         Row row = new Row(2);
         row.setField(0, 1);
         row.setField(1, "val");
-        String result = RowUtil.rowToJson(row, new String[]{"col1", "col2"});
+        String result = RowUtil.rowToJson(row, new String[] {"col1", "col2"});
         Assert.assertEquals(result, "{\"col1\":1,\"col2\":\"val\"}");
     }
 }

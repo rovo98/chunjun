@@ -20,13 +20,16 @@ package com.dtstack.flinkx.odps.writer;
 
 import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
+
 import java.util.Map;
 
 /**
  * The builder class of OdpsOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -37,7 +40,7 @@ public class OdpsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new OdpsOutputFormat();
     }
 
-    public void setOdpsConfig(Map<String,String> odpsConfig) {
+    public void setOdpsConfig(Map<String, String> odpsConfig) {
         format.odpsConfig = odpsConfig;
         format.projectName = odpsConfig.get(OdpsConfigKeys.KEY_PROJECT);
     }
@@ -49,7 +52,6 @@ public class OdpsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     public void setColumnNames(String[] columnNames) {
         format.columnNames = columnNames;
     }
-
 
     public void setProjectName(String projectName) {
         format.projectName = projectName;
@@ -67,14 +69,15 @@ public class OdpsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
     }
 
-    public void setBufferSize(long bufferSize){
+    public void setBufferSize(long bufferSize) {
         format.bufferSize = bufferSize;
     }
 
     @Override
     protected void checkFormat() {
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         notSupportBatchWrite("OdpsWriter");
