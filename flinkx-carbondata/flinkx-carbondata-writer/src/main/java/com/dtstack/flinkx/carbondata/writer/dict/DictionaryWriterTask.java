@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.dict;
 
-
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
@@ -38,11 +37,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-
 /**
  * Dictionary Writer Task
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class DictionaryWriterTask {
@@ -61,7 +60,12 @@ public class DictionaryWriterTask {
 
     private CarbonDictionaryWriter writer;
 
-    public DictionaryWriterTask(Set<String> valuesBuffer, Dictionary dictionary, DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier, ColumnSchema columnSchema, boolean isDictionaryFileExist) {
+    public DictionaryWriterTask(
+            Set<String> valuesBuffer,
+            Dictionary dictionary,
+            DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier,
+            ColumnSchema columnSchema,
+            boolean isDictionaryFileExist) {
         this.valuesBuffer = valuesBuffer;
         this.dictionary = dictionary;
         this.dictionaryColumnUniqueIdentifier = dictionaryColumnUniqueIdentifier;
@@ -85,9 +89,12 @@ public class DictionaryWriterTask {
             if (values.length >= 1) {
                 if (isDictionaryFileExist) {
                     for (String value : values) {
-                        String parsedValue = DataTypeUtil.normalizeColumnValueForItsDataType(value, columnSchema);
-                        if (null != parsedValue && dictionary.getSurrogateKey(parsedValue) ==
-                                CarbonCommonConstants.INVALID_SURROGATE_KEY) {
+                        String parsedValue =
+                                DataTypeUtil.normalizeColumnValueForItsDataType(
+                                        value, columnSchema);
+                        if (null != parsedValue
+                                && dictionary.getSurrogateKey(parsedValue)
+                                        == CarbonCommonConstants.INVALID_SURROGATE_KEY) {
                             writer.write(parsedValue);
                             distinctValues.add(parsedValue);
                         }
@@ -95,7 +102,9 @@ public class DictionaryWriterTask {
 
                 } else {
                     for (String value : values) {
-                        String parsedValue = DataTypeUtil.normalizeColumnValueForItsDataType(value, columnSchema);
+                        String parsedValue =
+                                DataTypeUtil.normalizeColumnValueForItsDataType(
+                                        value, columnSchema);
                         if (null != parsedValue) {
                             writer.write(parsedValue);
                             distinctValues.add(parsedValue);
@@ -107,7 +116,7 @@ public class DictionaryWriterTask {
             if (null != writer) {
                 try {
                     writer.close();
-                }catch (IOException e){
+                } catch (IOException e) {
                     LOG.error(ExceptionUtil.getErrorMessage(e));
                 }
             }
@@ -120,5 +129,4 @@ public class DictionaryWriterTask {
             writer.commit();
         }
     }
-
 }

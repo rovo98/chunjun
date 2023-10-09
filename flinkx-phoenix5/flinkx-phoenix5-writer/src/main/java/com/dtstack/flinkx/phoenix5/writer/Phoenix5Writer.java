@@ -23,14 +23,12 @@ import com.dtstack.flinkx.phoenix5.Phoenix5DatabaseMeta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5OutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-
-import java.util.Collections;
 
 /**
  * phoenix writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class Phoenix5Writer extends JdbcDataWriter {

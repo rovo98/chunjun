@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hbase2.writer;
 
 import com.dtstack.flinkx.hbase2.HbaseConfigConstants;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 
@@ -29,7 +30,8 @@ import java.util.Map;
 /**
  * The Builder class of HbaseOutputFormatBuilder
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -44,7 +46,7 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.tableName = tableName;
     }
 
-    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
+    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 
@@ -69,7 +71,7 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setEncoding(String encoding) {
-        if(StringUtils.isEmpty(encoding)) {
+        if (StringUtils.isEmpty(encoding)) {
             format.encoding = HbaseConfigConstants.DEFAULT_ENCODING;
         } else {
             format.encoding = encoding;
@@ -77,7 +79,7 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setWriteBufferSize(Long writeBufferSize) {
-        if(writeBufferSize == null || writeBufferSize.longValue() == 0L) {
+        if (writeBufferSize == null || writeBufferSize.longValue() == 0L) {
             format.writeBufferSize = HbaseConfigConstants.DEFAULT_WRITE_BUFFER_SIZE;
         } else {
             format.writeBufferSize = writeBufferSize;
@@ -85,7 +87,7 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setNullMode(String nullMode) {
-        if(StringUtils.isEmpty(nullMode)) {
+        if (StringUtils.isEmpty(nullMode)) {
             format.nullMode = HbaseConfigConstants.DEFAULT_NULL_MODE;
         } else {
             format.nullMode = nullMode;
@@ -93,7 +95,7 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setWalFlag(Boolean walFlag) {
-        if(walFlag == null) {
+        if (walFlag == null) {
             format.walFlag = false;
         } else {
             format.walFlag = walFlag;
@@ -108,8 +110,9 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         Preconditions.checkNotNull(format.columnTypes);
         Preconditions.checkNotNull(format.rowkeyExpress);
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         notSupportBatchWrite("HbaseWriter");

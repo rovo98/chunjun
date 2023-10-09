@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -26,6 +25,7 @@ import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -37,7 +37,8 @@ import java.util.Map;
 /**
  * The reader plugin of Hdfs
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsReader extends BaseDataReader {
@@ -55,20 +56,26 @@ public class HdfsReader extends BaseDataReader {
         defaultFs = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_DEFAULT_FS);
 
         String fileName = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_NAME);
-        if(StringUtils.isNotBlank(fileName)){
-            //兼容平台逻辑
-            path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH) + ConstantValue.SINGLE_SLASH_SYMBOL + fileName;
-        }else{
+        if (StringUtils.isNotBlank(fileName)) {
+            // 兼容平台逻辑
+            path =
+                    readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH)
+                            + ConstantValue.SINGLE_SLASH_SYMBOL
+                            + fileName;
+        } else {
             path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         }
 
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
-        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
+        hadoopConfig =
+                (Map<String, Object>)
+                        readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
         filterRegex = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILTER, "");
 
-        fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
+        fieldDelimiter =
+                readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
 
-        if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
+        if (fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
         } else {
             fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
@@ -95,5 +102,4 @@ public class HdfsReader extends BaseDataReader {
 
         return createInput(builder.finish());
     }
-
 }

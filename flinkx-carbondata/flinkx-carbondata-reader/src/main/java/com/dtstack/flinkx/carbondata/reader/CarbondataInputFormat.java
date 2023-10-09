@@ -17,10 +17,10 @@
  */
 package com.dtstack.flinkx.carbondata.reader;
 
-
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -39,6 +39,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,16 +47,16 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-
 /**
  * Carbondata InputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataInputFormat extends BaseRichInputFormat {
 
-    protected Map<String,String> hadoopConfig;
+    protected Map<String, String> hadoopConfig;
 
     protected String defaultFs;
 
@@ -91,7 +92,7 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
 
     private transient TaskAttemptContext taskAttemptContext;
 
-    private transient CarbonProjection  projection;
+    private transient CarbonProjection projection;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -114,7 +115,7 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
         format = new CarbonTableInputFormat();
     }
 
-    private org.apache.hadoop.conf.Configuration initConfig(){
+    private org.apache.hadoop.conf.Configuration initConfig() {
         CarbondataUtil.initFileFactory(hadoopConfig, defaultFs);
         initColumnIndices();
         org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
@@ -124,8 +125,9 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
 
         conf.set("mapreduce.input.fileinputformat.inputdir", path);
 
-        if(StringUtils.isNotBlank(filter)) {
-            CarbonTableInputFormat.setFilterPredicates(conf, CarbonExpressUtil.eval(filter, fullColumnNames, fullColumnTypes));
+        if (StringUtils.isNotBlank(filter)) {
+            CarbonTableInputFormat.setFilterPredicates(
+                    conf, CarbonExpressUtil.eval(filter, fullColumnNames, fullColumnTypes));
         }
 
         return conf;
@@ -147,8 +149,8 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
         projection = new CarbonProjection();
         columnIndex = new ArrayList<>();
         int k = 0;
-        for(int i = 0; i < columnName.size(); ++i) {
-            if(StringUtils.isNotBlank(columnName.get(i))) {
+        for (int i = 0; i < columnName.size(); ++i) {
+            if (StringUtils.isNotBlank(columnName.get(i))) {
                 columnIndex.add(k);
                 projection.addColumn(columnName.get(i));
                 k++;
@@ -164,9 +166,10 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
             row = new Row(columnIndex.size());
 
             Object[] record = (Object[]) recordReader.getCurrentValue();
-            for(int i = 0; i < columnIndex.size(); ++i) {
-                if(columnIndex == null) {
-                    row.setField(i, StringUtil.string2col(columnValue.get(i), columnType.get(i),null));
+            for (int i = 0; i < columnIndex.size(); ++i) {
+                if (columnIndex == null) {
+                    row.setField(
+                            i, StringUtil.string2col(columnValue.get(i), columnType.get(i), null));
                 } else {
                     row.setField(i, record[columnIndex.get(i)]);
                 }
@@ -179,7 +182,7 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if(recordReader != null) {
+        if (recordReader != null) {
             recordReader.close();
         }
     }
@@ -192,13 +195,13 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
 
         List<org.apache.hadoop.mapreduce.InputSplit> splitList = format.getSplits(job);
         int splitNum = (splitList.size() < num ? splitList.size() : num);
-        int groupSize = (int)Math.ceil(splitList.size() / (double)splitNum);
+        int groupSize = (int) Math.ceil(splitList.size() / (double) splitNum);
         InputSplit[] ret = new InputSplit[splitNum];
 
-        for(int i = 0; i < splitNum; ++i) {
+        for (int i = 0; i < splitNum; ++i) {
             List<CarbonInputSplit> carbonInputSplits = new ArrayList<>();
-            for(int j = 0; j < groupSize && i*groupSize+j < splitList.size(); ++j) {
-                carbonInputSplits.add((CarbonInputSplit) splitList.get(i*groupSize+j));
+            for (int j = 0; j < groupSize && i * groupSize + j < splitList.size(); ++j) {
+                carbonInputSplits.add((CarbonInputSplit) splitList.get(i * groupSize + j));
             }
             ret[i] = new CarbonFlinkInputSplit(carbonInputSplits, i);
         }
@@ -206,13 +209,12 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
         return ret;
     }
 
-
     @Override
     public boolean reachedEnd() throws IOException {
         try {
-            while(!recordReader.nextKeyValue()) {
+            while (!recordReader.nextKeyValue()) {
                 pos++;
-                if(pos == carbonInputSplits.size()) {
+                if (pos == carbonInputSplits.size()) {
                     return true;
                 }
                 recordReader.close();
@@ -239,20 +241,19 @@ public class CarbondataInputFormat extends BaseRichInputFormat {
         return recordReader;
     }
 
-
     private void inferFullColumnInfo() throws IOException {
         CarbonTable carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
         fullColumnNames = new ArrayList<>();
         fullColumnTypes = new ArrayList<>();
 
-        List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
-        for(int i = 0; i < columnSchemas.size(); ++i) {
+        List<ColumnSchema> columnSchemas =
+                carbonTable.getTableInfo().getFactTable().getListOfColumns();
+        for (int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
-            if(!columnSchema.isInvisible()) {
+            if (!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
                 fullColumnTypes.add(columnSchema.getDataType());
             }
         }
     }
-
 }

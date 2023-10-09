@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.carbondata;
 
-
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.converter.SchemaConverter;
 import org.apache.carbondata.core.metadata.converter.ThriftWrapperSchemaConverterImpl;
@@ -27,15 +26,16 @@ import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import java.lang.reflect.Field;
-import java.util.Map;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
  * Carbondata Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataUtil {
@@ -46,23 +46,27 @@ public class CarbondataUtil {
 
     private static SchemaConverter schemaConverter = new ThriftWrapperSchemaConverterImpl();
 
-    public static CarbonTable buildCarbonTable(String dbName, String tableName, String tablePath) throws IOException {
+    public static CarbonTable buildCarbonTable(String dbName, String tableName, String tablePath)
+            throws IOException {
         String tableMetadataFile = CarbonTablePath.getSchemaFilePath(tablePath);
-        org.apache.carbondata.format.TableInfo tableInfo = CarbonUtil.readSchemaFile(tableMetadataFile);
-        TableInfo wrapperTableInfo = schemaConverter.fromExternalToWrapperTableInfo(tableInfo, dbName, tableName, tablePath);
+        org.apache.carbondata.format.TableInfo tableInfo =
+                CarbonUtil.readSchemaFile(tableMetadataFile);
+        TableInfo wrapperTableInfo =
+                schemaConverter.fromExternalToWrapperTableInfo(
+                        tableInfo, dbName, tableName, tablePath);
         return CarbonTable.buildFromTableInfo(wrapperTableInfo);
     }
 
-    public static void initFileFactory(Map<String,String> hadoopConfig, String defaultFs) {
+    public static void initFileFactory(Map<String, String> hadoopConfig, String defaultFs) {
         Configuration conf = new Configuration();
         conf.clear();
-        if(hadoopConfig != null) {
+        if (hadoopConfig != null) {
             for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
                 conf.set(entry.getKey(), entry.getValue());
             }
         }
 
-        if(StringUtils.isNotBlank(defaultFs)) {
+        if (StringUtils.isNotBlank(defaultFs)) {
             conf.set("fs.default.name", defaultFs);
         }
         conf.set("fs.hdfs.impl.disable.cache", "true");
@@ -74,8 +78,5 @@ public class CarbondataUtil {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-
     }
-
-
 }

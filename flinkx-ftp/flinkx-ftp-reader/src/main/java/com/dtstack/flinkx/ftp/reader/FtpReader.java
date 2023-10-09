@@ -25,6 +25,7 @@ import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -34,7 +35,8 @@ import java.util.List;
 /**
  * The reader plugin of Ftp
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpReader extends BaseDataReader {
@@ -47,7 +49,10 @@ public class FtpReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         try {
-            ftpConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), FtpConfig.class);
+            ftpConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            FtpConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("解析ftpConfig配置出错:", e);
         }
@@ -56,7 +61,7 @@ public class FtpReader extends BaseDataReader {
             ftpConfig.setDefaultPort();
         }
 
-        if(!FtpConfigConstants.DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
+        if (!FtpConfigConstants.DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())) {
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }

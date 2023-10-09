@@ -25,9 +25,8 @@ package com.dtstack.flinkx.restapi.common;
  */
 public class ConstantValue {
 
-
-    public static final String STRATEGY_STOP= "stop";
-    public static final String STRATEGY_RETRY= "retry";
+    public static final String STRATEGY_STOP = "stop";
+    public static final String STRATEGY_RETRY = "retry";
     public static final String SYSTEM_FUNCTION_UUID = "uuid";
     public static final String SYSTEM_FUNCTION_CURRENT_TIME = "currentTime";
     public static final String SYSTEM_FUNCTION_INTERVAL_TIME = "intervalTime";
@@ -41,5 +40,4 @@ public class ConstantValue {
     public static String CONTENT_TYPE_DEFAULT_VALUE = "application/json";
 
     public static final int REQUEST_RETRY_TIME = 3;
-
 }

@@ -29,19 +29,21 @@ import com.dtstack.flinkx.sqlserver.format.SqlserverOutputFormat;
 /**
  * SQLServer writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class SqlserverWriter extends JdbcDataWriter {
 
-    //是否在sql语句后面添加 with(nolock) ,默认是false
+    // 是否在sql语句后面添加 with(nolock) ,默认是false
     private Boolean withNoLock;
 
     public SqlserverWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new SqlServerDatabaseMeta());
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        withNoLock = readerConfig.getParameter().getBooleanVal(SqlServerConfigKeys.WITH_NO_LOCK,false);
+        withNoLock =
+                readerConfig.getParameter().getBooleanVal(SqlServerConfigKeys.WITH_NO_LOCK, false);
     }
 
     @Override
@@ -50,6 +52,4 @@ public class SqlserverWriter extends JdbcDataWriter {
         sqlserverOutputFormat.setWithNoLock(withNoLock);
         return new JdbcOutputFormatBuilder(sqlserverOutputFormat);
     }
-
-
 }

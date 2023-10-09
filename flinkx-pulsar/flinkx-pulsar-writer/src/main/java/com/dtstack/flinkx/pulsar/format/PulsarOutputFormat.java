@@ -22,6 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
 import org.apache.pulsar.client.api.AuthenticationFactory;
@@ -56,20 +57,17 @@ public class PulsarOutputFormat extends BaseRichOutputFormat {
         PulsarClient client;
 
         if (null != token) {
-            client = PulsarClient.builder()
-                    .serviceUrl(pulsarServiceUrl)
-                    .authentication(AuthenticationFactory.token(token))
-                    .build();
+            client =
+                    PulsarClient.builder()
+                            .serviceUrl(pulsarServiceUrl)
+                            .authentication(AuthenticationFactory.token(token))
+                            .build();
         } else {
-            client = PulsarClient.builder()
-                    .serviceUrl(pulsarServiceUrl)
-                    .build();
+            client = PulsarClient.builder().serviceUrl(pulsarServiceUrl).build();
         }
         // pulsar-client 2.4.0 loadConf有bug
-        producer = client.newProducer(Schema.STRING)
-                .topic(topic)
-                .loadConf(producerSettings)
-                .create();
+        producer =
+                client.newProducer(Schema.STRING).topic(topic).loadConf(producerSettings).create();
     }
 
     @Override
@@ -99,7 +97,8 @@ public class PulsarOutputFormat extends BaseRichOutputFormat {
             }
             emit(map);
         } catch (Throwable e) {
-            LOG.error("pulsar writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "pulsar writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(e.getMessage(), e);
         }
     }

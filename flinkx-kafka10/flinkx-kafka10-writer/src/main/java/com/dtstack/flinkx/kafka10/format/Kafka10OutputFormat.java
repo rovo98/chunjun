@@ -17,10 +17,11 @@
  */
 package com.dtstack.flinkx.kafka10.format;
 
-import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -59,21 +60,26 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
     protected void emit(Map event) throws IOException {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
-            if(Objects.nonNull(exception)){
-                String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
-                LOG.warn(errorMessage);
-                heartBeatController.onFailed(exception);
-            }else{
-                heartBeatController.onSuccess();
-            }
-        });
+        producer.send(
+                new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)),
+                (metadata, exception) -> {
+                    if (Objects.nonNull(exception)) {
+                        String errorMessage =
+                                String.format(
+                                        "send data failed,data 【%s】 ,error info  %s",
+                                        event, ExceptionUtil.getErrorMessage(exception));
+                        LOG.warn(errorMessage);
+                        heartBeatController.onFailed(exception);
+                    } else {
+                        heartBeatController.onSuccess();
+                    }
+                });
     }
 
     @Override
     public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
-        //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
+        // 未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
         producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
     }
 }

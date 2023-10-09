@@ -4,6 +4,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
+
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -48,9 +49,7 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
 
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    /**
-     * 如果key为string类型的值是map 或者 list 会使用gson转为json格式存入
-     */
+    /** 如果key为string类型的值是map 或者 list 会使用gson转为json格式存入 */
     protected transient Gson gson;
 
     @Override
@@ -68,8 +67,11 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
 
             if (fs.exists(dir)) {
                 if (fs.getFileStatus(dir).isFile()) {
-                    throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
-                            + "One can only write new files under directories");
+                    throw new RuntimeException(
+                            "Can't write new files under common file: "
+                                    + dir
+                                    + "\n"
+                                    + "One can only write new files under directories");
                 }
             } else {
                 if (!makeDir) {
@@ -123,19 +125,20 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
             return;
         }
 
-        PathFilter filter = path -> {
-            String fileName = path.getName();
-            if (!fileName.contains(lastJobId)) {
-                return false;
-            }
+        PathFilter filter =
+                path -> {
+                    String fileName = path.getName();
+                    if (!fileName.contains(lastJobId)) {
+                        return false;
+                    }
 
-            String[] splits = fileName.split("\\.");
-            if (splits.length == FILE_NAME_PART_SIZE) {
-                return Integer.parseInt(splits[2]) > fileIndex;
-            }
+                    String[] splits = fileName.split("\\.");
+                    if (splits.length == FILE_NAME_PART_SIZE) {
+                        return Integer.parseInt(splits[2]) > fileIndex;
+                    }
 
-            return false;
-        };
+                    return false;
+                };
 
         try {
             FileStatus[] dirtyData = fs.listStatus(new Path(outputFilePath), filter);
@@ -157,7 +160,7 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
             conf = new Configuration();
             conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
             conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.hadoop.AlluxioFileSystem");
-            //默认情况下，数据被同步地写入到底层存储系统(hdfs or eos)，但不会被写入到Alluxio的Worker。
+            // 默认情况下，数据被同步地写入到底层存储系统(hdfs or eos)，但不会被写入到Alluxio的Worker。
             conf.set("alluxio.user.file.writetype.default", writeType);
             fs = new Path(path).getFileSystem(conf);
         } catch (Exception e) {
@@ -193,7 +196,8 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
     @Override
     protected void moveTemporaryDataBlockFileToDirectory() {
         try {
-            if (currentBlockFileName != null && currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)) {
+            if (currentBlockFileName != null
+                    && currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)) {
                 Path src = new Path(tmpPath + SP + currentBlockFileName);
                 if (!fs.exists(src)) {
                     LOG.warn("block file {} not exists", currentBlockFileName);
@@ -327,5 +331,4 @@ public abstract class BaseAlluxioOutputFormat extends BaseFileOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         notSupportBatchWrite("AlluxioWriter");
     }
-
 }

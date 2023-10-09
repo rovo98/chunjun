@@ -25,7 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Local implementation of Latch
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class LocalLatch extends BaseLatch {
@@ -54,5 +55,4 @@ public class LocalLatch extends BaseLatch {
     protected void clear() {
         valMap.remove(id);
     };
-
 }

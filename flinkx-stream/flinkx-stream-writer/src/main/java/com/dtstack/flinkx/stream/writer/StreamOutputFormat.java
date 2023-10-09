@@ -21,6 +21,7 @@ package com.dtstack.flinkx.stream.writer;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
+
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
 
@@ -29,8 +30,7 @@ import java.util.List;
 /**
  * OutputFormat for stream writer
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author jiangbo @Company: www.dtstack.com
  */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
@@ -49,7 +49,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) {
         if (print) {
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
+            LOG.info(
+                    "subTaskIndex[{}]:{}",
+                    taskNumber,
+                    rowToStringWithDelimiter(row, writeDelimiter));
         }
         lastRow = row;
     }
@@ -61,22 +64,25 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
                 LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
             }
         }
-        if(rows.size() > 1){
+        if (rows.size() > 1) {
             lastRow = rows.get(rows.size() - 1);
         }
     }
 
-    public FormatState getFormatState(){
-        if(lastRow != null){
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(lastRow, writeDelimiter));
+    public FormatState getFormatState() {
+        if (lastRow != null) {
+            LOG.info(
+                    "subTaskIndex[{}]:{}",
+                    taskNumber,
+                    rowToStringWithDelimiter(lastRow, writeDelimiter));
         }
         return super.getFormatState();
     }
 
     public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
-        if(row == null){
+        if (row == null) {
             return "";
-        }else{
+        } else {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < row.getArity(); i++) {
                 if (i > 0) {

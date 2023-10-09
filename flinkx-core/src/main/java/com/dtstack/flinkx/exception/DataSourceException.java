@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.exception;
 
-/**
- * 数据源异常类型
- */
+/** 数据源异常类型 */
 public class DataSourceException extends RuntimeException {
     private String dataSourceName;
 
@@ -31,6 +29,11 @@ public class DataSourceException extends RuntimeException {
 
     @Override
     public String toString() {
-        return "datasourceName【" + dataSourceName+"】" + super.toString() + "\n" + getCause().toString();
+        return "datasourceName【"
+                + dataSourceName
+                + "】"
+                + super.toString()
+                + "\n"
+                + getCause().toString();
     }
 }

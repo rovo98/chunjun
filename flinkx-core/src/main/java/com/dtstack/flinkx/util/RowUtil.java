@@ -29,7 +29,8 @@ import java.util.Map;
 /**
  * Row Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class RowUtil {
@@ -37,9 +38,9 @@ public class RowUtil {
 
     public static String rowToJson(Row row, String[] colName) {
         Preconditions.checkNotNull(colName);
-        Map<String,Object> map = new LinkedHashMap<>(colName.length);
+        Map<String, Object> map = new LinkedHashMap<>(colName.length);
 
-        for(int i = 0; i < colName.length; ++i) {
+        for (int i = 0; i < colName.length; ++i) {
             String key = colName[i];
             Object value = row.getField(i);
             map.put(key, value);

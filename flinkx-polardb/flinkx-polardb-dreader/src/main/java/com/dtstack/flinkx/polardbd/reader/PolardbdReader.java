@@ -22,11 +22,11 @@ import com.dtstack.flinkx.mysqld.reader.MysqldReader;
 import com.dtstack.flinkx.polardbd.PolardbDatabaseMeta;
 import com.dtstack.flinkx.polardbd.format.PolardbdInputFormat;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Date: 2019/11/13
- * Company: www.dtstack.com
+ * Date: 2019/11/13 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -37,7 +37,7 @@ public class PolardbdReader extends MysqldReader {
     }
 
     @Override
-    protected DistributedJdbcInputFormatBuilder getBuilder(){
+    protected DistributedJdbcInputFormatBuilder getBuilder() {
         return new DistributedJdbcInputFormatBuilder(new PolardbdInputFormat());
     }
 }

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.config;
 
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.flink.util.Preconditions;
 
 import java.io.Reader;
@@ -29,7 +30,8 @@ import java.util.Map;
 /**
  * The class of Data transfer task configuration
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class DataTransferConfig extends AbstractConfig {
@@ -87,10 +89,11 @@ public class DataTransferConfig extends AbstractConfig {
 
         List<ContentConfig> contentConfig = jobConfig.getContent();
         Preconditions.checkNotNull(contentConfig, "Must specify content array");
-        Preconditions.checkArgument(contentConfig.size() != 0, "Must specify at least one content element");
+        Preconditions.checkArgument(
+                contentConfig.size() != 0, "Must specify at least one content element");
 
         // 暂时只考虑只包含一个Content元素的情况
-        ContentConfig content =  contentConfig.get(0);
+        ContentConfig content = contentConfig.get(0);
 
         // 检查reader配置
         ReaderConfig readerConfig = content.getReader();
@@ -99,18 +102,16 @@ public class DataTransferConfig extends AbstractConfig {
         ReaderConfig.ParameterConfig readerParameter = readerConfig.getParameter();
         Preconditions.checkNotNull(readerParameter, "Must specify parameter for reader");
 
-
         // 检查writer配置
-        WriterConfig  writerConfig = content.getWriter();
+        WriterConfig writerConfig = content.getWriter();
         Preconditions.checkNotNull(writerConfig, "Must specify a writer element");
         Preconditions.checkNotNull(writerConfig.getName(), "Must specify the writer name");
         WriterConfig.ParameterConfig writerParameter = writerConfig.getParameter();
         Preconditions.checkNotNull(writerParameter, "Must specify parameter for the writer");
-
     }
 
     public static DataTransferConfig parse(String json) {
-        Map<String,Object> map = GsonUtil.GSON.fromJson(json, GsonUtil.gsonMapTypeToken);
+        Map<String, Object> map = GsonUtil.GSON.fromJson(json, GsonUtil.gsonMapTypeToken);
         map = MapUtil.convertToHashMap(map);
         DataTransferConfig config = new DataTransferConfig(map);
         checkConfig(config);
@@ -122,8 +123,4 @@ public class DataTransferConfig extends AbstractConfig {
         checkConfig(config);
         return config;
     }
-
-
 }
-
-

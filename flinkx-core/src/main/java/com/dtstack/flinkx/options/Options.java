@@ -20,6 +20,7 @@ package com.dtstack.flinkx.options;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
@@ -32,7 +33,8 @@ import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_
 /**
  * This class define commandline options for the Launcher program
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class Options {
@@ -83,13 +85,13 @@ public class Options {
     private String pluginLoadMode = "shipfile";
 
     @OptionRequired(description = "kerberos krb5conf")
-    private String krb5conf ;
+    private String krb5conf;
 
     @OptionRequired(description = "kerberos keytabPath")
-    private String keytab ;
+    private String keytab;
 
     @OptionRequired(description = "kerberos principal")
-    private String principal ;
+    private String principal;
 
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
@@ -100,20 +102,23 @@ public class Options {
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
-        if(flinkConfiguration == null){
-            flinkConfiguration = StringUtils.isEmpty(flinkconf) ? new Configuration() : GlobalConfiguration.loadConfiguration(flinkconf);
+        if (flinkConfiguration == null) {
+            flinkConfiguration =
+                    StringUtils.isEmpty(flinkconf)
+                            ? new Configuration()
+                            : GlobalConfiguration.loadConfiguration(flinkconf);
             if (StringUtils.isNotBlank(queue)) {
                 flinkConfiguration.setString(YarnConfigOptions.APPLICATION_QUEUE, queue);
             }
             if (StringUtils.isNotBlank(jobid)) {
                 flinkConfiguration.setString(YarnConfigOptions.APPLICATION_NAME, jobid);
             }
-            if(StringUtils.isNotBlank(yarnconf)){
+            if (StringUtils.isNotBlank(yarnconf)) {
                 flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
             }
-            if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
+            if (CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)) {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
-            }else{
+            } else {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
@@ -283,27 +288,67 @@ public class Options {
 
     @Override
     public String toString() {
-        return "Options{" +
-                "mode='" + mode + '\'' +
-                ", job='" + job + '\'' +
-                ", monitor='" + monitor + '\'' +
-                ", jobid='" + jobid + '\'' +
-                ", flinkconf='" + flinkconf + '\'' +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", yarnconf='" + yarnconf + '\'' +
-                ", parallelism='" + parallelism + '\'' +
-                ", priority='" + priority + '\'' +
-                ", queue='" + queue + '\'' +
-                ", flinkLibJar='" + flinkLibJar + '\'' +
-                ", confProp='" + confProp + '\'' +
-                ", p='" + p + '\'' +
-                ", s='" + s + '\'' +
-                ", pluginLoadMode='" + pluginLoadMode + '\'' +
-                ", appId='" + appId + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", krb5conf='" + krb5conf + '\'' +
-                ", keytab='" + keytab + '\'' +
-                ", principal='" + principal + '\'' +
-                '}';
+        return "Options{"
+                + "mode='"
+                + mode
+                + '\''
+                + ", job='"
+                + job
+                + '\''
+                + ", monitor='"
+                + monitor
+                + '\''
+                + ", jobid='"
+                + jobid
+                + '\''
+                + ", flinkconf='"
+                + flinkconf
+                + '\''
+                + ", pluginRoot='"
+                + pluginRoot
+                + '\''
+                + ", yarnconf='"
+                + yarnconf
+                + '\''
+                + ", parallelism='"
+                + parallelism
+                + '\''
+                + ", priority='"
+                + priority
+                + '\''
+                + ", queue='"
+                + queue
+                + '\''
+                + ", flinkLibJar='"
+                + flinkLibJar
+                + '\''
+                + ", confProp='"
+                + confProp
+                + '\''
+                + ", p='"
+                + p
+                + '\''
+                + ", s='"
+                + s
+                + '\''
+                + ", pluginLoadMode='"
+                + pluginLoadMode
+                + '\''
+                + ", appId='"
+                + appId
+                + '\''
+                + ", remotePluginPath='"
+                + remotePluginPath
+                + '\''
+                + ", krb5conf='"
+                + krb5conf
+                + '\''
+                + ", keytab='"
+                + keytab
+                + '\''
+                + ", principal='"
+                + principal
+                + '\''
+                + '}';
     }
 }

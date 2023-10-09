@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.util.SysUtil;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.MetricGroup;
@@ -45,18 +45,23 @@ public class BaseMetric {
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
     public BaseMetric(RuntimeContext runtimeContext) {
-        flinkxOutput = runtimeContext.getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
+        flinkxOutput =
+                runtimeContext
+                        .getMetricGroup()
+                        .addGroup(
+                                Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
     }
 
-    public void addMetric(String metricName, LongCounter counter){
+    public void addMetric(String metricName, LongCounter counter) {
         addMetric(metricName, counter, false);
     }
 
-    public void addMetric(String metricName, LongCounter counter, boolean meterView){
+    public void addMetric(String metricName, LongCounter counter, boolean meterView) {
         metricCounters.put(metricName, counter);
         flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
-        if (meterView){
-            flinkxOutput.meter(metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
+        if (meterView) {
+            flinkxOutput.meter(
+                    metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
         }
     }
 
@@ -67,7 +72,7 @@ public class BaseMetric {
     public void waitForReportMetrics() {
         try {
             Thread.sleep(delayPeriodMill);
-        } catch (InterruptedException e){
+        } catch (InterruptedException e) {
             SysUtil.sleep(delayPeriodMill);
             LOG.warn("Task thread is interrupted");
         }

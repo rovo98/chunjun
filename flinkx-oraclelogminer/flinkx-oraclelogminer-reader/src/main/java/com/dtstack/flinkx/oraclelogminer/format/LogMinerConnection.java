@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
@@ -25,10 +24,11 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * @author jiangbo
  * @date 2020/3/27
@@ -64,36 +63,35 @@ public class LogMinerConnection {
 
     public static final int ORACLE_11_VERSION = 11;
     public int oracleVersion;
-    //oracle10数据库字符编码是否设置为GBK
+    // oracle10数据库字符编码是否设置为GBK
     public boolean isGBK = false;
     boolean isOracle10;
 
     public static final long MAX_SCN = 281474976710655L;
 
-    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
-            "CREATE SESSION",
-            "LOGMINING",
-            "SELECT ANY TRANSACTION",
-            "SELECT ANY DICTIONARY");
+    public static final List<String> PRIVILEGES_NEEDED =
+            Arrays.asList(
+                    "CREATE SESSION",
+                    "LOGMINING",
+                    "SELECT ANY TRANSACTION",
+                    "SELECT ANY DICTIONARY");
 
-    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList(
-            "CREATE SESSION",
-            "SELECT ANY TRANSACTION",
-            "SELECT ANY DICTIONARY");
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED =
+            Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     public static final int RETRY_TIMES = 3;
 
     public static final int SLEEP_TIME = 2000;
 
-    public final static String KEY_SEG_OWNER = "SEG_OWNER";
-    public final static String KEY_TABLE_NAME = "TABLE_NAME";
-    public final static String KEY_OPERATION = "OPERATION";
-    public final static String KEY_TIMESTAMP = "TIMESTAMP";
-    public final static String KEY_SQL_REDO = "SQL_REDO";
-    public final static String KEY_CSF = "CSF";
-    public final static String KEY_SCN = "SCN";
-    public final static String KEY_CURRENT_SCN = "CURRENT_SCN";
-    public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
+    public static final String KEY_SEG_OWNER = "SEG_OWNER";
+    public static final String KEY_TABLE_NAME = "TABLE_NAME";
+    public static final String KEY_OPERATION = "OPERATION";
+    public static final String KEY_TIMESTAMP = "TIMESTAMP";
+    public static final String KEY_SQL_REDO = "SQL_REDO";
+    public static final String KEY_CSF = "CSF";
+    public static final String KEY_SCN = "SCN";
+    public static final String KEY_CURRENT_SCN = "CURRENT_SCN";
+    public static final String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
 
     private LogMinerConfig logMinerConfig;
 
@@ -115,9 +113,7 @@ public class LogMinerConnection {
 
     private boolean logMinerStarted = false;
 
-    /**
-     * 上一次查询的scn
-     */
+    /** 上一次查询的scn */
     private Long preScn = null;
 
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
@@ -128,42 +124,60 @@ public class LogMinerConnection {
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
-            connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
+            connection =
+                    RetryUtil.executeWithRetry(
+                            () ->
+                                    DriverManager.getConnection(
+                                            logMinerConfig.getJdbcUrl(),
+                                            logMinerConfig.getUsername(),
+                                            logMinerConfig.getPassword()),
+                            RETRY_TIMES,
+                            SLEEP_TIME,
+                            false);
 
             oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
             isOracle10 = oracleVersion == 10;
 
-            if(isOracle10){
-                //oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
-                try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
+            if (isOracle10) {
+                // oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
+                try (PreparedStatement preparedStatement =
+                        connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
                     preparedStatement.execute();
                 }
-                try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT)) {
+                try (PreparedStatement preparedStatement =
+                        connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT)) {
                     preparedStatement.execute();
                 }
             }
 
-           LOG.info("get connection successfully, url:{}, username:{}, Oracle version：{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), oracleVersion);
-        } catch (Exception e){
-            String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
+            LOG.info(
+                    "get connection successfully, url:{}, username:{}, Oracle version：{}",
+                    logMinerConfig.getJdbcUrl(),
+                    logMinerConfig.getUsername(),
+                    oracleVersion);
+        } catch (Exception e) {
+            String message =
+                    String.format(
+                            "get connection failed，url:[%s], username:[%s], e:%s",
+                            logMinerConfig.getJdbcUrl(),
+                            logMinerConfig.getUsername(),
+                            ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
-            //出现异常 需要关闭connection,保证connection 和 session日期配置 生命周期一致
+            // 出现异常 需要关闭connection,保证connection 和 session日期配置 生命周期一致
             closeResources(null, null, connection);
             throw new RuntimeException(message, e);
         }
     }
 
-    /**
-     * 关闭LogMiner资源
-     */
+    /** 关闭LogMiner资源 */
     public void disConnect() {
-        //清除日志文件组，下次LogMiner启动时重新加载日志文件
+        // 清除日志文件组，下次LogMiner启动时重新加载日志文件
         addedLogFiles.clear();
 
         if (null != logMinerStartStmt && logMinerStarted) {
             try {
                 logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
-            }catch (SQLException e){
+            } catch (SQLException e) {
                 LOG.warn("close logMiner failed, e = {}", ExceptionUtil.getErrorMessage(e));
             }
             logMinerStarted = false;
@@ -175,6 +189,7 @@ public class LogMinerConnection {
 
     /**
      * 启动LogMiner
+     *
      * @param startScn
      */
     public void startOrUpdateLogMiner(Long startScn) {
@@ -185,7 +200,7 @@ public class LogMinerConnection {
                 long time = System.currentTimeMillis() - lastQueryTime;
                 if (time < QUERY_LOG_INTERVAL) {
                     try {
-                        Thread.sleep(QUERY_LOG_INTERVAL-time);
+                        Thread.sleep(QUERY_LOG_INTERVAL - time);
                     } catch (InterruptedException e) {
                         LOG.warn("", e);
                     }
@@ -194,15 +209,23 @@ public class LogMinerConnection {
             lastQueryTime = System.currentTimeMillis();
 
             if (logMinerConfig.getSupportAutoAddLog()) {
-                startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
+                startSql =
+                        isOracle10
+                                ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10
+                                : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 List<LogFile> newLogFiles = queryLogFiles(preScn);
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
-                    LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
+                    LOG.info(
+                            "Log group changed, new log group = {}",
+                            GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
-                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
+                    startSql =
+                            isOracle10
+                                    ? SqlUtil.SQL_START_LOG_MINER_10
+                                    : SqlUtil.SQL_START_LOG_MINER;
                 }
             }
 
@@ -216,11 +239,14 @@ public class LogMinerConnection {
 
             logMinerStarted = true;
             LOG.info("start logMiner successfully, preScn:{}, startScn:{}", preScn, startScn);
-            if(startScn > preScn){
+            if (startScn > preScn) {
                 preScn = startScn;
             }
-        } catch (SQLException e){
-            String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
+        } catch (SQLException e) {
+            String message =
+                    String.format(
+                            "start logMiner failed, offset:[%s], sql:[%s], e: %s",
+                            startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -228,12 +254,17 @@ public class LogMinerConnection {
 
     /**
      * 从LogMiner视图查询数据
+     *
      * @param startScn
      * @param logMinerSelectSql
      */
     public void queryData(Long startScn, String logMinerSelectSql) {
         try {
-            logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            logMinerSelectStmt =
+                    connection.prepareStatement(
+                            logMinerSelectSql,
+                            ResultSet.TYPE_FORWARD_ONLY,
+                            ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
@@ -242,7 +273,10 @@ public class LogMinerConnection {
 
             LOG.debug("query Log miner data, offset:{}", startScn);
         } catch (SQLException e) {
-            String message = String.format("query logMiner data failed, sql:[%s], e: %s", logMinerSelectSql, ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "query logMiner data failed, sql:[%s], e: %s",
+                            logMinerSelectSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -250,46 +284,46 @@ public class LogMinerConnection {
 
     public Long getStartScn(Long startScn) {
         // 恢复位置不为0，则获取上一次读取的日志文件的起始位置开始读取
-        if(null != startScn && startScn != 0L){
+        if (null != startScn && startScn != 0L) {
             startScn = getLogFileStartPositionByScn(startScn);
             return startScn;
         }
 
         // 恢复位置为0，则根据配置项进行处理
-        if(ReadPosition.ALL.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        if (ReadPosition.ALL.name().equalsIgnoreCase(logMinerConfig.getReadPosition())) {
             // 获取最开始的scn
             startScn = getMinScn();
-        } else if(ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else if (ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())) {
             startScn = getCurrentScn();
-        } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else if (ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())) {
             // 根据指定的时间获取对应时间段的日志文件的起始位置
             if (logMinerConfig.getStartTime() == 0) {
-                throw new IllegalArgumentException("[startTime] must not be null or empty when readMode is [time]");
+                throw new IllegalArgumentException(
+                        "[startTime] must not be null or empty when readMode is [time]");
             }
 
             startScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
-        } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else if (ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())) {
             // 根据指定的scn获取对应日志文件的起始位置
-            if(StringUtils.isEmpty(logMinerConfig.getStartScn())){
-                throw new IllegalArgumentException("[startSCN] must not be null or empty when readMode is [scn]");
+            if (StringUtils.isEmpty(logMinerConfig.getStartScn())) {
+                throw new IllegalArgumentException(
+                        "[startSCN] must not be null or empty when readMode is [scn]");
             }
 
             startScn = Long.parseLong(logMinerConfig.getStartScn());
         } else {
-            throw new IllegalArgumentException("unsupported readMode : " + logMinerConfig.getReadPosition());
+            throw new IllegalArgumentException(
+                    "unsupported readMode : " + logMinerConfig.getReadPosition());
         }
 
         return startScn;
     }
 
     /**
-     * oracle会把把重做日志分文件存储，每个文件都有 "FIRST_CHANGE" 和 "NEXT_CHANGE" 标识范围,
-     * 这里需要根据给定scn找到对应的日志文件，并获取这个文件的 "FIRST_CHANGE"，然后从位置 "FIRST_CHANGE" 开始读取,
-     * 在[FIRST_CHANGE,scn] 范围内的数据需要跳过。
+     * oracle会把把重做日志分文件存储，每个文件都有 "FIRST_CHANGE" 和 "NEXT_CHANGE" 标识范围, 这里需要根据给定scn找到对应的日志文件，并获取这个文件的
+     * "FIRST_CHANGE"，然后从位置 "FIRST_CHANGE" 开始读取, 在[FIRST_CHANGE,scn] 范围内的数据需要跳过。
      *
-     * 视图说明：
-     * v$archived_log 视图存储已经归档的日志文件
-     * v$log 视图存储未归档的日志文件
+     * <p>视图说明： v$archived_log 视图存储已经归档的日志文件 v$log 视图存储未归档的日志文件
      */
     private Long getLogFileStartPositionByScn(Long scn) {
         Long logFileFirstChange = null;
@@ -297,13 +331,17 @@ public class LogMinerConnection {
         ResultSet lastLogFileResultSet = null;
 
         try {
-            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
+            lastLogFileStmt =
+                    connection.prepareCall(
+                            isOracle10
+                                    ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10
+                                    : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setLong(1, scn);
             lastLogFileStmt.setLong(2, scn);
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
-            while(lastLogFileResultSet.next()){
+            while (lastLogFileResultSet.next()) {
                 logFileFirstChange = lastLogFileResultSet.getLong(KEY_FIRST_CHANGE);
             }
 
@@ -316,7 +354,7 @@ public class LogMinerConnection {
         }
     }
 
-    private Long getMinScn(){
+    private Long getMinScn() {
         Long minScn = null;
         PreparedStatement minScnStmt = null;
         ResultSet minScnResultSet = null;
@@ -326,7 +364,7 @@ public class LogMinerConnection {
             configStatement(minScnStmt);
 
             minScnResultSet = minScnStmt.executeQuery();
-            while(minScnResultSet.next()){
+            while (minScnResultSet.next()) {
                 minScn = minScnResultSet.getLong(KEY_FIRST_CHANGE);
             }
 
@@ -349,7 +387,7 @@ public class LogMinerConnection {
             configStatement(currentScnStmt);
 
             currentScnResultSet = currentScnStmt.executeQuery();
-            while(currentScnResultSet.next()){
+            while (currentScnResultSet.next()) {
                 currentScn = currentScnResultSet.getLong(KEY_CURRENT_SCN);
             }
 
@@ -371,18 +409,22 @@ public class LogMinerConnection {
         try {
             String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
 
-            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
+            lastLogFileStmt =
+                    connection.prepareCall(
+                            isOracle10
+                                    ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10
+                                    : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setString(1, timeStr);
             lastLogFileStmt.setString(2, timeStr);
 
-            if(!isOracle10){
-                //oracle10只有两个参数
+            if (!isOracle10) {
+                // oracle10只有两个参数
                 lastLogFileStmt.setString(3, timeStr);
             }
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
-            while(lastLogFileResultSet.next()){
+            while (lastLogFileResultSet.next()) {
                 logFileFirstChange = lastLogFileResultSet.getLong(KEY_FIRST_CHANGE);
             }
 
@@ -397,6 +439,7 @@ public class LogMinerConnection {
 
     /**
      * 关闭数据库连接资源
+     *
      * @param rs
      * @param stmt
      * @param conn
@@ -423,16 +466,21 @@ public class LogMinerConnection {
 
     /**
      * 根据scn号查询在线及归档日志组
+     *
      * @param scn
      * @return
      * @throws SQLException
      */
-    private List<LogFile> queryLogFiles(Long scn) throws SQLException{
+    private List<LogFile> queryLogFiles(Long scn) throws SQLException {
         List<LogFile> logFiles = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
+            statement =
+                    connection.prepareStatement(
+                            isOracle10
+                                    ? SqlUtil.SQL_QUERY_LOG_FILE_10
+                                    : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setLong(1, scn);
             statement.setLong(2, scn);
             rs = statement.executeQuery();
@@ -460,11 +508,11 @@ public class LogMinerConnection {
         String sqlLog;
         while (logMinerData.next()) {
             String sql = logMinerData.getString(KEY_SQL_REDO);
-            if(StringUtils.isBlank(sql)){
+            if (StringUtils.isBlank(sql)) {
                 continue;
             }
             StringBuilder sqlRedo = new StringBuilder(sql);
-            if(SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())){
+            if (SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())) {
                 continue;
             }
             long scn = logMinerData.getLong(KEY_SCN);
@@ -472,40 +520,44 @@ public class LogMinerConnection {
 
             // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
             boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-            //是否存在多条SQL
+            // 是否存在多条SQL
             boolean hasMultiSql = isSqlNotEnd;
 
-            while(isSqlNotEnd){
+            while (isSqlNotEnd) {
                 logMinerData.next();
                 sqlRedo.append(logMinerData.getString(KEY_SQL_REDO));
                 isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
             }
 
-            //oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
-            if(hasMultiSql && isOracle10 && isGBK){
+            // oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
+            if (hasMultiSql && isOracle10 && isGBK) {
                 String redo = sqlRedo.toString();
 
                 String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
 
-                if(hexStr.contains("3f2c") || hexStr.contains("3f20616e64")){
-                    LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
-                    if("INSERT".equalsIgnoreCase(operation)){
-                        //insert into values('','','',) value后可能存在中文乱码
-                        //?, -> ',
+                if (hexStr.contains("3f2c") || hexStr.contains("3f20616e64")) {
+                    LOG.info(
+                            "current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}",
+                            scn,
+                            redo,
+                            hexStr);
+                    if ("INSERT".equalsIgnoreCase(operation)) {
+                        // insert into values('','','',) value后可能存在中文乱码
+                        // ?, -> ',
                         hexStr = hexStr.replace("3f2c", "272c");
-                    }else{
-                        //update set "" = '' and "" = '' where "" = '' and "" = '' where后可能存在中文乱码
-                        //delete from where "" = '' and "" = '' where后可能存在中文乱码
-                        //?空格and -> '空格and
+                    } else {
+                        // update set "" = '' and "" = '' where "" = '' and "" = '' where后可能存在中文乱码
+                        // delete from where "" = '' and "" = '' where后可能存在中文乱码
+                        // ?空格and -> '空格and
                         hexStr = hexStr.replace("3f20616e64", "2720616e64");
                     }
                     sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
                     LOG.info("final redo sql is: {}", sqlLog);
-                }else{
+                } else {
                     sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
                 }
 
-            }else{
+            } else {
                 sqlLog = sqlRedo.toString();
             }
 
@@ -527,8 +579,8 @@ public class LogMinerConnection {
         return false;
     }
 
-    //判断连接是否正常
-    public boolean isValid()  {
+    // 判断连接是否正常
+    public boolean isValid() {
         try {
             return connection != null && connection.isValid(2000);
         } catch (SQLException e) {
@@ -547,7 +599,8 @@ public class LogMinerConnection {
             }
 
             if (!roles.contains(EXECUTE_CATALOG_ROLE)) {
-                throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
+                throw new IllegalArgumentException(
+                        "非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
             }
 
             if (containsNeededPrivileges(statement)) {
@@ -555,10 +608,12 @@ public class LogMinerConnection {
             }
 
             String message;
-            if(ORACLE_11_VERSION <= oracleVersion){
-                message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
-            }else{
-                message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
+            if (ORACLE_11_VERSION <= oracleVersion) {
+                message =
+                        "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
+            } else {
+                message =
+                        "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
             }
 
             throw new IllegalArgumentException(message);
@@ -566,7 +621,6 @@ public class LogMinerConnection {
             throw new RuntimeException("检查权限出错", e);
         }
     }
-
 
     private boolean containsNeededPrivileges(Statement statement) {
         try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
@@ -613,13 +667,11 @@ public class LogMinerConnection {
         }
     }
 
-    /**
-     * 查询Oracle10数据库的字符编码
-     */
-    private void queryDataBaseEncoding(){
-        if(isOracle10){
+    /** 查询Oracle10数据库的字符编码 */
+    private void queryDataBaseEncoding() {
+        if (isOracle10) {
             try (Statement statement = connection.createStatement();
-                 ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
+                    ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
                 rs.next();
                 String encoding = rs.getString(1);
                 LOG.info("current oracle encoding is {}", encoding);
@@ -640,36 +692,34 @@ public class LogMinerConnection {
         return result;
     }
 
-
-    /**
-     * 关闭logMinerSelectStmt
-     */
-    public void closeStmt(){
+    /** 关闭logMinerSelectStmt */
+    public void closeStmt() {
         try {
-            if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
+            if (logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()) {
                 logMinerSelectStmt.close();
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("Close logMinerSelectStmt error", e);
         }
         logMinerSelectStmt = null;
     }
 
-    /**
-     * 关闭Statement
-     */
-    private void closeStmt(Statement statement){
+    /** 关闭Statement */
+    private void closeStmt(Statement statement) {
         try {
-            if(statement != null && !statement.isClosed()){
+            if (statement != null && !statement.isClosed()) {
                 statement.close();
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("Close statement error", e);
         }
     }
 
-    public enum ReadPosition{
-        ALL, CURRENT, TIME, SCN
+    public enum ReadPosition {
+        ALL,
+        CURRENT,
+        TIME,
+        SCN
     }
 
     public void setPreScn(Long preScn) {

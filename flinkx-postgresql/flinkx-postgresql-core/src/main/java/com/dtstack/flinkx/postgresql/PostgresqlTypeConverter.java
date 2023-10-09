@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
@@ -33,55 +34,65 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * The type converter for PostgreSQL database
+ * The type converter for PostgreSQL database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class PostgresqlTypeConverter implements TypeConverterInterface {
 
-    private List<String> stringTypes = Arrays.asList("uuid","xml","cidr","inet","macaddr");
+    private List<String> stringTypes = Arrays.asList("uuid", "xml", "cidr", "inet", "macaddr");
 
-    private List<String> byteTypes = Arrays.asList("bytea","bit varying");
+    private List<String> byteTypes = Arrays.asList("bytea", "bit varying");
 
     private List<String> bitTypes = Collections.singletonList("bit");
 
     private List<String> doubleTypes = Collections.singletonList("money");
 
-    private List<String> intTypes = Arrays.asList("int","int2","int4","int8");
+    private List<String> intTypes = Arrays.asList("int", "int2", "int4", "int8");
 
-    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR","TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
-
+    protected static List<String> STRING_TYPES =
+            Arrays.asList(
+                    "CHAR",
+                    "VARCHAR",
+                    "TINYBLOB",
+                    "TINYTEXT",
+                    "BLOB",
+                    "TEXT",
+                    "MEDIUMBLOB",
+                    "MEDIUMTEXT",
+                    "LONGBLOB",
+                    "LONGTEXT");
 
     @Override
-    public Object convert(Object data,String typeName) {
-        if (data == null){
+    public Object convert(Object data, String typeName) {
+        if (data == null) {
             return null;
         }
         String dataValue = data.toString();
-        if(stringTypes.contains(typeName)){
+        if (stringTypes.contains(typeName)) {
             return dataValue;
         }
-        if(StringUtils.isBlank(dataValue)){
-            //如果是string类型 还应该返回空字符串而不是null
-            if(STRING_TYPES.contains(typeName.toUpperCase(Locale.ENGLISH))){
+        if (StringUtils.isBlank(dataValue)) {
+            // 如果是string类型 还应该返回空字符串而不是null
+            if (STRING_TYPES.contains(typeName.toUpperCase(Locale.ENGLISH))) {
                 return dataValue;
             }
             return null;
         }
-        if(doubleTypes.contains(typeName)){
-            if(StringUtils.startsWith(dataValue, "$")){
+        if (doubleTypes.contains(typeName)) {
+            if (StringUtils.startsWith(dataValue, "$")) {
                 dataValue = StringUtils.substring(dataValue, 1);
             }
             data = Double.parseDouble(dataValue);
-        } else if(bitTypes.contains(typeName)){
+        } else if (bitTypes.contains(typeName)) {
             //
-        }else if(byteTypes.contains(typeName)){
+        } else if (byteTypes.contains(typeName)) {
             // According to https://www.postgresql.org/docs/current/datatype-binary.html
             // the bytea data type is corresponding to byte array (byte[]) in java.
             if (!(data instanceof byte[])) {
                 // convert binary string to byte[]
-                // - escape format e.g. \153\154\155\251\124 (3 octal digits and precede by backslash per byte)
+                // - escape format e.g. \153\154\155\251\124 (3 octal digits and precede by
+                // backslash per byte)
                 // - hex format. e.g. \xDEADBEEF (2 hex digits per byte)
 
                 // NOTE: we suppose the given binary string is valid,
@@ -109,9 +120,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
                                     dataValue));
                 }
             }
-        } else if(intTypes.contains(typeName)){
-            if(dataValue.contains(".")){
-                dataValue =  new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
+        } else if (intTypes.contains(typeName)) {
+            if (dataValue.contains(".")) {
+                dataValue = new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
             }
             data = Long.parseLong(dataValue);
         }

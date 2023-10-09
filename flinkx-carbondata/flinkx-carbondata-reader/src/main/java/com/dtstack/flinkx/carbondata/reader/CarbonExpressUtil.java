@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.carbondata.reader;
 
-
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.scan.expression.ColumnExpression;
 import org.apache.carbondata.core.scan.expression.Expression;
@@ -31,11 +30,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-
 /**
  * Utilities for creating Expression Filter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbonExpressUtil {
@@ -50,19 +49,22 @@ public class CarbonExpressUtil {
 
     private static final String NOT_MORE_THAN = "<=";
 
-    private static final String[] OPERATIONS = {EQUAL, MORE_THAN, LESS_THAN, NOT_LESS_THAN, NOT_MORE_THAN};
+    private static final String[] OPERATIONS = {
+        EQUAL, MORE_THAN, LESS_THAN, NOT_LESS_THAN, NOT_MORE_THAN
+    };
 
     private CarbonExpressUtil() {
         // hehe
     }
 
-    public static Expression eval(String expr, List<String> columnNames, List<DataType> columnTypes) {
+    public static Expression eval(
+            String expr, List<String> columnNames, List<DataType> columnTypes) {
         String left = null;
         String right = null;
         int i = 0;
-        for(; i < OPERATIONS.length; ++i) {
+        for (; i < OPERATIONS.length; ++i) {
             String op = OPERATIONS[i];
-            if(expr.contains(op)) {
+            if (expr.contains(op)) {
                 int pos = expr.indexOf(op);
                 left = expr.substring(0, pos);
                 right = expr.substring(pos + op.length());
@@ -70,20 +72,20 @@ public class CarbonExpressUtil {
             break;
         }
 
-        if(i == OPERATIONS.length) {
+        if (i == OPERATIONS.length) {
             throw new RuntimeException("unsupported op");
         }
 
         String op = OPERATIONS[i];
 
-        if(StringUtils.isBlank(left) || StringUtils.isBlank(right)) {
+        if (StringUtils.isBlank(left) || StringUtils.isBlank(right)) {
             throw new RuntimeException("Illegal filter Expression");
         }
         left = left.trim();
         right = right.trim();
 
         int leftIndex = columnNames.indexOf(left);
-        if(leftIndex == -1) {
+        if (leftIndex == -1) {
             throw new RuntimeException("columns do not contain " + left);
         }
 
@@ -106,5 +108,4 @@ public class CarbonExpressUtil {
                 return null;
         }
     }
-
 }

@@ -21,7 +21,8 @@ package com.dtstack.flinkx.constants;
 /**
  * Statistics Metrics
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class Metrics {
@@ -73,5 +74,4 @@ public class Metrics {
     public static final String LAST_WRITE_NUM__PREFIX = "last_write_num";
 
     public static final String SUFFIX_RATE = "PerSecond";
-
 }

@@ -19,17 +19,21 @@
 package com.dtstack.flinkx.redis;
 
 /**
- * Operation type of redis database
+ * Operation type of redis database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
-public enum  DataMode {
+public enum DataMode {
 
     /** reader mode */
 
     /** write mode */
-    SET("set"),L_PUSH("lpush"),R_PUSH("rpush"),S_ADD("sadd"),Z_ADD("zadd"),H_SET("hset");
+    SET("set"),
+    L_PUSH("lpush"),
+    R_PUSH("rpush"),
+    S_ADD("sadd"),
+    Z_ADD("zadd"),
+    H_SET("hset");
 
     private String mode;
 
@@ -41,9 +45,9 @@ public enum  DataMode {
         return mode;
     }
 
-    public static DataMode getDataMode(String mode){
+    public static DataMode getDataMode(String mode) {
         for (DataMode dataMode : DataMode.values()) {
-            if(dataMode.getMode().equals(mode)){
+            if (dataMode.getMode().equals(mode)) {
                 return dataMode;
             }
         }

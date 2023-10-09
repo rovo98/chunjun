@@ -18,19 +18,21 @@
 
 package com.dtstack.flinkx.odps.reader;
 
-import com.aliyun.odps.Odps;
-import com.aliyun.odps.data.Record;
-import com.aliyun.odps.data.RecordReader;
-import com.aliyun.odps.tunnel.TableTunnel;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+
+import com.aliyun.odps.Odps;
+import com.aliyun.odps.data.Record;
+import com.aliyun.odps.data.RecordReader;
+import com.aliyun.odps.tunnel.TableTunnel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -40,7 +42,8 @@ import java.util.Map;
 /**
  * The odps implementation of InputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsInputFormat extends BaseRichInputFormat {
@@ -55,7 +58,7 @@ public class OdpsInputFormat extends BaseRichInputFormat {
 
     protected boolean compress = false;
 
-    protected Map<String,String> odpsConfig;
+    protected Map<String, String> odpsConfig;
 
     protected String tunnelServer;
 
@@ -82,10 +85,14 @@ public class OdpsInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int adviceNum) throws IOException {
         Odps odps = OdpsUtil.initOdps(odpsConfig);
         TableTunnel.DownloadSession session;
-        if(StringUtils.isNotBlank(partition)) {
-            session = OdpsUtil.createMasterSessionForPartitionedTable(odps, tunnelServer, projectName, tableName, partition);
+        if (StringUtils.isNotBlank(partition)) {
+            session =
+                    OdpsUtil.createMasterSessionForPartitionedTable(
+                            odps, tunnelServer, projectName, tableName, partition);
         } else {
-            session = OdpsUtil.createMasterSessionForNonPartitionedTable(odps, tunnelServer, projectName, tableName);
+            session =
+                    OdpsUtil.createMasterSessionForNonPartitionedTable(
+                            odps, tunnelServer, projectName, tableName);
         }
 
         return split(session, adviceNum);
@@ -102,7 +109,7 @@ public class OdpsInputFormat extends BaseRichInputFormat {
             long startIndex = pair.getLeft();
             long stepCount = pair.getRight();
             OdpsInputSplit split = new OdpsInputSplit(session.getId(), startIndex, stepCount);
-            if(startIndex < stepCount) {
+            if (startIndex < stepCount) {
                 splits.add(split);
             }
         }
@@ -117,14 +124,17 @@ public class OdpsInputFormat extends BaseRichInputFormat {
         startIndex = split.getStartIndex();
         stepCount = split.getStepCount();
 
-        if(StringUtils.isNotBlank(partition)) {
-            downloadSession = OdpsUtil.getSlaveSessionForPartitionedTable(odps, sessionId, tunnelServer, projectName, tableName, partition);
+        if (StringUtils.isNotBlank(partition)) {
+            downloadSession =
+                    OdpsUtil.getSlaveSessionForPartitionedTable(
+                            odps, sessionId, tunnelServer, projectName, tableName, partition);
         } else {
-            downloadSession = OdpsUtil.getSlaveSessionForNonPartitionedTable(odps, sessionId, tunnelServer, projectName, tableName);
+            downloadSession =
+                    OdpsUtil.getSlaveSessionForNonPartitionedTable(
+                            odps, sessionId, tunnelServer, projectName, tableName);
         }
 
         recordReader = OdpsUtil.getRecordReader(downloadSession, startIndex, stepCount, compress);
-
     }
 
     @Override
@@ -135,10 +145,11 @@ public class OdpsInputFormat extends BaseRichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1
+                && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
             row = new Row(record.getColumnCount());
             for (int i = 0; i < record.getColumnCount(); i++) {
-                row.setField(i,record.get(i));
+                row.setField(i, record.get(i));
             }
         } else {
             row = new Row(metaColumns.size());
@@ -146,25 +157,29 @@ public class OdpsInputFormat extends BaseRichInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
 
                 Object val = null;
-                if(metaColumn.getName() != null){
+                if (metaColumn.getName() != null) {
                     val = record.get(metaColumn.getName());
 
-                    if(val == null && metaColumn.getValue() != null){
+                    if (val == null && metaColumn.getValue() != null) {
                         val = metaColumn.getValue();
                     }
 
-                    if(val instanceof byte[]) {
+                    if (val instanceof byte[]) {
                         val = new String((byte[]) val, StandardCharsets.UTF_8);
                     }
-                } else if(metaColumn.getValue() != null){
+                } else if (metaColumn.getValue() != null) {
                     val = metaColumn.getValue();
                 }
 
-                if(val != null && val instanceof String){
-                    val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                if (val != null && val instanceof String) {
+                    val =
+                            StringUtil.string2col(
+                                    String.valueOf(val),
+                                    metaColumn.getType(),
+                                    metaColumn.getTimeFormat());
                 }
 
-                row.setField(i,val);
+                row.setField(i, val);
             }
         }
 
@@ -177,5 +192,4 @@ public class OdpsInputFormat extends BaseRichInputFormat {
             recordReader.close();
         }
     }
-
 }

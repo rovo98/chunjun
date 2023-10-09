@@ -29,7 +29,8 @@ import java.util.Set;
 /**
  * The factory of Writer plugins
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class DataWriterFactory {
@@ -40,16 +41,18 @@ public class DataWriterFactory {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
-            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
 
-            return ClassLoaderManager.newInstance(urlList, cl -> {
-                Class<?> clazz = cl.loadClass(pluginClassName);
-                Constructor constructor = clazz.getConstructor(DataTransferConfig.class);
-                return (BaseDataWriter)constructor.newInstance(config);
-            });
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(pluginClassName);
+                        Constructor constructor = clazz.getConstructor(DataTransferConfig.class);
+                        return (BaseDataWriter) constructor.newInstance(config);
+                    });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 }

@@ -21,7 +21,8 @@ package com.dtstack.flinkx.hdfs;
 /**
  * This class defines configuration keys for HdfsReader and HdfsWriter
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class HdfsConfigKeys {
@@ -61,5 +62,4 @@ public class HdfsConfigKeys {
     public static final String KEY_FLUSH_INTERVAL = "flushInterval";
 
     public static final String KEY_ENABLE_DICTIONARY = "enableDictionary";
-
 }

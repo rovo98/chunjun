@@ -25,7 +25,8 @@ import java.util.Map;
 /**
  * The configuration of job config
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JobConfig extends AbstractConfig {
@@ -36,14 +37,14 @@ public class JobConfig extends AbstractConfig {
     private SettingConfig setting;
     private List<ContentConfig> content;
 
-
     public JobConfig(Map<String, Object> map) {
         super(map);
         setting = new SettingConfig((Map<String, Object>) map.get(KEY_SETTING_CONFIG));
         content = new ArrayList<>();
-        if(map.containsKey(KEY_CONTENT_CONFIG_LIST)) {
-            List<Map<String,Object>> contentList = (List<Map<String, Object>>) map.get(KEY_CONTENT_CONFIG_LIST);
-            for(Map<String,Object> contentMap : contentList) {
+        if (map.containsKey(KEY_CONTENT_CONFIG_LIST)) {
+            List<Map<String, Object>> contentList =
+                    (List<Map<String, Object>>) map.get(KEY_CONTENT_CONFIG_LIST);
+            for (Map<String, Object> contentMap : contentList) {
                 content.add(new ContentConfig(contentMap));
             }
         }

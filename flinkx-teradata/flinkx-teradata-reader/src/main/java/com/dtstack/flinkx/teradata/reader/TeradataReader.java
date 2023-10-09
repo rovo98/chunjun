@@ -23,13 +23,14 @@ import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.teradata.TeradataDatabaseMeta;
 import com.dtstack.flinkx.teradata.format.TeradataInputFormat;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * SapHana reader plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class TeradataReader extends JdbcDataReader {

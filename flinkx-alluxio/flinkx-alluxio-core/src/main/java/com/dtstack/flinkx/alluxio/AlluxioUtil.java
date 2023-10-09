@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.alluxio;
 
 import com.dtstack.flinkx.enums.ColumnType;
+
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -60,49 +61,76 @@ public class AlluxioUtil {
         ObjectInspector objectInspector = null;
         switch (columnType) {
             case TINYINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case SMALLINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case INT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BIGINT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case FLOAT:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DOUBLE:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DECIMAL:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(HiveDecimalWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                HiveDecimalWritable.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case TIMESTAMP:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Timestamp.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                java.sql.Timestamp.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DATE:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Date.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                java.sql.Date.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case STRING:
             case VARCHAR:
             case CHAR:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BOOLEAN:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case BINARY:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(BytesWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                objectInspector =
+                        ObjectInspectorFactory.getReflectionObjectInspector(
+                                BytesWritable.class,
+                                ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             default:
                 throw new IllegalArgumentException("You should not be here");
         }
         return objectInspector;
     }
-
 
     public static Binary decimalToBinary(final HiveDecimal hiveDecimal, int prec, int scale) {
         byte[] decimalBytes = hiveDecimal.setScale(scale).unscaledValue().toByteArray();
@@ -123,7 +151,8 @@ public class AlluxioUtil {
         }
 
         // Padding leading zeroes/ones.
-        System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
+        System.arraycopy(
+                decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
         return Binary.fromReusedByteArray(tgt);
     }
 
@@ -167,9 +196,7 @@ public class AlluxioUtil {
         return bytes;
     }
 
-    /**
-     * @param bytes
-     */
+    /** @param bytes */
     private static void flip(byte[] bytes) {
         for (int i = 0, j = bytes.length - 1; i < j; i++, j--) {
             byte t = bytes[i];

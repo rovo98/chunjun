@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.saphana.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
@@ -42,11 +43,11 @@ public class SaphanaInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(columnTypeList)) {
                         String columnType = columnTypeList.get(pos);
-                        if("tinyint".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
+                        if ("tinyint".equalsIgnoreCase(columnType)) {
+                            if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
                         }
@@ -57,9 +58,8 @@ public class SaphanaInputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }
-
 }

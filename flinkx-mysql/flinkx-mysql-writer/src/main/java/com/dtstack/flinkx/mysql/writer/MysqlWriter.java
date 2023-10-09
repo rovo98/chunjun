@@ -30,7 +30,8 @@ import java.util.Collections;
 /**
  * MySQL writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class MysqlWriter extends JdbcDataWriter {
@@ -38,7 +39,9 @@ public class MysqlWriter extends JdbcDataWriter {
     public MysqlWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new MySqlDatabaseMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        dbUrl =
+                DbUtil.formatJdbcUrl(
+                        dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override

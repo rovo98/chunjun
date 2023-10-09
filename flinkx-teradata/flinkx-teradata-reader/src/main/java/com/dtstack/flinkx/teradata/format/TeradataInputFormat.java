@@ -21,6 +21,7 @@ import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.teradata.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -44,6 +45,7 @@ public class TeradataInputFormat extends JdbcInputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(TeradataInputFormat.class);
 
     protected List<String> descColumnTypeList;
+
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
@@ -51,13 +53,13 @@ public class TeradataInputFormat extends JdbcInputFormat {
 
             ClassUtil.forName(driverName, getClass().getClassLoader());
 
-            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
+            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()) {
                 getMaxValue(inputSplit);
             }
 
             initMetric(inputSplit);
 
-            if(!canReadData(inputSplit)){
+            if (!canReadData(inputSplit)) {
                 LOG.warn("Not read data when the start location are equal to end location");
 
                 hasNext = false;
@@ -78,17 +80,17 @@ public class TeradataInputFormat extends JdbcInputFormat {
             resultSet = statement.executeQuery(querySql);
             columnCount = resultSet.getMetaData().getColumnCount();
 
-            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
-            if(splitWithRowCol){
-                columnCount = columnCount-1;
+            boolean splitWithRowCol =
+                    numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
             }
             checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            if(descColumnTypeList == null) {
-                descColumnTypeList = DbUtil.analyzeColumnType(resultSet,metaColumns);
+            if (descColumnTypeList == null) {
+                descColumnTypeList = DbUtil.analyzeColumnType(resultSet, metaColumns);
             }
-
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
@@ -107,11 +109,11 @@ public class TeradataInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(descColumnTypeList)) {
                         String columnType = descColumnTypeList.get(pos);
-                        if("byteint".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
+                        if ("byteint".equalsIgnoreCase(columnType)) {
+                            if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
                         }
@@ -122,9 +124,8 @@ public class TeradataInputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }
-
 }

@@ -18,6 +18,7 @@ package com.dtstack.flinkx.kafkabase.client;
 
 import com.dtstack.flinkx.kafkabase.KafkaInputSplit;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
+
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.Properties;
@@ -25,8 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
- * Date: 2019/12/25
- * Company: www.dtstack.com
+ * Date: 2019/12/25 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,11 +35,14 @@ public abstract class KafkaBaseConsumer {
 
     protected IClient client;
 
-    protected ExecutorService executor = new ScheduledThreadPoolExecutor(1, new BasicThreadFactory
-            .Builder()
-            .namingPattern("KafkaConsumerThread-" + Thread.currentThread().getName())
-            .daemon(true)
-            .build());
+    protected ExecutorService executor =
+            new ScheduledThreadPoolExecutor(
+                    1,
+                    new BasicThreadFactory.Builder()
+                            .namingPattern(
+                                    "KafkaConsumerThread-" + Thread.currentThread().getName())
+                            .daemon(true)
+                            .build());
 
     public KafkaBaseConsumer(Properties properties) {
         this.props = properties;
@@ -47,13 +50,18 @@ public abstract class KafkaBaseConsumer {
 
     /**
      * 创建kafka consumer
-     * @param topic     kafka topic 多个,分割
-     * @param group     kafka消费组
-     * @param format    InputFormat
-     * @param kafkaInputSplit   kafka数据分片
+     *
+     * @param topic kafka topic 多个,分割
+     * @param group kafka消费组
+     * @param format InputFormat
+     * @param kafkaInputSplit kafka数据分片
      * @return
      */
-    public abstract KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit);
+    public abstract KafkaBaseConsumer createClient(
+            String topic,
+            String group,
+            KafkaBaseInputFormat format,
+            KafkaInputSplit kafkaInputSplit);
 
     public void execute() {
         executor.execute(client);

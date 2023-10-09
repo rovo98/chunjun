@@ -25,9 +25,8 @@ import com.dtstack.flinkx.redis.DataType;
 import java.util.List;
 
 /**
- * The builder for RedisOutputFormat
+ * The builder for RedisOutputFormat @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -84,16 +83,17 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if(format.hostPort == null){
+        if (format.hostPort == null) {
             throw new IllegalArgumentException("No host and port supplied");
         }
 
-        if (format.keyIndexes == null || format.keyIndexes.size() == 0){
+        if (format.keyIndexes == null || format.keyIndexes.size() == 0) {
             throw new IllegalArgumentException("Field keyIndexes cannot be empty");
         }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         notSupportBatchWrite("RedisWriter");

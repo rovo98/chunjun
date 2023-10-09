@@ -21,6 +21,9 @@ package org.apache.flink.yarn;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.launcher.perJob.FlinkPerJobUtil;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobID;
@@ -82,7 +85,6 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -496,7 +498,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             if (queues.size() > 0
                     && this.yarnQueue
                             != null) { // check only if there are queues configured in yarn and for
-                                       // this session.
+                // this session.
                 boolean queueFound = false;
                 for (QueueInfo queue : queues) {
                     if (queue.getQueueName().equals(this.yarnQueue)) {

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -31,7 +32,8 @@ import java.util.Map;
 /**
  * The class of Phoenix prototype
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
@@ -58,6 +60,7 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
 
     /**
      * phoenix查询表结构SQL
+     *
      * @param metaColumns 字段信息
      * @param table schema.table
      * @return
@@ -65,9 +68,9 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
     public String getSqlWithLimit1(List<MetaColumn> metaColumns, String table) {
         String columnStr;
         List<String> column = DbUtil.buildSelectColumns(this, metaColumns);
-        if(column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0))){
+        if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0))) {
             columnStr = ConstantValue.STAR_SYMBOL;
-        }else{
+        } else {
             columnStr = quoteColumns(column);
         }
         return new StringBuilder(256)
@@ -92,7 +95,7 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("\"%s\" as %s",value,column);
+        return String.format("\"%s\" as %s", value, column);
     }
 
     @Override
@@ -101,16 +104,25 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+    public String getReplaceStatement(
+            List<String> column,
+            List<String> fullColumn,
+            String table,
+            Map<String, List<String>> updateKey) {
         // phoenix只支持upsert插入
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        return "UPSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values ("
-                + StringUtils.repeat("?", ",", column.size()) + ")";
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
+        return "UPSERT INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") values ("
+                + StringUtils.repeat("?", ",", column.size())
+                + ")";
     }
 
     @Override
@@ -120,8 +132,9 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("%s.%s %% ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(
+                "%s.%s %% ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
@@ -135,12 +148,12 @@ public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 }

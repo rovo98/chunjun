@@ -24,6 +24,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -33,7 +34,8 @@ import java.util.Properties;
 /**
  * The builder of JdbcInputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -72,43 +74,43 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.databaseInterface = databaseInterface;
     }
 
-    public void setTypeConverter(TypeConverterInterface converter){
+    public void setTypeConverter(TypeConverterInterface converter) {
         format.typeConverter = converter;
     }
 
-    public void setMetaColumn(List<MetaColumn> metaColumns){
+    public void setMetaColumn(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
 
-    public void setFetchSize(int fetchSize){
+    public void setFetchSize(int fetchSize) {
         format.fetchSize = fetchSize;
     }
 
-    public void setQueryTimeOut(int queryTimeOut){
+    public void setQueryTimeOut(int queryTimeOut) {
         format.queryTimeOut = queryTimeOut;
     }
 
-    public void setSplitKey(String splitKey){
+    public void setSplitKey(String splitKey) {
         format.splitKey = splitKey;
     }
 
-    public void setNumPartitions(int numPartitions){
+    public void setNumPartitions(int numPartitions) {
         format.numPartitions = numPartitions;
     }
 
-    public void setCustomSql(String customSql){
+    public void setCustomSql(String customSql) {
         format.customSql = customSql;
     }
 
-    public void setProperties(Properties properties){
+    public void setProperties(Properties properties) {
         format.properties = properties;
     }
 
-    public void setHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> dirtyHadoopConfig) {
         format.hadoopConfig = dirtyHadoopConfig;
     }
 
-    public void setIncrementConfig(IncrementConfig incrementConfig){
+    public void setIncrementConfig(IncrementConfig incrementConfig) {
         format.incrementConfig = incrementConfig;
     }
 
@@ -131,13 +133,13 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException("No driver supplied");
         }
 
-        if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1){
-            throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
+        if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1) {
+            throw new IllegalArgumentException(
+                    "Must specify the split column when the channel is greater than 1");
         }
 
         if (format.fetchSize > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
         }
     }
-
 }

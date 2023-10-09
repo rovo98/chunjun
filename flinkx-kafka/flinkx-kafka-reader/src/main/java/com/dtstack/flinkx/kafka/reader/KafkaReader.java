@@ -21,11 +21,11 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.kafka.format.KafkaInputFormat;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -36,7 +36,7 @@ public class KafkaReader extends KafkaBaseReader {
     }
 
     @Override
-    public KafkaBaseInputFormatBuilder getBuilder(){
+    public KafkaBaseInputFormatBuilder getBuilder() {
         return new KafkaBaseInputFormatBuilder(new KafkaInputFormat());
     }
 }

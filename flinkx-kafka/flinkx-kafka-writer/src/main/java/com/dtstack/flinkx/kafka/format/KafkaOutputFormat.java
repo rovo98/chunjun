@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.kafka.format;
 
-import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -35,15 +36,12 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class KafkaOutputFormat extends KafkaBaseOutputFormat {
     private transient KafkaProducer<String, String> producer;
-
-
 
     @Override
     public void configure(Configuration parameters) {
@@ -53,7 +51,9 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
         props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
-        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "com.dtstack.flinkx.kafka.format.PartitionAssigner");
+        props.put(
+                ProducerConfig.PARTITIONER_CLASS_CONFIG,
+                "com.dtstack.flinkx.kafka.format.PartitionAssigner");
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
@@ -65,27 +65,30 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
         String keyMessage = generateKey(event);
-        //key值没有命中如果强制保证有序的话，数据将打入一个分区,反之将随机打到任意分区
+        // key值没有命中如果强制保证有序的话，数据将打入一个分区,反之将随机打到任意分区
         if (StringUtils.isEmpty(keyMessage) && (!dataCompelOrder)) {
             keyMessage = event.toString();
         }
-        producer.send(new ProducerRecord<>(tp, keyMessage, MapUtil.writeValueAsString(event)), (metadata, exception) -> {
-        if(Objects.nonNull(exception)){
-            String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
-            LOG.warn(errorMessage);
-            heartBeatController.onFailed(exception);
-        } else {
-            heartBeatController.onSuccess();
-        }
-        });
+        producer.send(
+                new ProducerRecord<>(tp, keyMessage, MapUtil.writeValueAsString(event)),
+                (metadata, exception) -> {
+                    if (Objects.nonNull(exception)) {
+                        String errorMessage =
+                                String.format(
+                                        "send data failed,data 【%s】 ,error info  %s",
+                                        event, ExceptionUtil.getErrorMessage(exception));
+                        LOG.warn(errorMessage);
+                        heartBeatController.onFailed(exception);
+                    } else {
+                        heartBeatController.onSuccess();
+                    }
+                });
     }
-
-
 
     @Override
     public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
-        //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
+        // 未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
         producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
     }
 }

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -39,21 +38,21 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format = new KuduInputFormat();
     }
 
-    public void setColumns(List<MetaColumn> columns){
+    public void setColumns(List<MetaColumn> columns) {
         format.columns = columns;
     }
 
-    public void setKuduConfig(KuduConfig kuduConfig){
+    public void setKuduConfig(KuduConfig kuduConfig) {
         format.kuduConfig = kuduConfig;
     }
 
-    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         format.setHadoopConfig(hadoopConfig);
     }
 
     @Override
     protected void checkFormat() {
-        if (format.columns == null || format.columns.size() == 0){
+        if (format.columns == null || format.columns.size() == 0) {
             throw new IllegalArgumentException("columns can not be empty");
         }
 

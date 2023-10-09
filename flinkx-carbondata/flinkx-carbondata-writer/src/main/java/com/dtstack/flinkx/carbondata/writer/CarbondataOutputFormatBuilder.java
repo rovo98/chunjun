@@ -19,14 +19,17 @@ package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.writer.WriteMode;
+
 import org.apache.flink.util.Preconditions;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * The Builder class of CarbondataOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -37,7 +40,7 @@ public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new CarbonOutputFormat();
     }
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String, String> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
@@ -62,7 +65,7 @@ public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     public void setWriteMode(String writeMode) {
-        if(WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
+        if (WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
             format.overwrite = true;
         } else {
             format.overwrite = false;
@@ -77,7 +80,6 @@ public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.batchSize = batchSize;
     }
 
-
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.hadoopConfig);
@@ -86,8 +88,9 @@ public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         Preconditions.checkNotNull(format.database);
         Preconditions.checkNotNull(format.column);
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
 
         notSupportBatchWrite("CarbondataWriter");

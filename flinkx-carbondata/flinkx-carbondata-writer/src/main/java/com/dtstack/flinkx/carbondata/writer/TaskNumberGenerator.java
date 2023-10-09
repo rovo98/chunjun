@@ -16,28 +16,23 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer;
-
 
 /**
  * task number generator
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class TaskNumberGenerator {
 
-    private TaskNumberGenerator() {
+    private TaskNumberGenerator() {}
 
-    }
-
-    /**
-     * Generate unique number to be used as partition number of file name
-     */
+    /** Generate unique number to be used as partition number of file name */
     public static String generateUniqueNumber(int taskId, String segmentId, long partitionNumber) {
-        return String.valueOf((long)(Math.pow(10,2)) + Integer.valueOf(segmentId))
-                + String.valueOf((long)Math.pow(10,5) + taskId)
-                + String.valueOf(partitionNumber + (long)Math.pow(10,5));
+        return String.valueOf((long) (Math.pow(10, 2)) + Integer.valueOf(segmentId))
+                + String.valueOf((long) Math.pow(10, 5) + taskId)
+                + String.valueOf(partitionNumber + (long) Math.pow(10, 5));
     }
 }

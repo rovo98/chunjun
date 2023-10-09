@@ -18,8 +18,7 @@
 package com.dtstack.flinkx.emqx;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -31,6 +30,4 @@ public class EmqxConfigKeys {
     public static final String KEY_CODEC = "codec";
     public static final String KEY_IS_CLEAN_SESSION = "isCleanSession";
     public static final String KEY_QOS = "qos";
-
-
 }

@@ -25,6 +25,7 @@ import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonModifyUtil;
 import com.dtstack.flinkx.util.SysUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.client.program.ClusterClient;
@@ -32,11 +33,11 @@ import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.client.program.ProgramInvocationException;
 import org.apache.flink.configuration.ConfigConstants;
+import org.apache.flink.core.execution.DetachedJobExecutionResult;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.Preconditions;
-import org.apache.flink.core.execution.DetachedJobExecutionResult;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,8 +55,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * FlinkX commandline Launcher
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -98,10 +99,13 @@ public class Launcher {
                 break;
             case standalone:
             case yarn:
-                ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
+                ClusterClient clusterClient =
+                        ClusterClientFactory.createClusterClient(launcherOptions);
                 argList.add("-monitor");
                 argList.add(clusterClient.getWebInterfaceURL());
-                yarnSubmitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                yarnSubmitJob(
+                        clusterClient,
+                        buildJobGraph(launcherOptions, argList.toArray(new String[0])));
                 break;
             case yarnPer:
                 String confProp = launcherOptions.getConfProp();
@@ -114,25 +118,26 @@ public class Launcher {
                 }
                 argList.add("-monitor");
                 argList.add("");
-                PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+                PerJobSubmitter.submit(
+                        launcherOptions, new JobGraph(), argList.toArray(new String[0]));
         }
     }
 
-    private static JobExecutionResult yarnSubmitJob(ClusterClient<?> client,
-                                                    JobGraph jobGraph) throws ProgramInvocationException {
+    private static JobExecutionResult yarnSubmitJob(ClusterClient<?> client, JobGraph jobGraph)
+            throws ProgramInvocationException {
         checkNotNull(client);
         checkNotNull(jobGraph);
         try {
-            return client.submitJob(jobGraph)
-                    .thenApply(DetachedJobExecutionResult::new)
-                    .get();
+            return client.submitJob(jobGraph).thenApply(DetachedJobExecutionResult::new).get();
         } catch (InterruptedException | ExecutionException e) {
             ExceptionUtils.checkInterrupted(e);
-            throw new ProgramInvocationException("Could not run job in detached mode.", jobGraph.getJobID(), e);
+            throw new ProgramInvocationException(
+                    "Could not run job in detached mode.", jobGraph.getJobID(), e);
         }
     }
 
-    public static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
+    public static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs)
+            throws Exception {
         String pluginRoot = launcherOptions.getPluginRoot();
         String content = launcherOptions.getJob();
         String coreJarName = getCoreJarFileName(pluginRoot);
@@ -142,13 +147,14 @@ public class Launcher {
         if (StringUtils.isNotEmpty(launcherOptions.getS())) {
             savepointRestoreSettings = SavepointRestoreSettings.forPath(launcherOptions.getS());
         }
-        PackagedProgram program = PackagedProgram.newBuilder()
-                .setJarFile(jarFile)
-                .setEntryPointClassName(MAIN_CLASS)
-                .setConfiguration(launcherOptions.loadFlinkConfiguration())
-                .setSavepointRestoreSettings(savepointRestoreSettings)
-                .setArguments(remoteArgs)
-                .build();
+        PackagedProgram program =
+                PackagedProgram.newBuilder()
+                        .setJarFile(jarFile)
+                        .setEntryPointClassName(MAIN_CLASS)
+                        .setConfiguration(launcherOptions.loadFlinkConfiguration())
+                        .setSavepointRestoreSettings(savepointRestoreSettings)
+                        .setArguments(remoteArgs)
+                        .build();
         JobGraph jobGraph =
                 PackagedProgramUtils.createJobGraph(
                         program,

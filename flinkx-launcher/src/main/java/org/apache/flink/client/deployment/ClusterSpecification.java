@@ -28,9 +28,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
-/**
- * Description of the cluster to start by the {@link ClusterDescriptor}.
- */
+/** Description of the cluster to start by the {@link ClusterDescriptor}. */
 public final class ClusterSpecification {
     private final int masterMemoryMB;
     private final int taskManagerMemoryMB;
@@ -50,7 +48,13 @@ public final class ClusterSpecification {
     private boolean createProgramDelay = false;
     private PackagedProgram program;
 
-    private ClusterSpecification(int masterMemoryMB, int taskManagerMemoryMB, int numberTaskManagers, int slotsPerTaskManager, int parallelism, int priority) {
+    private ClusterSpecification(
+            int masterMemoryMB,
+            int taskManagerMemoryMB,
+            int numberTaskManagers,
+            int slotsPerTaskManager,
+            int parallelism,
+            int priority) {
         this.masterMemoryMB = masterMemoryMB;
         this.taskManagerMemoryMB = taskManagerMemoryMB;
         this.numberTaskManagers = numberTaskManagers;
@@ -115,7 +119,7 @@ public final class ClusterSpecification {
         return slotsPerTaskManager;
     }
 
-    public int getPriority(){
+    public int getPriority() {
         return priority;
     }
 
@@ -169,18 +173,21 @@ public final class ClusterSpecification {
 
     @Override
     public String toString() {
-        return "ClusterSpecification{" +
-                "masterMemoryMB=" + masterMemoryMB +
-                ", taskManagerMemoryMB=" + taskManagerMemoryMB +
-                ", numberTaskManagers=" + numberTaskManagers +
-                ", slotsPerTaskManager=" + slotsPerTaskManager +
-                ", priority=" + priority +
-                '}';
+        return "ClusterSpecification{"
+                + "masterMemoryMB="
+                + masterMemoryMB
+                + ", taskManagerMemoryMB="
+                + taskManagerMemoryMB
+                + ", numberTaskManagers="
+                + numberTaskManagers
+                + ", slotsPerTaskManager="
+                + slotsPerTaskManager
+                + ", priority="
+                + priority
+                + '}';
     }
 
-    /**
-     * Builder for the {@link ClusterSpecification} instance.
-     */
+    /** Builder for the {@link ClusterSpecification} instance. */
     public static class ClusterSpecificationBuilder {
         private int masterMemoryMB = 768;
         private int taskManagerMemoryMB = 1024;
@@ -209,7 +216,7 @@ public final class ClusterSpecification {
             return this;
         }
 
-        public ClusterSpecificationBuilder setPriority(int priority){
+        public ClusterSpecificationBuilder setPriority(int priority) {
             this.priority = priority;
             return this;
         }

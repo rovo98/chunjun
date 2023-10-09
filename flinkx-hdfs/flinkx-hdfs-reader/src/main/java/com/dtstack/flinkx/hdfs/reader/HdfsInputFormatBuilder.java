@@ -20,20 +20,22 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * The Builder of HdfsInputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
     private BaseHdfsInputFormat format;
 
     public HdfsInputFormatBuilder(String type) {
-        switch(type.toUpperCase()) {
+        switch (type.toUpperCase()) {
             case "TEXT":
                 format = new HdfsTextInputFormat();
                 break;
@@ -49,7 +51,7 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format;
     }
 
-    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
@@ -70,7 +72,7 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
     public void setDelimiter(String delimiter) {
-        if(delimiter == null) {
+        if (delimiter == null) {
             delimiter = "\\001";
         }
         format.delimiter = delimiter;
@@ -88,6 +90,5 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
             errorMessage.append("This plugin not support restore from failed state\n");
         }
-
     }
 }

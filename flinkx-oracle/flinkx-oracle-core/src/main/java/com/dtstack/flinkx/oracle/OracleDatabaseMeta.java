@@ -27,17 +27,25 @@ import java.util.List;
 /**
  * The class of Oracle database prototype
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteTable(String table) {
-        table = table.replace("\"","");
+        table = table.replace("\"", "");
         String[] part = table.split("\\.");
-        if(part.length == DB_TABLE_PART_SIZE) {
-            table = getStartQuote() + part[0] + getEndQuote() + "." + getStartQuote() + part[1] + getEndQuote();
+        if (part.length == DB_TABLE_PART_SIZE) {
+            table =
+                    getStartQuote()
+                            + part[0]
+                            + getEndQuote()
+                            + "."
+                            + getStartQuote()
+                            + part[1]
+                            + getEndQuote();
         } else {
             table = getStartQuote() + table + getEndQuote();
         }
@@ -61,12 +69,16 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSqlQueryColumnFields(List<String> column, String table) {
-        return "SELECT /*+FIRST_ROWS*/ " + quoteColumns(column) + " FROM " + quoteTable(table) + " WHERE ROWNUM < 1";
+        return "SELECT /*+FIRST_ROWS*/ "
+                + quoteColumns(column)
+                + " FROM "
+                + quoteTable(table)
+                + " WHERE ROWNUM < 1";
     }
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("'%s' as %s",value,column);
+        return String.format("'%s' as %s", value, column);
     }
 
     @Override
@@ -76,14 +88,15 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
-        return String.format("mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+        return String.format(
+                "mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder("SELECT ");
-        for(int i = 0; i < column.size(); ++i) {
-            if(i != 0) {
+        for (int i = 0; i < column.size(); ++i) {
+            if (i != 0) {
                 sb.append(",");
             }
             sb.append("? " + quoteColumn(column.get(i)));
@@ -93,7 +106,7 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn) {
         List<String> values = new ArrayList<>();
         boolean contains = false;
 
@@ -103,23 +116,23 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
         for (String col : fullColumn) {
             for (String c : column) {
-                if (c.equalsIgnoreCase(col)){
+                if (c.equalsIgnoreCase(col)) {
                     contains = true;
                     break;
                 }
             }
 
-            if (contains){
+            if (contains) {
                 contains = false;
                 continue;
             } else {
-                values.add("null "  + quoteColumn(col));
+                values.add("null " + quoteColumn(col));
             }
 
             contains = false;
         }
 
-        return "SELECT " + org.apache.commons.lang3.StringUtils.join(values,",") + " FROM DUAL";
+        return "SELECT " + org.apache.commons.lang3.StringUtils.join(values, ",") + " FROM DUAL";
     }
 
     @Override
@@ -128,12 +141,12 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 3000;
     }
 }

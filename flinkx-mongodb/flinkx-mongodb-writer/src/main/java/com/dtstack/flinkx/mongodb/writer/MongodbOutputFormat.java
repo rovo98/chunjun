@@ -25,6 +25,7 @@ import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
+
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -37,9 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * OutputFormat for mongodb writer plugin
+ * OutputFormat for mongodb writer plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbOutputFormat extends BaseRichOutputFormat {
@@ -53,9 +53,7 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
     protected MongodbConfig mongodbConfig;
 
     @Override
-    public void configure(Configuration parameters) {
-
-    }
+    public void configure(Configuration parameters) {}
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -67,16 +65,19 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
-            Document doc = MongodbUtil.convertRowToDoc(row,columns);
+            Document doc = MongodbUtil.convertRowToDoc(row, columns);
 
-            if(WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())){
+            if (WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())) {
                 collection.insertOne(doc);
-            } else if(WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())
-                    || WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())){
-                Document filter = new Document(mongodbConfig.getReplaceKey(), doc.get(mongodbConfig.getReplaceKey()));
-                collection.findOneAndReplace(filter,doc);
+            } else if (WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())
+                    || WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())) {
+                Document filter =
+                        new Document(
+                                mongodbConfig.getReplaceKey(),
+                                doc.get(mongodbConfig.getReplaceKey()));
+                collection.findOneAndReplace(filter, doc);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new WriteRecordException("Writer data to mongodb error", e, 0, row);
         }
     }
@@ -85,14 +86,14 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         List<Document> documents = new ArrayList<>(rows.size());
         for (Row row : rows) {
-            documents.add(MongodbUtil.convertRowToDoc(row,columns));
+            documents.add(MongodbUtil.convertRowToDoc(row, columns));
         }
 
-        if(WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())){
+        if (WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())) {
             collection.insertMany(documents);
-        } else if(WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())) {
+        } else if (WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())) {
             throw new RuntimeException("Does not support batch update documents");
-        } else if(WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())){
+        } else if (WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())) {
             throw new RuntimeException("Does not support batch replace documents");
         }
     }

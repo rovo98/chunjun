@@ -22,11 +22,11 @@ import com.dtstack.flinkx.dm.DmDatabaseMeta;
 import com.dtstack.flinkx.dm.format.DmInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Date: 2020/03/18
- * Company: www.dtstack.com
+ * Date: 2020/03/18 Company: www.dtstack.com
  *
  * @author tudou
  */

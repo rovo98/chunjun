@@ -23,7 +23,8 @@ import org.apache.flink.core.io.InputSplit;
 /**
  * The Class describing each InputSplit of Elasticsearch
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class EsInputSplit implements InputSplit {
@@ -56,5 +57,4 @@ public class EsInputSplit implements InputSplit {
     public int getSplitNumber() {
         return 0;
     }
-
 }

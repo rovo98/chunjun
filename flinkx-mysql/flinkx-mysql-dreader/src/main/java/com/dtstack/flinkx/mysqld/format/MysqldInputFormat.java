@@ -24,6 +24,7 @@ import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
@@ -34,8 +35,7 @@ import java.util.Arrays;
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -44,20 +44,36 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
     @Override
     protected void openNextSource() throws SQLException {
         DataSource currentSource = sourceList.get(sourceIndex);
-        currentConn = DbUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn =
+                DbUtil.getConnection(
+                        currentSource.getJdbcUrl(),
+                        currentSource.getUserName(),
+                        currentSource.getPassword());
         currentConn.setAutoCommit(false);
-        String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
-                where, currentSource.isSplitByKey(), false, false).buildSql();
+        String queryTemplate =
+                new QuerySqlBuilder(
+                                databaseInterface,
+                                currentSource.getTable(),
+                                metaColumns,
+                                splitKey,
+                                where,
+                                currentSource.isSplitByKey(),
+                                false,
+                                false)
+                        .buildSql();
         currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
-        if (currentSource.isSplitByKey()){
+        if (currentSource.isSplitByKey()) {
             String n = currentSource.getParameterValues()[0].toString();
             String m = currentSource.getParameterValues()[1].toString();
-            queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
+            queryTemplate = queryTemplate.replace("${N}", n).replace("${M}", m);
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate,
-                        Arrays.deepToString(currentSource.getParameterValues())));
+                LOG.debug(
+                        String.format(
+                                "Executing '%s' with parameters %s",
+                                queryTemplate,
+                                Arrays.deepToString(currentSource.getParameterValues())));
             }
         }
 
@@ -66,35 +82,36 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
         currentResultSet = currentStatement.executeQuery(queryTemplate);
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
-        if(descColumnTypeList == null) {
+        if (descColumnTypeList == null) {
             descColumnTypeList = DbUtil.analyzeColumnType(currentResultSet, metaColumns);
         }
 
-        LOG.info("open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
+        LOG.info(
+                "open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
     }
 
     @Override
     protected boolean readNextRecord() throws IOException {
-        try{
-            if(currentConn == null){
+        try {
+            if (currentConn == null) {
                 openNextSource();
             }
 
             hasNext = currentResultSet.next();
-            if (hasNext){
+            if (hasNext) {
                 currentRecord = new Row(columnCount);
 
                 for (int pos = 0; pos < currentRecord.getArity(); pos++) {
                     Object obj = currentResultSet.getObject(pos + 1);
-                    if(obj != null) {
-                        if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
+                    if (obj != null) {
+                        if (CollectionUtils.isNotEmpty(descColumnTypeList)) {
                             String columnType = descColumnTypeList.get(pos);
-                            if("year".equalsIgnoreCase(columnType)) {
+                            if ("year".equalsIgnoreCase(columnType)) {
                                 java.util.Date date = (java.util.Date) obj;
                                 obj = DateUtil.dateToYearString(date);
-                            } else if("tinyint".equalsIgnoreCase(columnType)
+                            } else if ("tinyint".equalsIgnoreCase(columnType)
                                     || "bit".equalsIgnoreCase(columnType)) {
-                                if(obj instanceof Boolean) {
+                                if (obj instanceof Boolean) {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
                             }
@@ -104,21 +121,25 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
                     currentRecord.setField(pos, obj);
                 }
 
-                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+                if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                     for (int i = 0; i < columnCount; i++) {
                         Object val = currentRecord.getField(i);
-                        if(val == null && metaColumns.get(i).getValue() != null){
+                        if (val == null && metaColumns.get(i).getValue() != null) {
                             val = metaColumns.get(i).getValue();
                         }
 
-                        if (val instanceof String){
-                            val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
-                            currentRecord.setField(i,val);
+                        if (val instanceof String) {
+                            val =
+                                    StringUtil.string2col(
+                                            String.valueOf(val),
+                                            metaColumns.get(i).getType(),
+                                            metaColumns.get(i).getTimeFormat());
+                            currentRecord.setField(i, val);
                         }
                     }
                 }
             } else {
-                if(sourceIndex + 1 < sourceList.size()){
+                if (sourceIndex + 1 < sourceList.size()) {
                     closeCurrentSource();
                     sourceIndex++;
                     return readNextRecord();
@@ -126,7 +147,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
             }
 
             return !hasNext;
-        }catch (SQLException se) {
+        } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);

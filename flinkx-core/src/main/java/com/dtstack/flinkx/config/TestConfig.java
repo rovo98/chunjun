@@ -36,7 +36,7 @@ public class TestConfig extends AbstractConfig {
         super(map);
     }
 
-    public static TestConfig defaultConfig(){
+    public static TestConfig defaultConfig() {
         Map<String, Object> map = new HashMap<>(16);
         return new TestConfig(map);
     }
@@ -45,11 +45,11 @@ public class TestConfig extends AbstractConfig {
         return getIntVal(KEY_FAILED_PER_RECORD, -1) > 0;
     }
 
-    public int getFailedPerRecord(){
+    public int getFailedPerRecord() {
         return getIntVal(KEY_FAILED_PER_RECORD, -1);
     }
 
-    public String getErrorMsg(){
+    public String getErrorMsg() {
         return getStringVal(KEY_ERROR_MSG, "Error test");
     }
 

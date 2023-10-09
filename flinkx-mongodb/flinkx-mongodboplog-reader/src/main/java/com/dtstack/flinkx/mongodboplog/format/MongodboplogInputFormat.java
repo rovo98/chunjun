@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.mongodboplog.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.restore.FormatState;
+
 import com.mongodb.CursorType;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -49,9 +49,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class MongodboplogInputFormat extends BaseRichInputFormat {
 
-    private final static String OPLOG_DB = "local";
-    private final static String REPLICA_SET_COLLECTION = "oplog.rs";
-    private final static String MASTER_SLAVE_COLLECTION = "oplog.$main";
+    private static final String OPLOG_DB = "local";
+    private static final String REPLICA_SET_COLLECTION = "oplog.rs";
+    private static final String MASTER_SLAVE_COLLECTION = "oplog.$main";
 
     protected MongodbConfig mongodbConfig;
 
@@ -70,33 +70,31 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
 
         client = MongodbClientUtil.getClient(mongodbConfig);
         MongoCollection<Document> oplog = getOplogCollection();
-        FindIterable<Document> results = oplog.find(buildFilter())
-                .sort(new Document("$natural", 1))
-                .oplogReplay(true)
-                .cursorType(CursorType.TailableAwait);
+        FindIterable<Document> results =
+                oplog.find(buildFilter())
+                        .sort(new Document("$natural", 1))
+                        .oplogReplay(true)
+                        .cursorType(CursorType.TailableAwait);
 
         cursor = results.iterator();
     }
 
-    /**
-     * 在 master/slave 结构下, oplog 位于local.oplog.$main
-     * 在 Replca set 结构下， oplog 位于local.oplog.rs
-     */
-    private MongoCollection<Document> getOplogCollection(){
+    /** 在 master/slave 结构下, oplog 位于local.oplog.$main 在 Replca set 结构下， oplog 位于local.oplog.rs */
+    private MongoCollection<Document> getOplogCollection() {
         if ("REPLICA_SET".equalsIgnoreCase(mongodbConfig.getClusterMode())) {
             return client.getDatabase(OPLOG_DB).getCollection(REPLICA_SET_COLLECTION);
-        } else if("MASTER_SLAVE".equalsIgnoreCase(mongodbConfig.getClusterMode())){
+        } else if ("MASTER_SLAVE".equalsIgnoreCase(mongodbConfig.getClusterMode())) {
             return client.getDatabase(OPLOG_DB).getCollection(MASTER_SLAVE_COLLECTION);
         } else {
             throw new RuntimeException("集群模式不支持:" + mongodbConfig.getClusterMode());
         }
     }
 
-    private void initOffset(){
+    private void initOffset() {
         BsonTimestamp startLocation = new BsonTimestamp(mongodbConfig.getStartLocation(), 0);
         if (formatState != null && formatState.getState() != null) {
             offset.set(Long.valueOf(formatState.getState().toString()));
-            long state = (Long)formatState.getState();
+            long state = (Long) formatState.getState();
             if (startLocation.compareTo(new BsonTimestamp(state)) > 0) {
                 offset.set(mongodbConfig.getStartLocation());
             } else {
@@ -107,7 +105,7 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private Bson buildFilter(){
+    private Bson buildFilter() {
         List<Bson> filters = new ArrayList<>();
 
         // 设置读取位置
@@ -126,8 +124,9 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
         filters.add(Filters.ne(MongodbEventHandler.EVENT_KEY_NS, "config.system.sessions"));
 
         // 过滤操作类型
-        if(CollectionUtils.isNotEmpty(mongodbConfig.getOperateType())) {
-            List<String> operateTypes = MongodbOperation.getInternalNames(mongodbConfig.getOperateType());
+        if (CollectionUtils.isNotEmpty(mongodbConfig.getOperateType())) {
+            List<String> operateTypes =
+                    MongodbOperation.getInternalNames(mongodbConfig.getOperateType());
             filters.add(Filters.in(MongodbEventHandler.EVENT_KEY_OP, operateTypes));
         }
 
@@ -135,14 +134,15 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
     }
 
     private String buildPattern() {
-        if (CollectionUtils.isEmpty(mongodbConfig.getMonitorDatabases()) && CollectionUtils.isEmpty(mongodbConfig.getMonitorCollections())){
+        if (CollectionUtils.isEmpty(mongodbConfig.getMonitorDatabases())
+                && CollectionUtils.isEmpty(mongodbConfig.getMonitorCollections())) {
             return null;
         }
 
         StringBuilder pattern = new StringBuilder();
-        if(CollectionUtils.isNotEmpty(mongodbConfig.getMonitorDatabases())){
+        if (CollectionUtils.isNotEmpty(mongodbConfig.getMonitorDatabases())) {
             mongodbConfig.getMonitorDatabases().removeIf(StringUtils::isEmpty);
-            if(CollectionUtils.isNotEmpty(mongodbConfig.getMonitorDatabases())){
+            if (CollectionUtils.isNotEmpty(mongodbConfig.getMonitorDatabases())) {
                 String databasePattern = StringUtils.join(mongodbConfig.getMonitorDatabases(), "|");
                 pattern.append("(").append(databasePattern).append(")");
             } else {
@@ -152,10 +152,11 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
 
         pattern.append("\\.");
 
-        if(CollectionUtils.isNotEmpty(mongodbConfig.getMonitorCollections())){
+        if (CollectionUtils.isNotEmpty(mongodbConfig.getMonitorCollections())) {
             mongodbConfig.getMonitorCollections().removeIf(String::isEmpty);
-            if(CollectionUtils.isNotEmpty(mongodbConfig.getMonitorCollections())){
-                String collectionPattern = StringUtils.join(mongodbConfig.getMonitorCollections(), "|");
+            if (CollectionUtils.isNotEmpty(mongodbConfig.getMonitorCollections())) {
+                String collectionPattern =
+                        StringUtils.join(mongodbConfig.getMonitorCollections(), "|");
                 pattern.append("(").append(collectionPattern).append(")");
             } else {
                 pattern.append(".*");
@@ -167,14 +168,18 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return MongodbEventHandler.handleEvent(cursor.next(), offset, mongodbConfig.getExcludeDocId(), mongodbConfig.getPavingData());
+        return MongodbEventHandler.handleEvent(
+                cursor.next(),
+                offset,
+                mongodbConfig.getExcludeDocId(),
+                mongodbConfig.getPavingData());
     }
 
     @Override
     public FormatState getFormatState() {
         super.getFormatState();
 
-        if (formatState != null){
+        if (formatState != null) {
             formatState.setState(offset.get());
         }
 
@@ -188,7 +193,7 @@ public class MongodboplogInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
+        return new InputSplit[] {new GenericInputSplit(1, 1)};
     }
 
     @Override

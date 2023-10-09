@@ -23,20 +23,21 @@ import java.util.Map;
 /**
  * Content Config
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ContentConfig extends AbstractConfig {
 
-    public final static String KEY_READER_CONFIG = "reader";
-    public final static String KEY_WRITER_CONFIG = "writer";
+    public static final String KEY_READER_CONFIG = "reader";
+    public static final String KEY_WRITER_CONFIG = "writer";
 
     ReaderConfig reader;
     WriterConfig writer;
 
     public ContentConfig(Map<String, Object> map) {
         super(map);
-        if(map != null) {
+        if (map != null) {
             reader = new ReaderConfig((Map<String, Object>) map.get(KEY_READER_CONFIG));
             writer = new WriterConfig((Map<String, Object>) map.get(KEY_WRITER_CONFIG));
         }
@@ -57,5 +58,4 @@ public class ContentConfig extends AbstractConfig {
     public void setWriter(WriterConfig writer) {
         this.writer = writer;
     }
-
 }

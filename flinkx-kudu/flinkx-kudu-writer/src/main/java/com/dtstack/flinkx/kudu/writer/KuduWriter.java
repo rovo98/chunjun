@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -25,6 +24,7 @@ import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -58,28 +58,39 @@ public class KuduWriter extends BaseDataWriter {
 
     private int batchInterval;
 
-    protected Map<String,Object> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     public KuduWriter(DataTransferConfig config) {
         super(config);
 
-        WriterConfig.ParameterConfig parameterConfig = config.getJob().getContent().get(0).getWriter().getParameter();
+        WriterConfig.ParameterConfig parameterConfig =
+                config.getJob().getContent().get(0).getWriter().getParameter();
 
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
         writeMode = parameterConfig.getStringVal("writeMode");
         batchInterval = parameterConfig.getIntVal("batchInterval", 1);
-        kuduConfig = KuduConfigBuilder.getInstance()
-                .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
-                .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
-                .withprincipal(parameterConfig.getStringVal(KEY_PRINCIPAL))
-                .withKeytabFile(parameterConfig.getStringVal(KEY_KEYTABFILE))
-                .withWorkerCount(parameterConfig.getIntVal(KEY_WORKER_COUNT, 2 * Runtime.getRuntime().availableProcessors()))
-                .withBossCount(parameterConfig.getIntVal(KEY_BOSS_COUNT, 1))
-                .withOperationTimeout(parameterConfig.getLongVal(KEY_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
-                .withAdminOperationTimeout(parameterConfig.getLongVal(KEY_ADMIN_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
-                .withTable(parameterConfig.getStringVal(KEY_TABLE))
-                .withFlushMode(parameterConfig.getStringVal(KEY_FLUSH_MODE))
-                .build();
+        kuduConfig =
+                KuduConfigBuilder.getInstance()
+                        .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
+                        .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
+                        .withprincipal(parameterConfig.getStringVal(KEY_PRINCIPAL))
+                        .withKeytabFile(parameterConfig.getStringVal(KEY_KEYTABFILE))
+                        .withWorkerCount(
+                                parameterConfig.getIntVal(
+                                        KEY_WORKER_COUNT,
+                                        2 * Runtime.getRuntime().availableProcessors()))
+                        .withBossCount(parameterConfig.getIntVal(KEY_BOSS_COUNT, 1))
+                        .withOperationTimeout(
+                                parameterConfig.getLongVal(
+                                        KEY_OPERATION_TIMEOUT,
+                                        AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
+                        .withAdminOperationTimeout(
+                                parameterConfig.getLongVal(
+                                        KEY_ADMIN_OPERATION_TIMEOUT,
+                                        AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
+                        .withTable(parameterConfig.getStringVal(KEY_TABLE))
+                        .withFlushMode(parameterConfig.getStringVal(KEY_FLUSH_MODE))
+                        .build();
 
         hadoopConfig = (Map<String, Object>) parameterConfig.getVal("hadoopConfig");
     }
@@ -98,6 +109,6 @@ public class KuduWriter extends BaseDataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
-        return createOutput(dataSet,builder.finish());
+        return createOutput(dataSet, builder.finish());
     }
 }

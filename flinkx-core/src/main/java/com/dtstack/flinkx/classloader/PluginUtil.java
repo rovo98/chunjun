@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.classloader;
 
-import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+
+import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
@@ -55,7 +56,8 @@ public class PluginUtil {
 
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
-    public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
+    public static Set<URL> getJarFileDirPath(
+            String pluginName, String pluginRoot, String remotePluginPath) {
         Set<URL> urlList = new HashSet<>();
 
         String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
@@ -82,8 +84,11 @@ public class PluginUtil {
     private static List<String> getJarNames(File pluginPath) {
         List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
-            File[] jarFiles = pluginPath.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
+            File[] jarFiles =
+                    pluginPath.listFiles(
+                            (dir, name) ->
+                                    name.toLowerCase().startsWith(JAR_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar"));
 
             if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
                 Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
@@ -99,7 +104,8 @@ public class PluginUtil {
         } else if (pluginName.toLowerCase().endsWith(WRITER_SUFFIX)) {
             pluginClassName = PACKAGE_PREFIX + camelize(pluginName, WRITER_SUFFIX);
         } else {
-            throw new IllegalArgumentException("Plugin Name should end with reader, writer or database");
+            throw new IllegalArgumentException(
+                    "Plugin Name should end with reader, writer or database");
         }
 
         return pluginClassName;
@@ -117,12 +123,17 @@ public class PluginUtil {
         return sb.toString();
     }
 
-    public static void registerPluginUrlToCachedFile(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public static void registerPluginUrlToCachedFile(
+            DataTransferConfig config, StreamExecutionEnvironment env) {
         String readerPluginName = config.getJob().getContent().get(0).getReader().getName();
-        Set<URL> readerUrlList = PluginUtil.getJarFileDirPath(readerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> readerUrlList =
+                PluginUtil.getJarFileDirPath(
+                        readerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
         String writerPluginName = config.getJob().getContent().get(0).getWriter().getName();
-        Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> writerUrlList =
+                PluginUtil.getJarFileDirPath(
+                        writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
         Set<URL> urlSet = new HashSet<>();
 

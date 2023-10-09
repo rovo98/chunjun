@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.hive;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class HiveConfigKeys {
 
     public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
@@ -64,5 +62,4 @@ public class HiveConfigKeys {
     public static final String KEY_SCHEMA = "schema";
 
     public static final String KEY_TABLE = "table";
-
 }

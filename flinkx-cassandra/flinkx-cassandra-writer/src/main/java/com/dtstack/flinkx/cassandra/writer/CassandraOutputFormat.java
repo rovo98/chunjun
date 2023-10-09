@@ -17,13 +17,14 @@
  */
 package com.dtstack.flinkx.cassandra.writer;
 
-import com.datastax.driver.core.*;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Preconditions;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -36,9 +37,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * write plugin for writing static data
+ * write plugin for writing static data @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author wuhui
  */
 public class CassandraOutputFormat extends BaseRichOutputFormat {
@@ -64,7 +64,7 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
 
     protected List<BoundStatement> bufferedWrite;
 
-    protected Map<String,Object> cassandraConfig;
+    protected Map<String, Object> cassandraConfig;
 
     protected transient Session session;
 
@@ -75,7 +75,8 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
 
         LOG.info("taskNumber: {}, numTasks: {}", taskNumber, numTasks);
         session = CassandraUtil.getSession(cassandraConfig, "");
-        TableMetadata metadata = session.getCluster().getMetadata().getKeyspace(keySpace).getTable(table);
+        TableMetadata metadata =
+                session.getCluster().getMetadata().getKeyspace(keySpace).getTable(table);
 
         columnTypes = new ArrayList<>(columnMeta.size());
         Insert insertStmt = QueryBuilder.insertInto(table);
@@ -97,8 +98,8 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
 
         pstmt = session.prepare(insertStmt);
 
-        if(batchSize > 1) {
-            if(asyncWrite) {
+        if (batchSize > 1) {
+            if (asyncWrite) {
                 unConfirmedWrite = new ArrayList<>();
             } else {
                 bufferedWrite = new ArrayList<>();
@@ -129,12 +130,13 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
             for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
                 for (int columnIndex = 0; columnIndex < columnMeta.size(); columnIndex++) {
                     Object value = rows.get(rowIndex).getField(columnIndex);
-                    CassandraUtil.bindColumn(boundStatement, columnIndex, columnTypes.get(columnIndex), value);
+                    CassandraUtil.bindColumn(
+                            boundStatement, columnIndex, columnTypes.get(columnIndex), value);
                 }
                 if ((rowIndex % 1000) == 0) {
                     LOG.info("insertSql: {}", boundStatement);
                 }
-                if(asyncWrite) {
+                if (asyncWrite) {
                     unConfirmedWrite.add(session.executeAsync(boundStatement));
                     if (unConfirmedWrite.size() >= batchSize) {
                         for (ResultSetFuture write : unConfirmedWrite) {
@@ -144,8 +146,9 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
                     }
                 } else {
                     bufferedWrite.add(boundStatement);
-                    if(bufferedWrite.size() >= batchSize) {
-                        BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.UNLOGGED);
+                    if (bufferedWrite.size() >= batchSize) {
+                        BatchStatement batchStatement =
+                                new BatchStatement(BatchStatement.Type.UNLOGGED);
                         batchStatement.addAll(bufferedWrite);
                         session.execute(batchStatement);
                         bufferedWrite.clear();
@@ -154,13 +157,13 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
             }
 
             // 检查是否还有数据未写出去
-            if(unConfirmedWrite != null && unConfirmedWrite.size() > 0) {
-                for(ResultSetFuture write : unConfirmedWrite) {
+            if (unConfirmedWrite != null && unConfirmedWrite.size() > 0) {
+                for (ResultSetFuture write : unConfirmedWrite) {
                     write.getUninterruptibly(10000, TimeUnit.MILLISECONDS);
                 }
                 unConfirmedWrite.clear();
             }
-            if(bufferedWrite !=null && bufferedWrite.size() > 0) {
+            if (bufferedWrite != null && bufferedWrite.size() > 0) {
                 BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.UNLOGGED);
                 batchStatement.addAll(bufferedWrite);
                 session.execute(batchStatement);

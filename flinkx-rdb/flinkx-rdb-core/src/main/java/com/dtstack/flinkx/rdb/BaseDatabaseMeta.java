@@ -20,6 +20,7 @@ package com.dtstack.flinkx.rdb;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,7 +31,8 @@ import java.util.Set;
 /**
  * Abstract base parent class of other database prototype implementations
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializable {
@@ -61,7 +63,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
     public String quoteColumns(List<String> column, String table) {
         String prefix = StringUtils.isBlank(table) ? "" : quoteTable(table) + ".";
         List<String> list = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             list.add(prefix + quoteColumn(col));
         }
         return StringUtils.join(list, ",");
@@ -72,7 +74,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         String[] parts = table.split("\\.");
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parts.length; ++i) {
-            if(i != 0) {
+            if (i != 0) {
                 sb.append(".");
             }
             sb.append(getStartQuote() + parts[i] + getEndQuote());
@@ -81,11 +83,15 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+    public String getReplaceStatement(
+            List<String> column,
+            List<String> fullColumn,
+            String table,
+            Map<String, List<String>> updateKey) {
         throw new UnsupportedOperationException("replace mode is not supported");
     }
 
-    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn) {
         List<String> values = new ArrayList<>();
         boolean contains = false;
 
@@ -95,52 +101,69 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
 
         for (String col : fullColumn) {
             for (String c : column) {
-                if (c.equalsIgnoreCase(col)){
+                if (c.equalsIgnoreCase(col)) {
                     contains = true;
                     break;
                 }
             }
 
-            if (contains){
+            if (contains) {
                 contains = false;
                 continue;
             } else {
-                values.add("null "  + quoteColumn(col));
+                values.add("null " + quoteColumn(col));
             }
 
             contains = false;
         }
 
-        return StringUtils.join(values,",");
+        return StringUtils.join(values, ",");
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
+        if (updateKey == null || updateKey.isEmpty()) {
             return getInsertStatement(column, table);
         }
 
         List<String> updateColumns = getUpdateColumns(column, updateKey);
-        if(CollectionUtils.isEmpty(updateColumns)){
-            return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                    + "(" + makeValues(column) + ") T2 ON ("
-                    + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
-                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                    + quoteColumns(column, "T2") + ")";
+        if (CollectionUtils.isEmpty(updateColumns)) {
+            return "MERGE INTO "
+                    + quoteTable(table)
+                    + " T1 USING "
+                    + "("
+                    + makeValues(column)
+                    + ") T2 ON ("
+                    + updateKeySql(updateKey)
+                    + ") WHEN NOT MATCHED THEN "
+                    + "INSERT ("
+                    + quoteColumns(column)
+                    + ") VALUES ("
+                    + quoteColumns(column, "T2")
+                    + ")";
         } else {
-            return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                    + "(" + makeValues(column) + ") T2 ON ("
-                    + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                    + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                    + quoteColumns(column, "T2") + ")";
+            return "MERGE INTO "
+                    + quoteTable(table)
+                    + " T1 USING "
+                    + "("
+                    + makeValues(column)
+                    + ") T2 ON ("
+                    + updateKeySql(updateKey)
+                    + ") WHEN MATCHED THEN UPDATE SET "
+                    + getUpdateSql(updateColumns, "T1", "T2")
+                    + " WHEN NOT MATCHED THEN "
+                    + "INSERT ("
+                    + quoteColumns(column)
+                    + ") VALUES ("
+                    + quoteColumns(column, "T2")
+                    + ")";
         }
     }
 
-    /**
-     * 获取都需要更新数据的字段
-     */
-    protected List<String> getUpdateColumns(List<String> column, Map<String,List<String>> updateKey){
+    /** 获取都需要更新数据的字段 */
+    protected List<String> getUpdateColumns(
+            List<String> column, Map<String, List<String>> updateKey) {
         Set<String> indexColumns = new HashSet<>();
         for (List<String> value : updateKey.values()) {
             indexColumns.addAll(value);
@@ -148,7 +171,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
 
         List<String> updateColumns = new ArrayList<>();
         for (String col : column) {
-            if(!indexColumns.contains(col)){
+            if (!indexColumns.contains(col)) {
                 updateColumns.add(col);
             }
         }
@@ -162,23 +185,23 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
      * @param column 字段列表
      * @return 查询sql
      */
-    abstract protected String makeValues(List<String> column);
+    protected abstract String makeValues(List<String> column);
 
     protected String getUpdateSql(List<String> column, String leftTable, String rightTable) {
         String prefixLeft = StringUtils.isBlank(leftTable) ? "" : quoteTable(leftTable) + ".";
         String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
         List<String> list = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             list.add(prefixLeft + quoteColumn(col) + "=" + prefixRight + quoteColumn(col));
         }
         return StringUtils.join(list, ",");
     }
 
-    protected String updateKeySql(Map<String,List<String>> updateKey) {
+    protected String updateKeySql(Map<String, List<String>> updateKey) {
         List<String> exprList = new ArrayList<>();
-        for(Map.Entry<String,List<String>> entry : updateKey.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : updateKey.entrySet()) {
             List<String> colList = new ArrayList<>();
-            for(String col : entry.getValue()) {
+            for (String col : entry.getValue()) {
                 colList.add("T1." + quoteColumn(col) + "=T2." + quoteColumn(col));
             }
             exprList.add(StringUtils.join(colList, " AND "));
@@ -188,9 +211,13 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
 
     @Override
     public String getInsertStatement(List<String> column, String table) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values ("
-                + StringUtils.repeat("?", ",", column.size()) + ")";
+        return "INSERT INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") values ("
+                + StringUtils.repeat("?", ",", column.size())
+                + ")";
     }
 
     @Override
@@ -199,12 +226,12 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 }

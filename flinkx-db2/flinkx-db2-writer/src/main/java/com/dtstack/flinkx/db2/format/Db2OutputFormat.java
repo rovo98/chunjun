@@ -28,29 +28,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class Db2OutputFormat extends JdbcOutputFormat {
 
     @Override
-    protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
+    protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn)
+            throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table.toUpperCase(), true, false);
-        while(rs.next()) {
+        ResultSet rs =
+                dbConn.getMetaData().getIndexInfo(null, null, table.toUpperCase(), true, false);
+        while (rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
-            if(!map.containsKey(indexName)) {
-                map.put(indexName,new ArrayList<>());
+            if (!map.containsKey(indexName)) {
+                map.put(indexName, new ArrayList<>());
             }
             map.get(indexName).add(rs.getString("COLUMN_NAME"));
         }
-        Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
-        for(Map.Entry<String,List<String>> entry: map.entrySet()) {
+        Map<String, List<String>> retMap = new HashMap<>((map.size() << 2) / 3);
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             String k = entry.getKey();
             List<String> v = entry.getValue();
-            if(v!=null && v.size() != 0 && v.get(0) != null) {
+            if (v != null && v.size() != 0 && v.get(0) != null) {
                 retMap.put(k, v);
             }
         }

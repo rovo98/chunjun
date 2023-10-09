@@ -50,7 +50,5 @@ public class PulsarOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     @Override
-    protected void checkFormat() {
-
-    }
+    protected void checkFormat() {}
 }

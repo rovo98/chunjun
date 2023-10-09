@@ -57,27 +57,31 @@ public class LogFile {
 
     @Override
     public String toString() {
-        return "LogFile{" +
-                "fileName='" + fileName + '\'' +
-                ", firstChange=" + firstChange +
-                ", nextChange=" + nextChange +
-                '}';
+        return "LogFile{"
+                + "fileName='"
+                + fileName
+                + '\''
+                + ", firstChange="
+                + firstChange
+                + ", nextChange="
+                + nextChange
+                + '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o){
+        if (this == o) {
             return true;
         }
 
-        if (o == null || getClass() != o.getClass()){
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
         LogFile logFile = (LogFile) o;
-        return Objects.equals(fileName, logFile.fileName) &&
-                Objects.equals(firstChange, logFile.firstChange) &&
-                Objects.equals(nextChange, logFile.nextChange);
+        return Objects.equals(fileName, logFile.fileName)
+                && Objects.equals(firstChange, logFile.firstChange)
+                && Objects.equals(nextChange, logFile.nextChange);
     }
 
     @Override

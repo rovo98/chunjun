@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kudu.writer;
 
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -27,6 +26,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ValueUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.kudu.ColumnSchema;
@@ -59,7 +59,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     private transient KuduClient client;
 
-    protected Map<String,Object> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     private transient KuduSession session;
 
@@ -67,9 +67,9 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        try{
+        try {
             client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Get KuduClient error", e);
         }
 
@@ -77,9 +77,9 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         session.setMutationBufferSpace(batchInterval);
         kuduTable = client.openTable(kuduConfig.getTable());
 
-        if(StringUtils.isBlank(kuduConfig.getFlushMode())){
+        if (StringUtils.isBlank(kuduConfig.getFlushMode())) {
             session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
-        }else {
+        } else {
             switch (kuduConfig.getFlushMode().toLowerCase()) {
                 case "auto_flush_background":
                     session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
@@ -89,16 +89,18 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                     break;
                 default:
                     session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
-                }
             }
         }
+    }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         writeData(row);
 
-        if(numWriteCounter.getLocalValue() % batchInterval == 0){
-            LOG.info("writeSingleRecordInternal, numWriteCounter = {}", numWriteCounter.getLocalValue());
+        if (numWriteCounter.getLocalValue() % batchInterval == 0) {
+            LOG.info(
+                    "writeSingleRecordInternal, numWriteCounter = {}",
+                    numWriteCounter.getLocalValue());
             try {
                 session.flush();
             } catch (KuduException e) {
@@ -109,6 +111,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     /**
      * kudu内部采用(Long) val方式进行数据转换，这里先进行优雅转换
+     *
      * @param row 传入数据
      * @throws WriteRecordException 写入异常
      */
@@ -123,28 +126,46 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                 int columnIndex = partialRow.getSchema().getColumnIndex(column.getName());
                 ColumnSchema col = partialRow.getSchema().getColumnByIndex(columnIndex);
                 if (col == null) {
-                    throw new IllegalArgumentException("Column name isn't present in the table's schema");
+                    throw new IllegalArgumentException(
+                            "Column name isn't present in the table's schema");
                 }
                 Object val = row.getField(i);
-                if(val==null){
+                if (val == null) {
                     partialRow.setNull(i);
-                }else{
+                } else {
                     switch (col.getType()) {
-                        case BOOL: partialRow.addBoolean(columnIndex, ValueUtil.getBooleanVal(val)); break;
-                        case INT8: partialRow.addByte(columnIndex, ValueUtil.getByteVal(val)); break;
-                        case INT16: partialRow.addShort(columnIndex, ValueUtil.getShortVal(val)); break;
-                        case INT32: partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val)); break;
-                        case INT64: partialRow.addLong(columnIndex, ValueUtil.getLongVal(val)); break;
+                        case BOOL:
+                            partialRow.addBoolean(columnIndex, ValueUtil.getBooleanVal(val));
+                            break;
+                        case INT8:
+                            partialRow.addByte(columnIndex, ValueUtil.getByteVal(val));
+                            break;
+                        case INT16:
+                            partialRow.addShort(columnIndex, ValueUtil.getShortVal(val));
+                            break;
+                        case INT32:
+                            partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val));
+                            break;
+                        case INT64:
+                            partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
+                            break;
                         case UNIXTIME_MICROS:
                             if (val instanceof Timestamp || val instanceof Date) {
-                                partialRow.addTimestamp(columnIndex, ValueUtil.getTimestampVal(val));
+                                partialRow.addTimestamp(
+                                        columnIndex, ValueUtil.getTimestampVal(val));
                             } else {
                                 partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
                             }
                             break;
-                        case FLOAT: partialRow.addFloat(columnIndex, ValueUtil.getFloatVal(val)); break;
-                        case DOUBLE: partialRow.addDouble(columnIndex, ValueUtil.getDoubleVal(val)); break;
-                        case STRING: partialRow.addString(columnIndex, ValueUtil.getStringVal(val)); break;
+                        case FLOAT:
+                            partialRow.addFloat(columnIndex, ValueUtil.getFloatVal(val));
+                            break;
+                        case DOUBLE:
+                            partialRow.addDouble(columnIndex, ValueUtil.getDoubleVal(val));
+                            break;
+                        case STRING:
+                            partialRow.addString(columnIndex, ValueUtil.getStringVal(val));
+                            break;
                         case BINARY:
                             if (val instanceof byte[]) {
                                 partialRow.addBinary(columnIndex, (byte[]) val);
@@ -152,26 +173,33 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                                 partialRow.addBinary(columnIndex, (ByteBuffer) val);
                             }
                             break;
-                        case DECIMAL: partialRow.addDecimal(columnIndex, ValueUtil.getBigDecimalVal(val)); break;
+                        case DECIMAL:
+                            partialRow.addDecimal(columnIndex, ValueUtil.getBigDecimalVal(val));
+                            break;
                         default:
-                            throw new IllegalArgumentException("Unsupported column type: " + col.getType());
+                            throw new IllegalArgumentException(
+                                    "Unsupported column type: " + col.getType());
                     }
                 }
             }
 
             session.apply(operation);
-        } catch (Exception e){
-            LOG.error("Write data error, index = {}, row = {}, e = {}", index, row, ExceptionUtil.getErrorMessage(e));
+        } catch (Exception e) {
+            LOG.error(
+                    "Write data error, index = {}, row = {}, e = {}",
+                    index,
+                    row,
+                    ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException("Write data error", e, index, row);
         }
     }
 
-    private Operation getOperation(){
-        if(EWriteMode.INSERT.name().equalsIgnoreCase(writeMode)){
+    private Operation getOperation() {
+        if (EWriteMode.INSERT.name().equalsIgnoreCase(writeMode)) {
             return kuduTable.newInsert();
-        } else if(EWriteMode.UPDATE.name().equalsIgnoreCase(writeMode)){
+        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(writeMode)) {
             return kuduTable.newUpdate();
-        } else if(EWriteMode.UPSERT.name().equalsIgnoreCase(writeMode)){
+        } else if (EWriteMode.UPSERT.name().equalsIgnoreCase(writeMode)) {
             return kuduTable.newUpsert();
         } else {
             throw new IllegalArgumentException("Not support writeMode:" + writeMode);
@@ -191,12 +219,12 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     public void closeInternal() throws IOException {
         super.closeInternal();
 
-        if(session != null){
+        if (session != null) {
             session.flush();
             session.close();
         }
 
-        if(client != null){
+        if (client != null) {
             client.close();
         }
     }

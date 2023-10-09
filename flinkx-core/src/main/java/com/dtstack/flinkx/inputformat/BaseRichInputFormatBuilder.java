@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.TestConfig;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract specification for all the InputFormatBuilder implementation
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseRichInputFormatBuilder {
@@ -46,10 +48,11 @@ public abstract class BaseRichInputFormatBuilder {
         format.bytes = bytes;
     }
 
-    public void setRestoreConfig(RestoreConfig restoreConfig){
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
         format.restoreConfig = restoreConfig;
     }
-    public void setLogConfig(LogConfig logConfig){
+
+    public void setLogConfig(LogConfig logConfig) {
         format.logConfig = logConfig;
     }
 
@@ -57,21 +60,25 @@ public abstract class BaseRichInputFormatBuilder {
         format.testConfig = testConfig;
     }
 
-    public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
+    public void setDataTransferConfig(DataTransferConfig dataTransferConfig) {
         format.setDataTransferConfig(dataTransferConfig);
     }
-    /**
-     * Check the value of parameters
-     */
+    /** Check the value of parameters */
     protected abstract void checkFormat();
 
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
-        boolean check = format.getDataTransferConfig().getJob().getContent().get(0).getReader().getParameter().getBooleanVal("check", true);
-        if(check){
+        boolean check =
+                format.getDataTransferConfig()
+                        .getJob()
+                        .getContent()
+                        .get(0)
+                        .getReader()
+                        .getParameter()
+                        .getBooleanVal("check", true);
+        if (check) {
             checkFormat();
         }
         return format;
     }
-
 }

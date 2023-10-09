@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2019/11/08
- * Company: www.dtstack.com
+ * Date: 2019/11/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -62,21 +61,25 @@ public class ClickhouseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("'%s' as %s",value,column);
+        return String.format("'%s' as %s", value, column);
     }
 
     @Override
     public String getSplitFilter(String columnName) {
-        return String.format("modulo(%s , ${N}) = ${M}", getStartQuote() + columnName + getEndQuote());
+        return String.format(
+                "modulo(%s , ${N}) = ${M}", getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
-    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("modulo(%s.%s , ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(
+                "modulo(%s.%s , ${N}) = ${M}",
+                tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
         throw new UnsupportedOperationException("upsert mode is not supported");
     }
 

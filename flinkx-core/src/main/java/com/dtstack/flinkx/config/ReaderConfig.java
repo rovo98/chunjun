@@ -25,7 +25,8 @@ import java.util.Map;
 /**
  * The configuration of Reader
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ReaderConfig extends AbstractConfig {
@@ -67,10 +68,11 @@ public class ReaderConfig extends AbstractConfig {
         public ParameterConfig(Map<String, Object> map) {
             super(map);
             column = (List) getVal(KEY_COLUMN_LIST);
-            List<Map<String,Object>> connList = (List<Map<String, Object>>) getVal(KEY_CONNECTION_CONFIG_LIST);
+            List<Map<String, Object>> connList =
+                    (List<Map<String, Object>>) getVal(KEY_CONNECTION_CONFIG_LIST);
             connection = new ArrayList<>();
-            if(connList != null) {
-                for(Map<String,Object> conn : connList) {
+            if (connList != null) {
+                for (Map<String, Object> conn : connList) {
                     connection.add(new ParameterConfig.ConnectionConfig(conn));
                 }
             }
@@ -112,11 +114,11 @@ public class ReaderConfig extends AbstractConfig {
                 setVal(KEY_TABLE_LIST, table);
             }
 
-            public String getSchema(){
+            public String getSchema() {
                 return (String) getVal(KEY_SCHEMA);
             }
 
-            public void setSchema(String schema){
+            public void setSchema(String schema) {
                 setVal(KEY_SCHEMA, schema);
             }
 
@@ -128,22 +130,21 @@ public class ReaderConfig extends AbstractConfig {
                 setVal(KEY_JDBC_URL_LIST, jdbcUrl);
             }
 
-            public void setUsername(String username){
-                setVal(KEY_JDBC_USERNAME,username);
+            public void setUsername(String username) {
+                setVal(KEY_JDBC_USERNAME, username);
             }
 
-            public String getUsername(){
-                return (String)getVal(KEY_JDBC_USERNAME);
+            public String getUsername() {
+                return (String) getVal(KEY_JDBC_USERNAME);
             }
 
-            public void setPassword(String password){
-                setVal(KEY_JDBC_PASSWORD,password);
+            public void setPassword(String password) {
+                setVal(KEY_JDBC_PASSWORD, password);
             }
 
-            public String getPassword(){
-                return (String)getVal(KEY_JDBC_PASSWORD);
+            public String getPassword() {
+                return (String) getVal(KEY_JDBC_PASSWORD);
             }
         }
-
     }
 }

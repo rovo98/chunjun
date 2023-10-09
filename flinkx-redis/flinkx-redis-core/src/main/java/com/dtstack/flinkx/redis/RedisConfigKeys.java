@@ -19,38 +19,35 @@
 package com.dtstack.flinkx.redis;
 
 /**
- * Configuration Keys for Redis plugin
+ * Configuration Keys for Redis plugin @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class RedisConfigKeys {
 
-    public final static String KEY_HOST_PORT = "hostPort";
+    public static final String KEY_HOST_PORT = "hostPort";
 
-    public final static String KEY_PASSWORD = "password";
+    public static final String KEY_PASSWORD = "password";
 
-    public final static String KEY_DB = "database";
+    public static final String KEY_DB = "database";
 
-    public final static String KEY_KEY_INDEXES = "keyIndexes";
+    public static final String KEY_KEY_INDEXES = "keyIndexes";
 
-    public final static String KEY_WRITE_MODE = "writeMode";
+    public static final String KEY_WRITE_MODE = "writeMode";
 
-    public final static String KEY_KEY_FIELD_DELIMITER = "keyFieldDelimiter";
+    public static final String KEY_KEY_FIELD_DELIMITER = "keyFieldDelimiter";
 
-    public final static String KEY_BATCH_SIZE = "batchSize";
+    public static final String KEY_BATCH_SIZE = "batchSize";
 
-    public final static String KEY_EXPIRE_TIME = "expireTime";
+    public static final String KEY_EXPIRE_TIME = "expireTime";
 
-    public final static String KEY_TIMEOUT = "timeout";
+    public static final String KEY_TIMEOUT = "timeout";
 
-    public final static String KEY_DATE_FORMAT = "dateFormat";
+    public static final String KEY_DATE_FORMAT = "dateFormat";
 
-    public final static String KEY_TYPE = "type";
+    public static final String KEY_TYPE = "type";
 
-    public final static String KEY_MODE = "mode";
+    public static final String KEY_MODE = "mode";
 
-    public final static String KEY_VALUE_FIELD_DELIMITER = "valueFieldDelimiter";
-
-
+    public static final String KEY_VALUE_FIELD_DELIMITER = "valueFieldDelimiter";
 }

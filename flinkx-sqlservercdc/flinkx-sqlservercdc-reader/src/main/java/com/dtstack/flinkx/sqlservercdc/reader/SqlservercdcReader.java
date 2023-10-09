@@ -23,6 +23,7 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcConfigKeys;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormatBuilder;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -33,8 +34,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -56,14 +56,20 @@ public class SqlservercdcReader extends BaseDataReader {
         username = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_USER_NAME);
         password = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_PASSWORD);
         url = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_URL);
-        databaseName = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_DATABASE_NAME);
+        databaseName =
+                readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_DATABASE_NAME);
         cat = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_CATALOG);
-        pavingData = readerConfig.getParameter().getBooleanVal(SqlServerCdcConfigKeys.KEY_PAVING_DATA, false);
-        List<String> tables = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
+        pavingData =
+                readerConfig
+                        .getParameter()
+                        .getBooleanVal(SqlServerCdcConfigKeys.KEY_PAVING_DATA, false);
+        List<String> tables =
+                (List<String>)
+                        readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
 
         if (CollectionUtils.isNotEmpty(tables)) {
             tableList = new ArrayList<>(tables.size());
-            //兼容[].[]
+            // 兼容[].[]
             tables.forEach(item -> tableList.add(StringUtil.splitIgnoreQuotaAndJoinByPoint(item)));
         } else {
             tableList = Collections.emptyList();

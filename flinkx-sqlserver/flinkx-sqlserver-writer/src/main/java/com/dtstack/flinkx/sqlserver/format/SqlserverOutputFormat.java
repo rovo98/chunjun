@@ -20,6 +20,7 @@ package com.dtstack.flinkx.sqlserver.format;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.sqlserver.SqlServerConstants;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class SqlserverOutputFormat extends JdbcOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(SqlserverOutputFormat.class);
 
-    //是否在sql语句后面添加 with(nolock) ,默认是false
+    // 是否在sql语句后面添加 with(nolock) ,默认是false
     private Boolean withNoLock;
 
     @Override
@@ -49,7 +49,10 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
             super.beforeWriteRecords();
         }
         Statement stmt = null;
-        String sql = String.format("IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT \"%s\" ON  END", table, table);
+        String sql =
+                String.format(
+                        "IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT \"%s\" ON  END",
+                        table, table);
         try {
             stmt = dbConn.createStatement();
             stmt.execute(sql);
@@ -66,7 +69,6 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         return true;
     }
 
-
     @Override
     protected List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
@@ -74,10 +76,11 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
-            String queryFieldsSql = databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table));
-            //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
+            String queryFieldsSql =
+                    databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table));
+            // 是否需要添加 with(nolock)，添加规则是 from table with(nolock)
             if (getWithNoLock()) {
-                //databaseInterface.getSqlQueryFields 返回的结果就是from table  后面没有where等语句所以直接添加的
+                // databaseInterface.getSqlQueryFields 返回的结果就是from table  后面没有where等语句所以直接添加的
                 queryFieldsSql += SqlServerConstants.WITH_NO_LOCK;
             }
             rs = stmt.executeQuery(queryFieldsSql);

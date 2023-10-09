@@ -48,7 +48,7 @@ public class RestartConfig extends AbstractConfig {
         super(map);
     }
 
-    public static RestartConfig defaultConfig(){
+    public static RestartConfig defaultConfig() {
         Map<String, Object> map = new HashMap<>(16);
         return new RestartConfig(map);
     }
@@ -57,7 +57,7 @@ public class RestartConfig extends AbstractConfig {
         return getStringVal(KEY_STRATEGY, DEFAULT_STRATEGY);
     }
 
-    public int getRestartAttempts(){
+    public int getRestartAttempts() {
         return getIntVal(KEY_RESTART_ATTEMPTS, DEFAULT_RESTART_ATTEMPTS);
     }
 
@@ -69,7 +69,7 @@ public class RestartConfig extends AbstractConfig {
         return getIntVal(KEY_FAILURE_RATE, DEFAULT_FAILURE_RATE);
     }
 
-    public int getFailureInterval(){
+    public int getFailureInterval() {
         return getIntVal(KEY_FAILURE_INTERVAL, DEFAULT_FAILURE_INTERVAL);
     }
 }

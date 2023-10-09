@@ -39,44 +39,44 @@ public class RestoreConfig extends AbstractConfig {
         super(map);
     }
 
-    public static RestoreConfig defaultConfig(){
+    public static RestoreConfig defaultConfig() {
         Map<String, Object> map = Collections.singletonMap(KEY_IS_RESTORE, false);
         return new RestoreConfig(map);
     }
 
-    public void configStream(){
+    public void configStream() {
         setBooleanVal(KEY_IS_STREAM, true);
     }
 
-    public boolean isRestore(){
+    public boolean isRestore() {
         return getBooleanVal(KEY_IS_RESTORE, false);
     }
 
-    public boolean isStream(){
+    public boolean isStream() {
         return isRestore() && getBooleanVal(KEY_IS_STREAM, false);
     }
 
-    public int getRestoreColumnIndex(){
+    public int getRestoreColumnIndex() {
         return getIntVal(KEY_RESTORE_COLUMN_INDEX, -1);
     }
 
-    public void setRestoreColumnIndex(int index){
+    public void setRestoreColumnIndex(int index) {
         setIntVal(KEY_RESTORE_COLUMN_INDEX, index);
     }
 
-    public void setRestoreColumnType(String type){
+    public void setRestoreColumnType(String type) {
         setStringVal(KEY_RESTORE_COLUMN_TYPE, type);
     }
 
-    public String getRestoreColumnType(){
+    public String getRestoreColumnType() {
         return getStringVal(KEY_RESTORE_COLUMN_TYPE);
     }
 
-    public String getRestoreColumnName(){
+    public String getRestoreColumnName() {
         return getStringVal(KEY_RESTORE_COLUMN_NAME);
     }
 
-    public long getMaxRowNumForCheckpoint(){
+    public long getMaxRowNumForCheckpoint() {
         return getLongVal(KEY_MAX_ROW_NUM_FOR_CHECKPOINT, 10000);
     }
 }

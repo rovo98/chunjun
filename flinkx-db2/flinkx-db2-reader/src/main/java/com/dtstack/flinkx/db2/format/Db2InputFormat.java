@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.db2.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -25,8 +26,7 @@ import java.io.IOException;
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -40,14 +40,14 @@ public class Db2InputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
+                if (obj != null) {
                     obj = clobToString(obj);
                 }
 
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }

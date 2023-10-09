@@ -20,6 +20,7 @@ package com.dtstack.flinkx.launcher.perJob;
 import com.dtstack.flinkx.launcher.KerberosInfo;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.security.SecurityConfiguration;
@@ -43,8 +44,8 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Date: 2019/09/11
- * Company: www.dtstack.com
+ * Date: 2019/09/11 Company: www.dtstack.com
+ *
  * @author tudou
  */
 public class PerJobClusterClientBuilder {
@@ -57,17 +58,18 @@ public class PerJobClusterClientBuilder {
 
     private Configuration flinkConfig;
 
-    //kerberos验证信息
+    // kerberos验证信息
     private KerberosInfo kerberosInfo;
 
     /**
      * init yarnClient
+     *
      * @param launcherOptions flinkx args
      * @param conProp flink args
      */
     public void init(Options launcherOptions, Properties conProp) throws Exception {
         String yarnConfDir = launcherOptions.getYarnconf();
-        if(StringUtils.isBlank(yarnConfDir)) {
+        if (StringUtils.isBlank(yarnConfDir)) {
             throw new RuntimeException("parameters of yarn is required");
         }
 
@@ -101,11 +103,13 @@ public class PerJobClusterClientBuilder {
 
     /**
      * create a yarn cluster descriptor which is used to start the application master
+     *
      * @param launcherOptions LauncherOptions
      * @return
      * @throws MalformedURLException
      */
-    public YarnClusterDescriptor createPerJobClusterDescriptor(Options launcherOptions) throws MalformedURLException {
+    public YarnClusterDescriptor createPerJobClusterDescriptor(Options launcherOptions)
+            throws MalformedURLException {
         String flinkJarPath = launcherOptions.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
@@ -115,23 +119,39 @@ public class PerJobClusterClientBuilder {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
 
-        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        if(log4j.exists()){
-            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        } else{
-            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
-            if(logback.exists()){
-                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+        File log4j =
+                new File(
+                        launcherOptions.getFlinkconf()
+                                + File.separator
+                                + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+        if (log4j.exists()) {
+            flinkConfig.setString(
+                    YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                    launcherOptions.getFlinkconf()
+                            + File.separator
+                            + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+        } else {
+            File logback =
+                    new File(
+                            launcherOptions.getFlinkconf()
+                                    + File.separator
+                                    + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+            if (logback.exists()) {
+                flinkConfig.setString(
+                        YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                        launcherOptions.getFlinkconf()
+                                + File.separator
+                                + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
             }
-
         }
 
-        YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
-                flinkConfig,
-                yarnConf,
-                yarnClient,
-                YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                false);
+        YarnClusterDescriptor descriptor =
+                new YarnClusterDescriptor(
+                        flinkConfig,
+                        yarnConf,
+                        yarnClient,
+                        YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                        false);
 
         List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
@@ -148,7 +168,6 @@ public class PerJobClusterClientBuilder {
         descriptor.addShipFiles(shipFiles);
         return descriptor;
     }
-
 
     public KerberosInfo getKerberosInfo() {
         return kerberosInfo;

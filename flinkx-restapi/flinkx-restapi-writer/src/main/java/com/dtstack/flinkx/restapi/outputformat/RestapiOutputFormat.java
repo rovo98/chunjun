@@ -21,6 +21,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,8 +43,7 @@ import static com.dtstack.flinkx.restapi.common.RestapiKeys.KEY_BATCH;
 
 /**
  * @author : tiezhu
- * @date : 2020/3/12
- * 当前只考虑了元数据读取，和带有字段名column读取的情况，其他情况暂未考虑
+ * @date : 2020/3/12 当前只考虑了元数据读取，和带有字段名column读取的情况，其他情况暂未考虑
  */
 public class RestapiOutputFormat extends BaseRichOutputFormat {
 
@@ -149,18 +149,22 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-
-    private void sendRequest(CloseableHttpClient httpClient,
-                             Map<String, Object> requestBody,
-                             String method,
-                             Map<String, String> header,
-                             String url) throws IOException {
+    private void sendRequest(
+            CloseableHttpClient httpClient,
+            Map<String, Object> requestBody,
+            String method,
+            Map<String, String> header,
+            String url)
+            throws IOException {
         LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
-        //设置请求和传输超时时间
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(DEFAULT_TIME_OUT).setConnectionRequestTimeout(DEFAULT_TIME_OUT)
-                .setSocketTimeout(DEFAULT_TIME_OUT).build();
+        // 设置请求和传输超时时间
+        RequestConfig requestConfig =
+                RequestConfig.custom()
+                        .setConnectTimeout(DEFAULT_TIME_OUT)
+                        .setConnectionRequestTimeout(DEFAULT_TIME_OUT)
+                        .setSocketTimeout(DEFAULT_TIME_OUT)
+                        .build();
         request.setConfig(requestConfig);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
         // 重试之后返回状态码不为200

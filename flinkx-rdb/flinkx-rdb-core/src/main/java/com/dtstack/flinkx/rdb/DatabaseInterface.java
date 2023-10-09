@@ -26,7 +26,8 @@ import java.util.Map;
 /**
  * Database prototype specification
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public interface DatabaseInterface {
@@ -83,7 +84,7 @@ public interface DatabaseInterface {
      * @param column 别名
      * @return "value" as column
      */
-    String quoteValue(String value,String column);
+    String quoteValue(String value, String column);
 
     /**
      * 给字段加引号
@@ -136,7 +137,11 @@ public interface DatabaseInterface {
      * @param updateKey 主键或唯一索引
      * @return replace sql
      */
-    String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey);
+    String getReplaceStatement(
+            List<String> column,
+            List<String> fullColumn,
+            String table,
+            Map<String, List<String>> updateKey);
 
     /**
      * 构造merger语句
@@ -146,7 +151,8 @@ public interface DatabaseInterface {
      * @param updateKey 主键或唯一索引
      * @return merge sql
      */
-    String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey);
+    String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey);
 
     /**
      * 构造分片切分语句

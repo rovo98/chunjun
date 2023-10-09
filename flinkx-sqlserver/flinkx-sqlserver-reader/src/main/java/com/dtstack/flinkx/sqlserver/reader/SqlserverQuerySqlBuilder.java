@@ -21,6 +21,7 @@ import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.sqlserver.SqlServerConstants;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -28,11 +29,10 @@ import java.util.List;
 /**
  * SqlserverQuerySqlBuilder
  *
- * @author by dujie@dtstack.com
- * @Date 2020/8/18
+ * @author by dujie@dtstack.com @Date 2020/8/18
  */
 public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
-    //是否在sql语句后面添加 with(nolock) ,默认是false
+    // 是否在sql语句后面添加 with(nolock) ,默认是false
     private Boolean withNoLock = false;
 
     public SqlserverQuerySqlBuilder(JdbcDataReader reader) {
@@ -45,12 +45,13 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
     @Override
     protected String buildQuerySql() {
         List<String> selectColumns = DbUtil.buildSelectColumns(databaseInterface, metaColumns);
-        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
+        boolean splitWithRowNum =
+                addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ").append(StringUtils.join(selectColumns, ",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
-        //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
+        // 是否需要添加 with(nolock)，添加规则是 from table with(nolock)
         if (withNoLock) {
             sb.append(SqlServerConstants.WITH_NO_LOCK);
         }
@@ -80,7 +81,10 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
         sb.append(filter);
 
         if (isSplitByKey && splitWithRowNum) {
-            return String.format(SQL_SPLIT_WITH_ROW_NUM, sb.toString(), databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
+            return String.format(
+                    SQL_SPLIT_WITH_ROW_NUM,
+                    sb.toString(),
+                    databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
         } else {
             return sb.toString();
         }
@@ -90,14 +94,17 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
     protected String buildQuerySqlWithCustomSql() {
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
-        //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
+        // 是否需要添加 with(nolock)，添加规则是 from table with(nolock)
         if (withNoLock) {
             querySql.append(SqlServerConstants.WITH_NO_LOCK);
         }
         querySql.append(" WHERE 1=1 ");
 
         if (isSplitByKey) {
-            querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
+            querySql.append(" And ")
+                    .append(
+                            databaseInterface.getSplitFilterWithTmpTable(
+                                    TEMPORARY_TABLE_NAME, splitKey));
         }
 
         if (isIncrement) {

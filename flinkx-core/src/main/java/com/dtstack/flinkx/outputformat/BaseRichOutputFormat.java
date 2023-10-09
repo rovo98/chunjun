@@ -32,6 +32,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.api.common.accumulators.IntCounter;
@@ -163,8 +164,8 @@ public abstract class BaseRichOutputFormat
     private JobMasterGateway jobMasterGateway;
 
     /*
-     indicators for indicating job's current executing operation.
-     */
+    indicators for indicating job's current executing operation.
+    */
     private IntCounter dataPreprocessIndicator;
     private IntCounter dataSyncIndicator;
     private IntCounter dataPostProcessIndicator;
@@ -509,7 +510,7 @@ public abstract class BaseRichOutputFormat
         }
     }
 
-    private Row setChannelInfo(Row row){
+    private Row setChannelInfo(Row row) {
         Row internalRow = new Row(row.getArity() - 1);
         for (int i = 0; i < internalRow.getArity(); i++) {
             internalRow.setField(i, row.getField(i));

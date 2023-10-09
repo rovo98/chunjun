@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.latch;
 
 import com.dtstack.flinkx.util.ReflectionUtils;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;

@@ -1,6 +1,5 @@
 package com.dtstack.flinkx.binlog.reader;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
@@ -218,27 +217,55 @@ public class BinlogConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "BinlogConfig{" +
-                "host='" + host + '\'' +
-                ", port=" + port +
-                ", username='" + username + '\'' +
-                ", password='" + "******" + '\'' +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", start=" + start +
-                ", cat='" + cat + '\'' +
-                ", filter='" + filter + '\'' +
-                ", period=" + period +
-                ", bufferSize=" + bufferSize +
-                ", pavingData=" + pavingData +
-                ", table=" + table +
-                ", slaveId=" + slaveId +
-                ", connectionCharset='" + connectionCharset + '\'' +
-                ", detectingEnable=" + detectingEnable +
-                ", detectingSQL='" + detectingSql + '\'' +
-                ", enableTsdb=" + enableTsdb +
-                ", parallel=" + parallel +
-                ", parallelThreadSize=" + parallelThreadSize +
-                ", isGTIDMode=" + isGtidMode +
-                '}';
+        return "BinlogConfig{"
+                + "host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + "******"
+                + '\''
+                + ", jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", start="
+                + start
+                + ", cat='"
+                + cat
+                + '\''
+                + ", filter='"
+                + filter
+                + '\''
+                + ", period="
+                + period
+                + ", bufferSize="
+                + bufferSize
+                + ", pavingData="
+                + pavingData
+                + ", table="
+                + table
+                + ", slaveId="
+                + slaveId
+                + ", connectionCharset='"
+                + connectionCharset
+                + '\''
+                + ", detectingEnable="
+                + detectingEnable
+                + ", detectingSQL='"
+                + detectingSql
+                + '\''
+                + ", enableTsdb="
+                + enableTsdb
+                + ", parallel="
+                + parallel
+                + ", parallelThreadSize="
+                + parallelThreadSize
+                + ", isGTIDMode="
+                + isGtidMode
+                + '}';
     }
 }

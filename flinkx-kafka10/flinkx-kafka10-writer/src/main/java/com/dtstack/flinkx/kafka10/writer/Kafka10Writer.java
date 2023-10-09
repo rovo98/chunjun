@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.kafka10.format.Kafka10OutputFormat;
 import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -35,8 +36,9 @@ public class Kafka10Writer extends KafkaBaseWriter {
 
     public Kafka10Writer(DataTransferConfig config) {
         super(config);
-        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
-            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
+        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
+            throw new IllegalArgumentException(
+                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
         }
     }
 

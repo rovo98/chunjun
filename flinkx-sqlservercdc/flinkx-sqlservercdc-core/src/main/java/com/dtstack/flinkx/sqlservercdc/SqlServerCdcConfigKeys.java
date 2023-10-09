@@ -18,8 +18,7 @@
 package com.dtstack.flinkx.sqlservercdc;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -31,15 +30,15 @@ public class SqlServerCdcConfigKeys {
 
     public static final String KEY_URL = "url";
 
-    public final static String KEY_DATABASE_NAME = "databaseName";
+    public static final String KEY_DATABASE_NAME = "databaseName";
 
-    public final static String KEY_CATALOG = "cat";
+    public static final String KEY_CATALOG = "cat";
 
-    public final static String KEY_PAVING_DATA = "pavingData";
+    public static final String KEY_PAVING_DATA = "pavingData";
 
-    public final static String KEY_TABLE_LIST = "tableList";
+    public static final String KEY_TABLE_LIST = "tableList";
 
-    public final static String KEY_POLL_INTERVAL = "pollInterval";
+    public static final String KEY_POLL_INTERVAL = "pollInterval";
 
-    public final static String KEY_LSN = "lsn";
+    public static final String KEY_LSN = "lsn";
 }

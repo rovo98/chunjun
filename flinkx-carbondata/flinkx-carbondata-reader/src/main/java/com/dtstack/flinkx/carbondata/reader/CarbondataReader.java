@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -35,7 +36,8 @@ import java.util.Map;
 /**
  * Carbondata reader plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataReader extends BaseDataReader {
@@ -48,7 +50,7 @@ public class CarbondataReader extends BaseDataReader {
 
     protected String path;
 
-    protected Map<String,String> hadoopConfig;
+    protected Map<String, String> hadoopConfig;
 
     protected String defaultFs;
 
@@ -60,11 +62,12 @@ public class CarbondataReader extends BaseDataReader {
 
     protected String filter;
 
-
     public CarbondataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        hadoopConfig = (Map<String, String>) readerConfig.getParameter().getVal(CarbonConfigKeys.KEY_HADOOP_CONFIG);
+        hadoopConfig =
+                (Map<String, String>)
+                        readerConfig.getParameter().getVal(CarbonConfigKeys.KEY_HADOOP_CONFIG);
         table = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE);
         database = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
@@ -77,7 +80,7 @@ public class CarbondataReader extends BaseDataReader {
                 columnType = new ArrayList<>();
                 columnValue = new ArrayList<>();
                 columnName = new ArrayList<>();
-                for(int i = 0; i < columns.size(); ++i) {
+                for (int i = 0; i < columns.size(); ++i) {
                     Map sm = (Map) columns.get(i);
                     columnType.add((String) sm.get("type"));
                     columnValue.add((String) sm.get("value"));
@@ -111,5 +114,4 @@ public class CarbondataReader extends BaseDataReader {
         builder.setTestConfig(testConfig);
         return createInput(builder.finish());
     }
-
 }

@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
-
 
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
 import java.io.IOException;
 
 /**
  * record writer for simple carbon table
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class SimpleRecordWriter extends AbstractRecordWriter {
@@ -40,7 +40,6 @@ public class SimpleRecordWriter extends AbstractRecordWriter {
         carbonLoadModelList.add(carbonLoadModel);
         TaskAttemptContext context = createTaskContext();
         taskAttemptContextList.add(context);
-
     }
 
     @Override
@@ -52,12 +51,11 @@ public class SimpleRecordWriter extends AbstractRecordWriter {
     protected void createRecordWriterList() {
         RecordWriter recordWriter = null;
         try {
-            recordWriter = createRecordWriter(carbonLoadModelList.get(0), taskAttemptContextList.get(0));
+            recordWriter =
+                    createRecordWriter(carbonLoadModelList.get(0), taskAttemptContextList.get(0));
             recordWriterList.add(recordWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 }

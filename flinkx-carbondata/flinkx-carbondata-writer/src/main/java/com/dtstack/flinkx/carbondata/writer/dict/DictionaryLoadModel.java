@@ -16,20 +16,19 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.carbondata.writer.dict;
-
 
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.ColumnIdentifier;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
-import java.util.List;
 
+import java.util.List;
 
 /**
  * Dictionary Load Model
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class DictionaryLoadModel {

@@ -28,6 +28,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RangeSplitUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.phoenix.query.QueryConstants;
 import org.codehaus.commons.compiler.CompileException;
-import sun.misc.URLClassPath;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -63,6 +63,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import sun.misc.URLClassPath;
+
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
@@ -72,12 +74,12 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  */
 public class Phoenix5InputFormat extends JdbcInputFormat {
 
-    //是否直接读取HBase的数据
+    // 是否直接读取HBase的数据
     public boolean readFromHbase;
-    //一次读取返回的Results数量,默认为HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING
+    // 一次读取返回的Results数量,默认为HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING
     public int scanCacheSize;
-    //限定了一个Result中所包含的列的数量，如果一行数据被请求的列的数量超出Batch限制，那么这行数据会被拆成多个Results
-    //默认为-1，表示返回所有行
+    // 限定了一个Result中所包含的列的数量，如果一行数据被请求的列的数量超出Batch限制，那么这行数据会被拆成多个Results
+    // 默认为-1，表示返回所有行
     public int scanBatchSize;
 
     public String sql;
@@ -96,8 +98,9 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
-        if(readFromHbase){
-            LOG.warn("phoenix5reader config [readFromHbase] is true, FlinkX will read data from HBase directly!");
+        if (readFromHbase) {
+            LOG.warn(
+                    "phoenix5reader config [readFromHbase] is true, FlinkX will read data from HBase directly!");
             Phoenix5DatabaseMeta metaData = (Phoenix5DatabaseMeta) this.databaseInterface;
             sql = metaData.getSqlWithLimit1(metaColumns, table);
             List<Pair<byte[], byte[]>> rangeList;
@@ -108,29 +111,39 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 rangeList = helper.getRangeList(ps);
                 LOG.info("region's count = {}", rangeList.size());
             } catch (Exception e) {
-                String message = String.format("failed to query rangeList, sql = %s, dbUrl = %s, properties = %s, e = %s", sql, dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
+                String message =
+                        String.format(
+                                "failed to query rangeList, sql = %s, dbUrl = %s, properties = %s, e = %s",
+                                sql,
+                                dbUrl,
+                                GsonUtil.GSON.toJson(properties),
+                                ExceptionUtil.getErrorMessage(e));
                 throw new RuntimeException(message, e);
-            }finally {
+            } finally {
                 DbUtil.closeDbResources(resultSet, ps, dbConn, false);
             }
-            if(rangeList.size() < minNumSplits){
-                String message = String.format("region's count [%s] must be less than or equal to channel number [%s], please reduce [channel] in FlinkX config!", rangeList.size(), minNumSplits);
+            if (rangeList.size() < minNumSplits) {
+                String message =
+                        String.format(
+                                "region's count [%s] must be less than or equal to channel number [%s], please reduce [channel] in FlinkX config!",
+                                rangeList.size(), minNumSplits);
                 throw new IllegalArgumentException(message);
             }
-            List<List<Pair<byte[], byte[]>>> list = RangeSplitUtil.subListBySegment(rangeList, minNumSplits);
+            List<List<Pair<byte[], byte[]>>> list =
+                    RangeSplitUtil.subListBySegment(rangeList, minNumSplits);
             InputSplit[] splits = new InputSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
                 splits[i] = new Phoenix5InputSplit(i, minNumSplits, new Vector<>(list.get(i)));
             }
             return splits;
-        }else{
+        } else {
             return super.createInputSplitsInternal(minNumSplits);
         }
     }
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        if(readFromHbase){
+        if (readFromHbase) {
             try {
                 Phoenix5DatabaseMeta metaData = (Phoenix5DatabaseMeta) this.databaseInterface;
                 sql = metaData.getSqlWithLimit1(metaColumns, table);
@@ -147,12 +160,13 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                     LOG.info("field count = {}, name = {}, type = {}", i, name, type);
                 }
                 helper.initInstanceList(typeList);
-                Vector<Pair<byte[], byte[]>> keyRangeList = ((Phoenix5InputSplit) inputSplit).getSplits();
+                Vector<Pair<byte[], byte[]>> keyRangeList =
+                        ((Phoenix5InputSplit) inputSplit).getSplits();
 
                 scan = new Scan();
                 keyRangeIterator = keyRangeList.iterator();
                 Pair<byte[], byte[]> pair = keyRangeIterator.next();
-                //for yarn session mode
+                // for yarn session mode
                 scan.setStartRow(pair.getLeft());
                 scan.setStopRow(pair.getRight());
                 scan.setFamilyMap(helper.getFamilyMap(resultSet));
@@ -166,29 +180,39 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 Configuration hConfiguration = HBaseConfiguration.create();
                 hConfiguration.set(HConstants.ZOOKEEPER_QUORUM, (String) map.get("quorum"));
                 Object port = map.get("port");
-                if(port == null){
-                    hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, HConstants.DEFAULT_ZOOKEEPER_CLIENT_PORT);
-                }else{
-                    hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, (int)port);
+                if (port == null) {
+                    hConfiguration.setInt(
+                            HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT,
+                            HConstants.DEFAULT_ZOOKEEPER_CLIENT_PORT);
+                } else {
+                    hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, (int) port);
                 }
                 Object rootNode = map.get("rootNode");
-                if(rootNode == null){
-                    hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, HConstants.DEFAULT_ZOOKEEPER_ZNODE_PARENT);
-                }else{
+                if (rootNode == null) {
+                    hConfiguration.set(
+                            HConstants.ZOOKEEPER_ZNODE_PARENT,
+                            HConstants.DEFAULT_ZOOKEEPER_ZNODE_PARENT);
+                } else {
                     hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, (String) rootNode);
                 }
                 hConfiguration.setBoolean(HConstants.CLUSTER_DISTRIBUTED, true);
-                try (org.apache.hadoop.hbase.client.Connection hConn = ConnectionFactory.createConnection(hConfiguration)) {
+                try (org.apache.hadoop.hbase.client.Connection hConn =
+                        ConnectionFactory.createConnection(hConfiguration)) {
                     hTable = hConn.getTable(TableName.valueOf(table));
                 }
                 resultIterator = hTable.getScanner(scan).iterator();
             } catch (Exception e) {
-                String message = String.format("openInputFormat() failed, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
+                String message =
+                        String.format(
+                                "openInputFormat() failed, dbUrl = %s, properties = %s, e = %s",
+                                dbUrl,
+                                GsonUtil.GSON.toJson(properties),
+                                ExceptionUtil.getErrorMessage(e));
                 throw new RuntimeException(message, e);
-            }finally {
+            } finally {
                 DbUtil.closeDbResources(resultSet, ps, dbConn, false);
             }
-        }else{
+        } else {
             super.openInternal(inputSplit);
         }
     }
@@ -197,10 +221,10 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
     public Row nextRecordInternal(Row row) throws IOException {
         try {
             row = new Row(columnCount);
-            if(readFromHbase){
-                NoTagsKeyValue cell = (NoTagsKeyValue)resultIterator.next().listCells().get(0);
+            if (readFromHbase) {
+                NoTagsKeyValue cell = (NoTagsKeyValue) resultIterator.next().listCells().get(0);
                 return helper.getRow(cell.getBuffer(), cell.getOffset(), cell.getLength());
-            }else{
+            } else {
                 if (!hasNext) {
                     return null;
                 }
@@ -210,35 +234,41 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 return super.nextRecordInternal(row);
             }
         } catch (Exception e) {
-            throw new IOException(String.format("Couldn't read data, e = %s", ExceptionUtil.getErrorMessage(e)), e);
+            throw new IOException(
+                    String.format("Couldn't read data, e = %s", ExceptionUtil.getErrorMessage(e)),
+                    e);
         }
     }
 
     @Override
-    public boolean reachedEnd() throws IOException{
-        if(readFromHbase){
-            if(resultIterator.hasNext()){
+    public boolean reachedEnd() throws IOException {
+        if (readFromHbase) {
+            if (resultIterator.hasNext()) {
                 return false;
-            }else{
-                if(keyRangeIterator.hasNext()){
+            } else {
+                if (keyRangeIterator.hasNext()) {
                     Pair<byte[], byte[]> pair = keyRangeIterator.next();
-                    LOG.info("switch regions, current region is [{}}] to [{}]", GsonUtil.GSON.toJson(pair.getLeft()), GsonUtil.GSON.toJson(pair.getRight()));
-                    //for yarn session mode
+                    LOG.info(
+                            "switch regions, current region is [{}}] to [{}]",
+                            GsonUtil.GSON.toJson(pair.getLeft()),
+                            GsonUtil.GSON.toJson(pair.getRight()));
+                    // for yarn session mode
                     scan.setStartRow(pair.getLeft());
                     scan.setStopRow(pair.getRight());
                     resultIterator = hTable.getScanner(scan).iterator();
                     return reachedEnd();
-                }else{
+                } else {
                     return true;
                 }
             }
-        }else{
+        } else {
             return super.reachedEnd();
         }
     }
 
     /**
      * 获取数据库连接，用于子类覆盖
+     *
      * @return connection
      */
     @Override
@@ -250,7 +280,10 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         try {
             urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
         } catch (IllegalAccessException e) {
-            String message = String.format("cannot get urlClassPath from current classLoader, classLoader = %s, e = %s", getClass().getClassLoader(), ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "cannot get urlClassPath from current classLoader, classLoader = %s, e = %s",
+                            getClass().getClassLoader(), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
         }
         declaredField.setAccessible(false);
@@ -278,10 +311,10 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                         false);
 
         ClassUtil.forName(driverName, childFirstClassLoader);
-        if(StringUtils.isNotEmpty(username)){
+        if (StringUtils.isNotEmpty(username)) {
             properties.setProperty("user", username);
         }
-        if(StringUtils.isNotEmpty(password)){
+        if (StringUtils.isNotEmpty(password)) {
             properties.setProperty("password", password);
         }
 
@@ -289,7 +322,12 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
             helper = PhoenixUtil.getHelper(childFirstClassLoader);
             return helper.getConn(dbUrl, properties);
         } catch (IOException | CompileException e) {
-            String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s",
+                            dbUrl,
+                            GsonUtil.GSON.toJson(properties),
+                            ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
         }
     }

@@ -24,21 +24,32 @@ import com.dtstack.flinkx.oracle.OracleDatabaseMeta;
 import com.dtstack.flinkx.oracle.format.OracleOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Oracle writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OracleWriter extends JdbcDataWriter {
 
-    protected  String schema;
+    protected String schema;
+
     public OracleWriter(DataTransferConfig config) {
         super(config);
-        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
-        if(StringUtils.isNotBlank(schema)){
+        schema =
+                config.getJob()
+                        .getContent()
+                        .get(0)
+                        .getWriter()
+                        .getParameter()
+                        .getConnection()
+                        .get(0)
+                        .getSchema();
+        if (StringUtils.isNotBlank(schema)) {
             table = schema + ConstantValue.POINT_SYMBOL + table;
         }
         setDatabaseInterface(new OracleDatabaseMeta());
@@ -46,7 +57,8 @@ public class OracleWriter extends JdbcDataWriter {
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
-        JdbcOutputFormatBuilder jdbcOutputFormatBuilder = new JdbcOutputFormatBuilder(new OracleOutputFormat());
+        JdbcOutputFormatBuilder jdbcOutputFormatBuilder =
+                new JdbcOutputFormatBuilder(new OracleOutputFormat());
         jdbcOutputFormatBuilder.setSchema(schema);
         return jdbcOutputFormatBuilder;
     }

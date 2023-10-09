@@ -18,13 +18,11 @@
 package com.dtstack.flinkx.kafkabase.enums;
 
 /**
- * Date: 2020/12/26
- * Company: www.dtstack.com
+ * Date: 2020/12/26 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum KafkaVersion {
-
     unknown("-1"),
 
     kafka09("0.9"),

@@ -19,16 +19,13 @@
 package com.dtstack.flinkx.redis;
 
 /**
- * Data type of redis database
+ * Data type of redis database @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public enum DataType {
 
-    /**
-     * redis data struct
-     */
+    /** redis data struct */
     STRING("string"),
 
     LIST("list"),
@@ -49,9 +46,9 @@ public enum DataType {
         return type;
     }
 
-    public static DataType getDataType(String type){
+    public static DataType getDataType(String type) {
         for (DataType dataType : DataType.values()) {
-            if(dataType.getType().equals(type)){
+            if (dataType.getType().equals(type)) {
                 return dataType;
             }
         }

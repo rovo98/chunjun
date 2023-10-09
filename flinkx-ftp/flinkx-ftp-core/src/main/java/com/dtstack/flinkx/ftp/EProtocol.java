@@ -6,13 +6,9 @@ package com.dtstack.flinkx.ftp;
  */
 public enum EProtocol {
 
-    /**
-     * FTP协议
-     */
+    /** FTP协议 */
     FTP,
 
-    /**
-     * 安全的FTP协议
-     */
+    /** 安全的FTP协议 */
     SFTP
 }

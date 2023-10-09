@@ -27,6 +27,7 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -44,9 +45,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * InputFormat for reading data from multiple database and generate Rows.
+ * InputFormat for reading data from multiple database and generate Rows. @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class DistributedJdbcInputFormat extends BaseRichInputFormat {
@@ -102,32 +102,48 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        try{
+        try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             sourceList = ((DistributedJdbcInputSplit) inputSplit).getSourceList();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new IllegalArgumentException("open() failed." + e.getMessage(), e);
         }
 
         LOG.info("JdbcInputFormat[{}}]open: end", jobName);
     }
 
-    protected void openNextSource() throws SQLException{
+    protected void openNextSource() throws SQLException {
         DataSource currentSource = sourceList.get(sourceIndex);
-        currentConn = DbUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn =
+                DbUtil.getConnection(
+                        currentSource.getJdbcUrl(),
+                        currentSource.getUserName(),
+                        currentSource.getPassword());
         currentConn.setAutoCommit(false);
-        String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
-                where, currentSource.isSplitByKey(), false, false).buildSql();
+        String queryTemplate =
+                new QuerySqlBuilder(
+                                databaseInterface,
+                                currentSource.getTable(),
+                                metaColumns,
+                                splitKey,
+                                where,
+                                currentSource.isSplitByKey(),
+                                false,
+                                false)
+                        .buildSql();
         currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
-        if (currentSource.isSplitByKey()){
+        if (currentSource.isSplitByKey()) {
             String n = currentSource.getParameterValues()[0].toString();
             String m = currentSource.getParameterValues()[1].toString();
-            queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
+            queryTemplate = queryTemplate.replace("${N}", n).replace("${M}", m);
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate,
-                        Arrays.deepToString(currentSource.getParameterValues())));
+                LOG.debug(
+                        String.format(
+                                "Executing '%s' with parameters %s",
+                                queryTemplate,
+                                Arrays.deepToString(currentSource.getParameterValues())));
             }
         }
 
@@ -136,39 +152,44 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         currentResultSet = currentStatement.executeQuery(queryTemplate);
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
-        if(descColumnTypeList == null) {
+        if (descColumnTypeList == null) {
             descColumnTypeList = DbUtil.analyzeColumnType(currentResultSet, metaColumns);
         }
 
-        LOG.info("open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
+        LOG.info(
+                "open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
     }
 
-    protected boolean readNextRecord() throws IOException{
-        try{
-            if(currentConn == null){
+    protected boolean readNextRecord() throws IOException {
+        try {
+            if (currentConn == null) {
                 openNextSource();
             }
 
             hasNext = currentResultSet.next();
-            if (hasNext){
+            if (hasNext) {
                 currentRecord = new Row(columnCount);
-                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+                if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                     for (int i = 0; i < columnCount; i++) {
                         MetaColumn metaColumn = metaColumns.get(i);
                         Object val = currentResultSet.getObject(metaColumn.getName());
-                        if(val == null && metaColumn.getValue() != null){
+                        if (val == null && metaColumn.getValue() != null) {
                             val = metaColumn.getValue();
                         }
 
-                        if (val instanceof String){
-                            val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                        if (val instanceof String) {
+                            val =
+                                    StringUtil.string2col(
+                                            String.valueOf(val),
+                                            metaColumn.getType(),
+                                            metaColumn.getTimeFormat());
                         }
 
-                        currentRecord.setField(i,val);
+                        currentRecord.setField(i, val);
                     }
                 }
             } else {
-                if(sourceIndex + 1 < sourceList.size()){
+                if (sourceIndex + 1 < sourceList.size()) {
                     closeCurrentSource();
                     sourceIndex++;
                     return readNextRecord();
@@ -176,7 +197,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
             }
 
             return !hasNext;
-        }catch (SQLException se) {
+        } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
@@ -188,9 +209,9 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         return currentRecord;
     }
 
-    protected void closeCurrentSource(){
+    protected void closeCurrentSource() {
         try {
-            DbUtil.closeDbResources(currentResultSet,currentStatement,currentConn, true);
+            DbUtil.closeDbResources(currentResultSet, currentStatement, currentConn, true);
             currentConn = null;
             currentStatement = null;
             currentResultSet = null;
@@ -208,10 +229,10 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minPart) throws IOException {
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[numPartitions];
 
-        if(splitKey != null && splitKey.length()> 0){
+        if (splitKey != null && splitKey.length() > 0) {
             Object[][] parmeter = DbUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
-                DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
+                DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j, numPartitions);
                 ArrayList<DataSource> sourceCopy = deepCopyList(sourceList);
                 for (int i = 0; i < sourceCopy.size(); i++) {
                     sourceCopy.get(i).setSplitByKey(true);
@@ -222,9 +243,10 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
             }
         } else {
             int partNum = sourceList.size() / numPartitions;
-            if (partNum == 0){
+            if (partNum == 0) {
                 for (int i = 0; i < sourceList.size(); i++) {
-                    DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(i,numPartitions);
+                    DistributedJdbcInputSplit split =
+                            new DistributedJdbcInputSplit(i, numPartitions);
                     ArrayList<DataSource> arrayList = new ArrayList<>();
                     arrayList.add(sourceList.get(i));
                     split.setSourceList(arrayList);
@@ -232,12 +254,14 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
                 }
             } else {
                 for (int j = 0; j < numPartitions; j++) {
-                    DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-                    split.setSourceList(new ArrayList<>(sourceList.subList(j * partNum,(j + 1) * partNum)));
+                    DistributedJdbcInputSplit split =
+                            new DistributedJdbcInputSplit(j, numPartitions);
+                    split.setSourceList(
+                            new ArrayList<>(sourceList.subList(j * partNum, (j + 1) * partNum)));
                     inputSplits[j] = split;
                 }
 
-                if (partNum * numPartitions < sourceList.size()){
+                if (partNum * numPartitions < sourceList.size()) {
                     int base = partNum * numPartitions;
                     int size = sourceList.size() - base;
                     for (int i = 0; i < size; i++) {
@@ -256,7 +280,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         return readNextRecord();
     }
 
-    public <T> ArrayList<T> deepCopyList(ArrayList<T> src) throws IOException{
+    public <T> ArrayList<T> deepCopyList(ArrayList<T> src) throws IOException {
         try {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteOut);
@@ -267,7 +291,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
             ArrayList<T> dest = (ArrayList<T>) in.readObject();
 
             return dest;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new IOException(e);
         }
     }

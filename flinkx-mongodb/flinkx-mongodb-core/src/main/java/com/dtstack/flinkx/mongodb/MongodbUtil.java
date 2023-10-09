@@ -22,6 +22,7 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -36,29 +37,29 @@ import java.util.List;
 import static com.dtstack.flinkx.enums.ColumnType.getType;
 
 /**
- * Utilities for mongodb database connection and data format conversion
+ * Utilities for mongodb database connection and data format conversion @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class MongodbUtil {
 
-    public static Document convertRowToDoc(Row row,List<MetaColumn> columns) throws WriteRecordException {
+    public static Document convertRowToDoc(Row row, List<MetaColumn> columns)
+            throws WriteRecordException {
         Document doc = new Document();
         for (int i = 0; i < columns.size(); i++) {
             MetaColumn column = columns.get(i);
-            Object val = convertField(row.getField(i),column);
-            if (StringUtils.isNotEmpty(column.getSplitter())){
+            Object val = convertField(row.getField(i), column);
+            if (StringUtils.isNotEmpty(column.getSplitter())) {
                 val = Arrays.asList(String.valueOf(val).split(column.getSplitter()));
             }
 
-            doc.append(column.getName(),val);
+            doc.append(column.getName(), val);
         }
 
         return doc;
     }
 
-    private static Object convertField(Object val,MetaColumn column){
+    private static Object convertField(Object val, MetaColumn column) {
         ColumnType type = getType(column.getType());
         switch (type) {
             case VARCHAR:
@@ -66,7 +67,7 @@ public class MongodbUtil {
             case CHAR:
             case TEXT:
             case STRING:
-                if (val instanceof Date){
+                if (val instanceof Date) {
                     SimpleDateFormat format = DateUtil.getDateTimeFormatter();
                     val = format.format(val);
                 }
@@ -82,7 +83,7 @@ public class MongodbUtil {
                 }
                 break;
             default:
-                if(val instanceof BigDecimal){
+                if (val instanceof BigDecimal) {
                     val = ((BigDecimal) val).doubleValue();
                 }
                 break;

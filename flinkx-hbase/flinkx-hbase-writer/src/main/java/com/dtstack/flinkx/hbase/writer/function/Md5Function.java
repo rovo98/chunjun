@@ -28,7 +28,7 @@ import com.dtstack.flinkx.util.Md5Util;
 public class Md5Function implements IFunction {
 
     @Override
-    public String evaluate(Object str) throws Exception{
+    public String evaluate(Object str) throws Exception {
         return Md5Util.getMd5(str.toString());
     }
 }

@@ -23,7 +23,8 @@ import org.apache.flink.types.Row;
 /**
  * The Exception describing errors when writing a record
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class WriteRecordException extends Exception {
@@ -53,5 +54,4 @@ public class WriteRecordException extends Exception {
     public String toString() {
         return super.toString() + "\n" + getCause().toString();
     }
-
 }

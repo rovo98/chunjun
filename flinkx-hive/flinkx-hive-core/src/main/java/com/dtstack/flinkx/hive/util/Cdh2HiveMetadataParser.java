@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
@@ -41,7 +40,7 @@ public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
             Map<String, Object> row = iter.next();
             colName = (String) row.get("col_name");
             dataType = (String) row.get("data_type");
-            comment = (String)row.get("comment");
+            comment = (String) row.get("comment");
 
             if (colName != null && colName.trim().length() > 0) {
                 colName = colName.trim();
@@ -56,10 +55,10 @@ public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
                 }
             }
 
-            if(dataType != null && dataType.trim().length() > 0){
+            if (dataType != null && dataType.trim().length() > 0) {
                 dataType = dataType.trim();
 
-                if(dataType.contains("field.delim")){
+                if (dataType.contains("field.delim")) {
                     tableInfo.setDelimiter(comment.trim());
                 }
             }

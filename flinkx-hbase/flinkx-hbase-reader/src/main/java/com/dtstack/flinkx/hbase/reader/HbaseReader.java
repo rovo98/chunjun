@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.hbase.HbaseConfigKeys;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -36,7 +37,8 @@ import java.util.Map;
 /**
  * The reader plugin of Hbase
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HbaseReader extends BaseDataReader {
@@ -48,7 +50,7 @@ public class HbaseReader extends BaseDataReader {
     protected List<String> columnValue;
     protected List<String> columnFormat;
     protected String encoding;
-    protected Map<String,Object> hbaseConfig;
+    protected Map<String, Object> hbaseConfig;
     protected String startRowkey;
     protected String endRowkey;
     protected boolean isBinaryRowkey;
@@ -59,25 +61,32 @@ public class HbaseReader extends BaseDataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         tableName = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_TABLE);
-        hbaseConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
+        hbaseConfig =
+                (Map<String, Object>)
+                        readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
 
         Map range = (Map) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_RANGE);
-        if(range != null) {
+        if (range != null) {
             startRowkey = (String) range.get(HbaseConfigKeys.KEY_START_ROW_KEY);
             endRowkey = (String) range.get(HbaseConfigKeys.KEY_END_ROW_KEY);
             isBinaryRowkey = (Boolean) range.get(HbaseConfigKeys.KEY_IS_BINARY_ROW_KEY);
         }
 
         encoding = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_ENCODING);
-        scanCacheSize = readerConfig.getParameter().getIntVal(HbaseConfigKeys.KEY_SCAN_CACHE_SIZE, HbaseConfigConstants.DEFAULT_SCAN_CACHE_SIZE);
+        scanCacheSize =
+                readerConfig
+                        .getParameter()
+                        .getIntVal(
+                                HbaseConfigKeys.KEY_SCAN_CACHE_SIZE,
+                                HbaseConfigConstants.DEFAULT_SCAN_CACHE_SIZE);
 
         List columns = readerConfig.getParameter().getColumn();
-        if(columns != null && columns.size() > 0) {
+        if (columns != null && columns.size() > 0) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
             columnValue = new ArrayList<>();
             columnFormat = new ArrayList<>();
-            for(int i = 0; i < columns.size(); ++i) {
+            for (int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
                 columnName.add((String) sm.get("name"));
                 columnType.add((String) sm.get("type"));
@@ -86,7 +95,7 @@ public class HbaseReader extends BaseDataReader {
             }
 
             LOG.info("init column finished");
-        } else{
+        } else {
             throw new IllegalArgumentException("column argument error");
         }
     }
@@ -114,5 +123,4 @@ public class HbaseReader extends BaseDataReader {
 
         return createInput(builder.finish());
     }
-
 }

@@ -20,12 +20,11 @@ package com.dtstack.flinkx.greenplum.format;
 
 import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
 
-/**Simple inheritance of PostgresqlOutputFormat
+/**
+ * Simple inheritance of PostgresqlOutputFormat
  *
- * Date: 2020/6/4
- * Company: www.dtstack.com
+ * <p>Date: 2020/6/4 Company: www.dtstack.com
+ *
  * @author kunni@dtstack.com
  */
-
-public class GreenplumOutputFormat extends PostgresqlOutputFormat {
-}
+public class GreenplumOutputFormat extends PostgresqlOutputFormat {}

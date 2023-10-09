@@ -21,9 +21,10 @@ package com.dtstack.flinkx.es6x.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.es.Es6xUtil;
+import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

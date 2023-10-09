@@ -25,8 +25,8 @@ import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.sqlservercdc.listener.SqlServerCdcListener;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,8 +47,7 @@ import java.util.concurrent.TimeUnit;
 import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -73,37 +71,51 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
-        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("cdcListener-pool-%d").build();
-        executor = new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+        ThreadFactory namedThreadFactory =
+                new ThreadFactoryBuilder().setNameFormat("cdcListener-pool-%d").build();
+        executor =
+                new ThreadPoolExecutor(
+                        1,
+                        1,
+                        0L,
+                        TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<>(1024),
+                        namedThreadFactory,
+                        new ThreadPoolExecutor.AbortPolicy());
         queue = new SynchronousQueue<>(false);
 
         if (inputSplit.getSplitNumber() != 0) {
-            LOG.info("sqlServer cdc openInternal split number:{} abort...", inputSplit.getSplitNumber());
+            LOG.info(
+                    "sqlServer cdc openInternal split number:{} abort...",
+                    inputSplit.getSplitNumber());
             return;
         }
 
-        LOG.info("sqlServer cdc openInternal split number:{} start...", inputSplit.getSplitNumber());
+        LOG.info(
+                "sqlServer cdc openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
             ClassUtil.forName(DRIVER, getClass().getClassLoader());
             conn = SqlServerCdcUtil.getConnection(url, username, password);
             conn.setAutoCommit(false);
             SqlServerCdcUtil.changeDatabase(conn, databaseName);
 
-            if(StringUtils.isNotBlank(lsn)){
+            if (StringUtils.isNotBlank(lsn)) {
                 logPosition = TxLogPosition.valueOf(Lsn.valueOf(lsn));
-            }else if(formatState != null && formatState.getState() != null){
-                logPosition = (TxLogPosition)formatState.getState();
-            }else{
+            } else if (formatState != null && formatState.getState() != null) {
+                logPosition = (TxLogPosition) formatState.getState();
+            } else {
                 logPosition = TxLogPosition.valueOf(SqlServerCdcUtil.getMaxLsn(conn));
             }
 
             executor.submit(new SqlServerCdcListener(this));
             running = true;
         } catch (Exception e) {
-            LOG.error("SqlserverCdcInputFormat open() failed, e = {}", ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException("SqlserverCdcInputFormat open() failed, e = " + ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "SqlserverCdcInputFormat open() failed, e = {}",
+                    ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(
+                    "SqlserverCdcInputFormat open() failed, e = "
+                            + ExceptionUtil.getErrorMessage(e));
         }
 
         LOG.info("SqlserverCdcInputFormat[{}]open: end", jobName);
@@ -113,9 +125,9 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         try {
             Map<String, Object> map = queue.take();
-            if(map.size() == 1){
+            if (map.size() == 1) {
                 throw new IOException((String) map.get("e"));
-            }else{
+            } else {
                 row = Row.of(map);
             }
         } catch (InterruptedException e) {
@@ -125,14 +137,13 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal(){
+    protected void closeInternal() {
         if (running) {
             executor.shutdownNow();
             running = false;
             LOG.warn("shutdown SqlServerCdcListener......");
         }
     }
-
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
@@ -166,7 +177,10 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
         try {
             queue.put(event);
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", event, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "takeEvent interrupted event:{} error:{}",
+                    event,
+                    ExceptionUtil.getErrorMessage(e));
         }
     }
 

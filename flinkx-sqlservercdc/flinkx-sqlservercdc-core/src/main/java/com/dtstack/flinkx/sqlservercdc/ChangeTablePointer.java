@@ -13,10 +13,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium).
  *
  * @author tudou
  */
@@ -34,7 +33,8 @@ public class ChangeTablePointer {
     private boolean completed = false;
     private TxLogPosition currentChangePosition;
 
-    public ChangeTablePointer(ChangeTable changeTable, SqlServerCdcUtil.StatementResult statementResult) {
+    public ChangeTablePointer(
+            ChangeTable changeTable, SqlServerCdcUtil.StatementResult statementResult) {
         this.changeTable = changeTable;
         this.resultSet = statementResult.getResultSet();
         this.statement = statementResult.getStatement();
@@ -63,7 +63,12 @@ public class ChangeTablePointer {
 
     public boolean next() throws SQLException {
         completed = !resultSet.next();
-        currentChangePosition = completed ? TxLogPosition.NULL : TxLogPosition.valueOf(Lsn.valueOf(resultSet.getBytes(COL_COMMIT_LSN)), Lsn.valueOf(resultSet.getBytes(COL_ROW_LSN)));
+        currentChangePosition =
+                completed
+                        ? TxLogPosition.NULL
+                        : TxLogPosition.valueOf(
+                                Lsn.valueOf(resultSet.getBytes(COL_COMMIT_LSN)),
+                                Lsn.valueOf(resultSet.getBytes(COL_ROW_LSN)));
         if (completed) {
             LOG.debug("Closing result set of change tables for table {}", changeTable);
             resultSet.close();
@@ -82,7 +87,14 @@ public class ChangeTablePointer {
 
     @Override
     public String toString() {
-        return "ChangeTablePointer [changeTable=" + changeTable + ", resultSet=" + resultSet + ", completed="
-                + completed + ", currentChangePosition=" + currentChangePosition + "]";
+        return "ChangeTablePointer [changeTable="
+                + changeTable
+                + ", resultSet="
+                + resultSet
+                + ", completed="
+                + completed
+                + ", currentChangePosition="
+                + currentChangePosition
+                + "]";
     }
 }

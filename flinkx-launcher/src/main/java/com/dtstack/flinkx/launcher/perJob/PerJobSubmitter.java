@@ -21,6 +21,7 @@ package com.dtstack.flinkx.launcher.perJob;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.MapUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClientProvider;
@@ -37,8 +38,8 @@ import java.util.Properties;
 import static com.dtstack.flinkx.launcher.Launcher.*;
 
 /**
- * Date: 2019/09/11
- * Company: www.dtstack.com
+ * Date: 2019/09/11 Company: www.dtstack.com
+ *
  * @author tudou
  */
 public class PerJobSubmitter {
@@ -46,13 +47,15 @@ public class PerJobSubmitter {
 
     /**
      * submit per-job task
+     *
      * @param launcherOptions LauncherOptions
      * @param jobGraph JobGraph
      * @param remoteArgs remoteArgs
      * @return
      * @throws Exception
      */
-    public static String submit(Options launcherOptions, JobGraph jobGraph, String[] remoteArgs) throws Exception{
+    public static String submit(Options launcherOptions, JobGraph jobGraph, String[] remoteArgs)
+            throws Exception {
         LOG.info("start to submit per-job task, launcherOptions = {}", launcherOptions.toString());
         Properties conProp =
                 MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);

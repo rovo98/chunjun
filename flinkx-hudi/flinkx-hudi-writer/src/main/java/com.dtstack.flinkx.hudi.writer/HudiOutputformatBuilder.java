@@ -19,6 +19,7 @@ package com.dtstack.flinkx.hudi.writer;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
+
 import org.apache.avro.Schema;
 
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.Map;
  * @author fengjiangtao_yewu@cmss.chinamobile.com
  * @date 2021-08-10
  */
-
 public class HudiOutputformatBuilder extends BaseRichOutputFormatBuilder {
     private HudiOutputFormat format;
 
@@ -43,6 +43,7 @@ public class HudiOutputformatBuilder extends BaseRichOutputFormatBuilder {
     public void setTableType(String tableType) {
         format.tableType = tableType;
     }
+
     public void setRecordKey(String recordKey) {
         format.recordKey = recordKey;
     }
@@ -87,9 +88,7 @@ public class HudiOutputformatBuilder extends BaseRichOutputFormatBuilder {
         format.partitionFields = partitionFields;
     }
 
-    /**
-     * Column type comes form org.apache.avro.Schema.Type
-     */
+    /** Column type comes form org.apache.avro.Schema.Type */
     @Override
     protected void checkFormat() {
         MetaColumn mColumn = null;
@@ -99,7 +98,8 @@ public class HudiOutputformatBuilder extends BaseRichOutputFormatBuilder {
                 Schema.Type.valueOf(metaColumn.getType().toUpperCase());
             }
         } catch (Exception e) {
-            throw new UnsupportedOperationException("This plugin column's type not support: " + mColumn.getType());
+            throw new UnsupportedOperationException(
+                    "This plugin column's type not support: " + mColumn.getType());
         }
     }
 }

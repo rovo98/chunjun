@@ -14,14 +14,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.dtstack.flinkx.emqx.format;
+ */ package com.dtstack.flinkx.emqx.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -29,7 +29,7 @@ public class EmqxInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private EmqxInputFormat format;
 
-    public EmqxInputFormatBuilder(){
+    public EmqxInputFormatBuilder() {
         super.format = format = new EmqxInputFormat();
     }
 
@@ -70,12 +70,11 @@ public class EmqxInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if(StringUtils.isBlank(format.broker)){
+        if (StringUtils.isBlank(format.broker)) {
             throw new IllegalArgumentException("emqx broker cannot be blank");
         }
-        if(StringUtils.isBlank(format.topic)){
+        if (StringUtils.isBlank(format.topic)) {
             throw new IllegalArgumentException("emqx topic cannot be blank");
         }
     }
-
 }

@@ -19,13 +19,13 @@
 package com.dtstack.flinkx.kingbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.kingbase.format.KingbaseOutputFormat;
 import com.dtstack.flinkx.kingbase.util.KingBaseDatabaseMeta;
 import com.dtstack.flinkx.kingbase.util.KingBaseTypeConverter;
-import com.dtstack.flinkx.kingbase.format.KingbaseOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -35,10 +35,10 @@ import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
 /**
  * KingBase writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author kunni@dtstack.com
  */
-
 public class KingbaseWriter extends JdbcDataWriter {
 
     /** {@link KingbaseOutputFormat} openInternal方法中需要使用schema进行表名拼接 */
@@ -46,7 +46,15 @@ public class KingbaseWriter extends JdbcDataWriter {
 
     public KingbaseWriter(DataTransferConfig config) {
         super(config);
-        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
+        schema =
+                config.getJob()
+                        .getContent()
+                        .get(0)
+                        .getWriter()
+                        .getParameter()
+                        .getConnection()
+                        .get(0)
+                        .getSchema();
         setDatabaseInterface(new KingBaseDatabaseMeta());
         setTypeConverterInterface(new KingBaseTypeConverter());
     }

@@ -36,10 +36,15 @@ public class JdbcInputSplit extends GenericInputSplit {
     /**
      * Creates a generic input split with the given split number.
      *
-     * @param partitionNumber         The number of the split's partition.
+     * @param partitionNumber The number of the split's partition.
      * @param totalNumberOfPartitions The total number of the splits (partitions).
      */
-    public JdbcInputSplit(int partitionNumber, int totalNumberOfPartitions, int mod, String startLocation, String endLocation) {
+    public JdbcInputSplit(
+            int partitionNumber,
+            int totalNumberOfPartitions,
+            int mod,
+            String startLocation,
+            String endLocation) {
         super(partitionNumber, totalNumberOfPartitions);
         this.mod = mod;
         this.startLocation = startLocation;
@@ -72,10 +77,15 @@ public class JdbcInputSplit extends GenericInputSplit {
 
     @Override
     public String toString() {
-        return "JdbcInputSplit{" +
-                "mod=" + mod +
-                ", endLocation='" + endLocation + '\'' +
-                ", startLocation='" + startLocation + '\'' +
-                '}';
+        return "JdbcInputSplit{"
+                + "mod="
+                + mod
+                + ", endLocation='"
+                + endLocation
+                + '\''
+                + ", startLocation='"
+                + startLocation
+                + '\''
+                + '}';
     }
 }

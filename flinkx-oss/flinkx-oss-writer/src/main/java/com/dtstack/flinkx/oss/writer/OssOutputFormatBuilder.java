@@ -73,7 +73,7 @@ public class OssOutputFormatBuilder extends FileOutputFormatBuilder {
         format.delimiter = delimiter;
     }
 
-    public void setRowGroupSize(int rowGroupSize){
+    public void setRowGroupSize(int rowGroupSize) {
         format.rowGroupSize = rowGroupSize;
     }
 
@@ -97,5 +97,4 @@ public class OssOutputFormatBuilder extends FileOutputFormatBuilder {
             throw new IllegalArgumentException("Path should start with s3a://");
         }
     }
-
 }

@@ -20,11 +20,9 @@ package com.dtstack.flinkx.sqlserver;
 /**
  * SqlServerConfigKeys
  *
- * @author by dujie@dtstack.com
- * @Date 2020/8/18
+ * @author by dujie@dtstack.com @Date 2020/8/18
  */
 public class SqlServerConfigKeys {
 
     public static final String WITH_NO_LOCK = "withNoLock";
-
 }

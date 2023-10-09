@@ -20,58 +20,62 @@ package com.dtstack.flinkx.postgresql.reader;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
 /**
- * Date: 2019/09/20
- * Company: www.dtstack.com
+ * Date: 2019/09/20 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class PostgresqlQuerySqlBuilder extends QuerySqlBuilder {
 
-    public PostgresqlQuerySqlBuilder(JdbcDataReader reader){
+    public PostgresqlQuerySqlBuilder(JdbcDataReader reader) {
         super(reader);
     }
 
     @Override
-    protected String buildQuerySql(){
+    protected String buildQuerySql() {
         List<String> selectColumns = DbUtil.buildSelectColumns(databaseInterface, metaColumns);
-        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
+        boolean splitWithRowNum =
+                addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
+        sb.append("SELECT ").append(StringUtils.join(selectColumns, ",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
         sb.append(" WHERE 1=1 ");
 
         StringBuilder filter = new StringBuilder();
 
-        if(isSplitByKey && !splitWithRowNum) {
+        if (isSplitByKey && !splitWithRowNum) {
             filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
-        if (customFilter != null){
+        if (customFilter != null) {
             customFilter = customFilter.trim();
-            if (customFilter.length() > 0){
+            if (customFilter.length() > 0) {
                 filter.append(" AND ").append(customFilter);
             }
         }
 
-        if(isIncrement){
+        if (isIncrement) {
             filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
-        if(isRestore){
+        if (isRestore) {
             filter.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
         sb.append(filter);
         sb.append(buildOrderSql());
 
-        if(isSplitByKey && splitWithRowNum){
-            return String.format(SQL_SPLIT_WITH_ROW_NUM, sb.toString(), databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
+        if (isSplitByKey && splitWithRowNum) {
+            return String.format(
+                    SQL_SPLIT_WITH_ROW_NUM,
+                    sb.toString(),
+                    databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
         } else {
             return sb.toString();
         }

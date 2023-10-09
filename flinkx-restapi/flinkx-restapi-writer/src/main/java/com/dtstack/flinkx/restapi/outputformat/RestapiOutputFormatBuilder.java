@@ -54,10 +54,9 @@ public class RestapiOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.column = column;
     }
 
-    public void setParams(Map<String, Object> params){
+    public void setParams(Map<String, Object> params) {
         format.params = params;
     }
-
 
     @Override
     protected void checkFormat() {

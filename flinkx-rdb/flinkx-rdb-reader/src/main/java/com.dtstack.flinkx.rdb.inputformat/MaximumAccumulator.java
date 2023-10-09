@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.rdb.inputformat;
 
 import org.apache.commons.lang.StringUtils;
@@ -30,21 +29,21 @@ import java.math.BigInteger;
  * @explanation
  * @date 2019/1/17
  */
-public class MaximumAccumulator implements Accumulator<String,String> {
+public class MaximumAccumulator implements Accumulator<String, String> {
 
     private String localValue;
 
     @Override
     public void add(String value) {
-        if(StringUtils.isEmpty(value)){
+        if (StringUtils.isEmpty(value)) {
             return;
         }
 
-        if(localValue == null){
+        if (localValue == null) {
             localValue = value;
-        } else if(NumberUtils.isNumber(localValue)){
+        } else if (NumberUtils.isNumber(localValue)) {
             BigInteger newVal = new BigInteger(value);
-            if(newVal.compareTo(new BigInteger(localValue)) > 0){
+            if (newVal.compareTo(new BigInteger(localValue)) > 0) {
                 localValue = value;
             }
         } else {
@@ -64,22 +63,25 @@ public class MaximumAccumulator implements Accumulator<String,String> {
 
     @Override
     public void merge(Accumulator<String, String> other) {
-        if (other == null || StringUtils.isEmpty(other.getLocalValue())){
+        if (other == null || StringUtils.isEmpty(other.getLocalValue())) {
             return;
         }
 
-        if (localValue == null){
+        if (localValue == null) {
             localValue = other.getLocalValue();
             return;
         }
 
-        if(NumberUtils.isNumber(localValue)){
+        if (NumberUtils.isNumber(localValue)) {
             BigInteger local = new BigInteger(localValue);
-            if(local.compareTo(new BigInteger(other.getLocalValue())) < 0){
+            if (local.compareTo(new BigInteger(other.getLocalValue())) < 0) {
                 localValue = other.getLocalValue();
             }
         } else {
-            localValue = localValue.compareTo(other.getLocalValue()) < 0 ? other.getLocalValue() : localValue;
+            localValue =
+                    localValue.compareTo(other.getLocalValue()) < 0
+                            ? other.getLocalValue()
+                            : localValue;
         }
     }
 

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.kafkabase.entity.kafkaState;
 import com.dtstack.flinkx.kafkabase.enums.StartupMode;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,14 +47,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Date: 2019/12/25
- * Company: www.dtstack.com
+ * Date: 2019/12/25 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class KafkaClient implements IClient {
     protected static Logger LOG = LoggerFactory.getLogger(KafkaClient.class);
-    //ck state指针
+    // ck state指针
     private final AtomicReference<Collection<kafkaState>> stateReference;
     private volatile boolean running = true;
     private long pollTimeout;
@@ -61,11 +61,15 @@ public class KafkaClient implements IClient {
     private IDecode decode;
     private KafkaBaseInputFormat format;
     private KafkaConsumer<String, String> consumer;
-    //是否触发checkpoint，需要提交offset指针
+    // 是否触发checkpoint，需要提交offset指针
     private AtomicBoolean commit;
 
     @SuppressWarnings("unchecked")
-    public KafkaClient(Properties clientProps, long pollTimeout, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit) {
+    public KafkaClient(
+            Properties clientProps,
+            long pollTimeout,
+            KafkaBaseInputFormat format,
+            KafkaInputSplit kafkaInputSplit) {
         this.pollTimeout = pollTimeout;
         this.blankIgnore = format.getBlankIgnore();
         this.format = format;
@@ -75,35 +79,39 @@ public class KafkaClient implements IClient {
         consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<>(clientProps);
         StartupMode mode = format.getMode();
         List<kafkaState> stateList = kafkaInputSplit.getList();
-        Map<TopicPartition, Long> partitionMap = new HashMap<>(Math.max((int) (stateList.size()/.75f) + 1, 16));
+        Map<TopicPartition, Long> partitionMap =
+                new HashMap<>(Math.max((int) (stateList.size() / .75f) + 1, 16));
         Object stateMap = format.getState();
         boolean needToSeek = true;
-        if(stateMap instanceof Map && MapUtils.isNotEmpty((Map<String, kafkaState>)stateMap)){
+        if (stateMap instanceof Map && MapUtils.isNotEmpty((Map<String, kafkaState>) stateMap)) {
             Map<String, kafkaState> map = (Map<String, kafkaState>) stateMap;
             for (kafkaState state : map.values()) {
                 TopicPartition tp = new TopicPartition(state.getTopic(), state.getPartition());
-                //ck中保存的是当前已经读取的offset，恢复时从下一条开始读
+                // ck中保存的是当前已经读取的offset，恢复时从下一条开始读
                 partitionMap.put(tp, state.getOffset() + 1);
             }
             LOG.info("init kafka client from [checkpoint], stateMap = {}", map);
-        }else if(CollectionUtils.isEmpty(stateList)){
+        } else if (CollectionUtils.isEmpty(stateList)) {
             running = false;
-            LOG.warn("\n" +
-                    "****************************************************\n" +
-                    "*******************    WARN    *********************\n" +
-                    "| this stateList in KafkaInputSplit is empty,      |\n" +
-                    "| this channel will not assign any kafka topic,    |\n" +
-                    "| therefore, no data will be read in this channel! |\n" +
-                    "****************************************************");
+            LOG.warn(
+                    "\n"
+                            + "****************************************************\n"
+                            + "*******************    WARN    *********************\n"
+                            + "| this stateList in KafkaInputSplit is empty,      |\n"
+                            + "| this channel will not assign any kafka topic,    |\n"
+                            + "| therefore, no data will be read in this channel! |\n"
+                            + "****************************************************");
             return;
-        }else if(StartupMode.TIMESTAMP.equals(mode)){
-            Map<TopicPartition, Long> timestampMap = new HashMap<>(Math.max((int) (stateList.size()/.75f) + 1, 16));
+        } else if (StartupMode.TIMESTAMP.equals(mode)) {
+            Map<TopicPartition, Long> timestampMap =
+                    new HashMap<>(Math.max((int) (stateList.size() / .75f) + 1, 16));
             for (kafkaState state : stateList) {
                 TopicPartition tp = new TopicPartition(state.getTopic(), state.getPartition());
-                timestampMap.put(tp,  state.getTimestamp());
+                timestampMap.put(tp, state.getTimestamp());
                 partitionMap.put(tp, null);
             }
-            Map<TopicPartition, OffsetAndTimestamp> offsets = consumer.offsetsForTimes(timestampMap);
+            Map<TopicPartition, OffsetAndTimestamp> offsets =
+                    consumer.offsetsForTimes(timestampMap);
             for (TopicPartition tp : partitionMap.keySet()) {
                 OffsetAndTimestamp offsetAndTimestamp = offsets.get(tp);
                 if (offsetAndTimestamp != null) {
@@ -111,13 +119,13 @@ public class KafkaClient implements IClient {
                 }
             }
             LOG.info("init kafka client from [timestamp], offsets = {}", offsets);
-        }else if(StartupMode.SPECIFIC_OFFSETS.equals(mode)){
+        } else if (StartupMode.SPECIFIC_OFFSETS.equals(mode)) {
             for (kafkaState state : stateList) {
                 TopicPartition tp = new TopicPartition(state.getTopic(), state.getPartition());
                 partitionMap.put(tp, state.getOffset());
             }
             LOG.info("init kafka client from [specific-offsets], stateList = {}", stateList);
-        }else{
+        } else {
             for (kafkaState state : stateList) {
                 partitionMap.put(new TopicPartition(state.getTopic(), state.getPartition()), null);
             }
@@ -126,7 +134,7 @@ public class KafkaClient implements IClient {
         }
         LOG.info("partitionList = {}", partitionMap.keySet());
         consumer.assign(partitionMap.keySet());
-        if(needToSeek){
+        if (needToSeek) {
             for (Map.Entry<TopicPartition, Long> entry : partitionMap.entrySet()) {
                 consumer.seek(entry.getKey(), entry.getValue());
             }
@@ -135,34 +143,56 @@ public class KafkaClient implements IClient {
 
     @Override
     public void run() {
-        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
-            LOG.error("KafkaClient run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
-        });
+        Thread.currentThread()
+                .setUncaughtExceptionHandler(
+                        (t, e) -> {
+                            LOG.error(
+                                    "KafkaClient run failed, Throwable = {}",
+                                    ExceptionUtil.getErrorMessage(e));
+                        });
         try {
             while (running) {
-                if(this.commit.getAndSet(false)){
+                if (this.commit.getAndSet(false)) {
                     final Collection<kafkaState> kafkaStates = stateReference.getAndSet(null);
-                    if(kafkaStates != null){
+                    if (kafkaStates != null) {
                         LOG.info("submit kafka offset, kafkaStates = {}", kafkaStates);
-                        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>(Math.max((int) (kafkaStates.size()/.75f) + 1, 16));
+                        Map<TopicPartition, OffsetAndMetadata> offsets =
+                                new HashMap<>(Math.max((int) (kafkaStates.size() / .75f) + 1, 16));
                         for (kafkaState state : kafkaStates) {
-                            offsets.put(new TopicPartition(state.getTopic(), state.getPartition()), new OffsetAndMetadata(state.getOffset(), "no metadata"));
+                            offsets.put(
+                                    new TopicPartition(state.getTopic(), state.getPartition()),
+                                    new OffsetAndMetadata(state.getOffset(), "no metadata"));
                         }
                         try {
-                            consumer.commitAsync(offsets, (o, ex) -> {
-                                if (ex != null) {
-                                    LOG.warn("Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}", o, ExceptionUtil.getErrorMessage(ex));
-                                } else {
-                                    LOG.info("Committing offsets to Kafka async successfully, offsets = {}", o);
-                                }
-                            });
-                        }catch (Exception e){
-                            LOG.warn("Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}", offsets, ExceptionUtil.getErrorMessage(e));
+                            consumer.commitAsync(
+                                    offsets,
+                                    (o, ex) -> {
+                                        if (ex != null) {
+                                            LOG.warn(
+                                                    "Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}",
+                                                    o,
+                                                    ExceptionUtil.getErrorMessage(ex));
+                                        } else {
+                                            LOG.info(
+                                                    "Committing offsets to Kafka async successfully, offsets = {}",
+                                                    o);
+                                        }
+                                    });
+                        } catch (Exception e) {
+                            LOG.warn(
+                                    "Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}",
+                                    offsets,
+                                    ExceptionUtil.getErrorMessage(e));
                             try {
                                 consumer.commitSync(offsets);
-                                LOG.info("Committing offsets to Kafka successfully, offsets = {}", offsets);
-                            }catch (Exception e1){
-                                LOG.warn("Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}", offsets, ExceptionUtil.getErrorMessage(e1));
+                                LOG.info(
+                                        "Committing offsets to Kafka successfully, offsets = {}",
+                                        offsets);
+                            } catch (Exception e1) {
+                                LOG.warn(
+                                        "Committing offsets to Kafka failed, This does not compromise Flink's checkpoints. offsets = {}, e = {}",
+                                        offsets,
+                                        ExceptionUtil.getErrorMessage(e1));
                             }
                         }
                     }
@@ -170,20 +200,27 @@ public class KafkaClient implements IClient {
 
                 ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                 for (ConsumerRecord<String, String> r : records) {
-                    boolean isIgnoreCurrent = r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
+                    boolean isIgnoreCurrent =
+                            r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
                     if (isIgnoreCurrent) {
                         continue;
                     }
-                    
+
                     try {
-                        processMessage(r.value(), r.topic(), r.partition(), r.offset(), r.timestamp());
+                        processMessage(
+                                r.value(), r.topic(), r.partition(), r.offset(), r.timestamp());
                     } catch (Throwable e) {
-                        LOG.warn("kafka consumer fetch is error, message:{}, e = {}", r.value(), ExceptionUtil.getErrorMessage(e));
+                        LOG.warn(
+                                "kafka consumer fetch is error, message:{}, e = {}",
+                                r.value(),
+                                ExceptionUtil.getErrorMessage(e));
                     }
                 }
             }
         } catch (WakeupException e) {
-            LOG.warn("WakeupException to close kafka consumer, e = {}", ExceptionUtil.getErrorMessage(e));
+            LOG.warn(
+                    "WakeupException to close kafka consumer, e = {}",
+                    ExceptionUtil.getErrorMessage(e));
         } catch (Throwable e) {
             LOG.warn("kafka consumer fetch is error, e = {}", ExceptionUtil.getErrorMessage(e));
         } finally {
@@ -192,18 +229,21 @@ public class KafkaClient implements IClient {
     }
 
     @Override
-    public void processMessage(String message, String topic, Integer partition, Long offset, Long timestamp) {
+    public void processMessage(
+            String message, String topic, Integer partition, Long offset, Long timestamp) {
         Map<String, Object> event = decode.decode(message);
         if (event != null && event.size() > 0) {
-            format.processEvent(Pair.of(event, new kafkaState(topic, partition, offset, timestamp)));
+            format.processEvent(
+                    Pair.of(event, new kafkaState(topic, partition, offset, timestamp)));
         }
     }
 
     /**
      * 提交kafka offset
+     *
      * @param kafkaStates
      */
-    public void submitOffsets(Collection<kafkaState> kafkaStates){
+    public void submitOffsets(Collection<kafkaState> kafkaStates) {
         this.commit.set(true);
         this.stateReference.getAndSet(kafkaStates);
     }
@@ -217,5 +257,4 @@ public class KafkaClient implements IClient {
             LOG.error("close kafka consumer error, e = {}", ExceptionUtil.getErrorMessage(e));
         }
     }
-
 }

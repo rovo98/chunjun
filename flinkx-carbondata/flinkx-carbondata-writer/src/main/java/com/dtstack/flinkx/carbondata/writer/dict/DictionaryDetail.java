@@ -16,18 +16,15 @@
  * limitations under the License.
  */
 
-
-
 package com.dtstack.flinkx.carbondata.writer.dict;
 
-
 import org.apache.carbondata.core.metadata.ColumnIdentifier;
-
 
 /**
  * Dictionary Detail Entity
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class DictionaryDetail {
@@ -38,10 +35,12 @@ public class DictionaryDetail {
 
     Boolean[] dictFileExists;
 
-    public DictionaryDetail(ColumnIdentifier[] columnIdentifiers, String[] dictFilePaths, Boolean[] dictFileExists) {
+    public DictionaryDetail(
+            ColumnIdentifier[] columnIdentifiers,
+            String[] dictFilePaths,
+            Boolean[] dictFileExists) {
         this.columnIdentifiers = columnIdentifiers;
         this.dictFilePaths = dictFilePaths;
         this.dictFileExists = dictFileExists;
     }
-
 }

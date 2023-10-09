@@ -23,6 +23,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import com.google.common.collect.Lists;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
@@ -63,7 +64,6 @@ import static com.dtstack.flinkx.hudi.HudiConfigKeys.KEY_HADOOP_USER_NAME;
  * @author fengjiangtao_yewu@cmss.chinamobile.com
  * @date 2021-08-10
  */
-
 public class HudiOutputFormat extends BaseRichOutputFormat {
     protected String tableName;
     protected String tableType;
@@ -91,21 +91,35 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         dbTableName = org.apache.commons.lang3.StringUtils.split(tableName, ".");
         // Create the write client to write some records in
-        HoodieWriteConfig hudiWriteConfig = HoodieWriteConfig.newBuilder()
-                .withEngineType(EngineType.FLINK).withPath(path)
-                .withSchema(schema).withParallelism(numTasks, numTasks)
-                .withDeleteParallelism(numTasks).forTable(dbTableName[1])
-                .withIndexConfig(HoodieIndexConfig.newBuilder().withIndexType(HoodieIndex.IndexType.INMEMORY).build())
-                .withCompactionConfig(HoodieCompactionConfig.newBuilder().archiveCommitsWith(20, 30).build()).build();
+        HoodieWriteConfig hudiWriteConfig =
+                HoodieWriteConfig.newBuilder()
+                        .withEngineType(EngineType.FLINK)
+                        .withPath(path)
+                        .withSchema(schema)
+                        .withParallelism(numTasks, numTasks)
+                        .withDeleteParallelism(numTasks)
+                        .forTable(dbTableName[1])
+                        .withIndexConfig(
+                                HoodieIndexConfig.newBuilder()
+                                        .withIndexType(HoodieIndex.IndexType.INMEMORY)
+                                        .build())
+                        .withCompactionConfig(
+                                HoodieCompactionConfig.newBuilder()
+                                        .archiveCommitsWith(20, 30)
+                                        .build())
+                        .build();
 
         hadoopConfiguration = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
-        client = new HoodieJavaWriteClient<>(new HoodieJavaEngineContext(hadoopConfiguration), hudiWriteConfig);
+        client =
+                new HoodieJavaWriteClient<>(
+                        new HoodieJavaEngineContext(hadoopConfiguration), hudiWriteConfig);
         avroSchema = new Schema.Parser().parse(schema);
 
         if (hadoopConfig.containsKey(KEY_HADOOP_USER_NAME)) {
             // Config the HADOOP_USER_NAME for permission.
             LOG.info("Default System HADOOP_USER_NAME:" + System.getProperty(KEY_HADOOP_USER_NAME));
-            System.setProperty(KEY_HADOOP_USER_NAME, hadoopConfig.get(KEY_HADOOP_USER_NAME).toString());
+            System.setProperty(
+                    KEY_HADOOP_USER_NAME, hadoopConfig.get(KEY_HADOOP_USER_NAME).toString());
             LOG.info("Change System HADOOP_USER_NAME:" + System.getProperty(KEY_HADOOP_USER_NAME));
         }
 
@@ -118,8 +132,10 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(Row row) {
         String newCommitTime = client.startCommit();
         HoodieRecord<HoodieAvroPayload> hoodieRecord = buildHudiRecords(row);
-        List<HoodieRecord<HoodieAvroPayload>> records = Lists.newArrayList(hoodieRecord).stream()
-                .filter(record -> record != null).collect(Collectors.toList());
+        List<HoodieRecord<HoodieAvroPayload>> records =
+                Lists.newArrayList(hoodieRecord).stream()
+                        .filter(record -> record != null)
+                        .collect(Collectors.toList());
 
         if (records.size() > 0) {
             client.upsert(records, newCommitTime);
@@ -127,15 +143,16 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    /**
-     * Multiple write cost less when every writing needs to sync hive Metastore.
-     */
+    /** Multiple write cost less when every writing needs to sync hive Metastore. */
     @Override
     protected void writeMultipleRecordsInternal() {
         String newCommitTime = client.startCommit();
 
-        List<HoodieRecord<HoodieAvroPayload>> records = rows.stream().filter(record -> record != null)
-                .map(this::buildHudiRecords).collect(Collectors.toList());
+        List<HoodieRecord<HoodieAvroPayload>> records =
+                rows.stream()
+                        .filter(record -> record != null)
+                        .map(this::buildHudiRecords)
+                        .collect(Collectors.toList());
         if (records.size() > 0) {
             client.upsert(records, newCommitTime);
             syncHiveMeta();
@@ -185,23 +202,23 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
         try {
             fs = FSUtils.getFs(this.path, hadoopConf);
             if (!fs.exists(path)) {
-                HoodieTableMetaClient metaClient = HoodieTableMetaClient.withPropertyBuilder()
-                        .setTableType(tableType)
-                        .setTableName(splitTableName)
-                        .setPayloadClassName(HoodieAvroPayload.class.getName())
-                        .initTable(hadoopConf, this.path);
+                HoodieTableMetaClient metaClient =
+                        HoodieTableMetaClient.withPropertyBuilder()
+                                .setTableType(tableType)
+                                .setTableName(splitTableName)
+                                .setPayloadClassName(HoodieAvroPayload.class.getName())
+                                .initTable(hadoopConf, this.path);
 
                 LOG.info("Hudi table init done.", metaClient.getMetaPath());
             }
         } catch (Exception e) {
             LOG.warn("Hudi table init err. " + tableName, e);
-            throw new RuntimeException("Create hudi table failed:" + splitTableName + ", " + e.getMessage());
+            throw new RuntimeException(
+                    "Create hudi table failed:" + splitTableName + ", " + e.getMessage());
         }
     }
 
-    /**
-     * Init hive configuration.
-     */
+    /** Init hive configuration. */
     private void initHiveConf() {
         hiveConf = new HiveConf();
         hiveConf.set(HudiConfigKeys.KEY_HIVE_METASTORE_URIS, hiveMetastore);
@@ -254,16 +271,8 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
     }
 
     /**
-     * Schema for example:
-     * {
-     * "type": "record",
-     * "name": "triprec",
-     * "fields": [
-     * {"name": "ts","type": "long"},
-     * {"name": "uuid","type": "string"},
-     * {"name": "begin_lat","type": "double"}
-     * ]
-     * }
+     * Schema for example: { "type": "record", "name": "triprec", "fields": [ {"name": "ts","type":
+     * "long"}, {"name": "uuid","type": "string"}, {"name": "begin_lat","type": "double"} ] }
      *
      * @param row
      * @return
@@ -276,10 +285,14 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
             if (metaColumns != null && metaColumns.size() > 0) {
                 for (int i = 0; i < arity; i++) {
                     String value = StringUtils.arrayAwareToString(row.getField(i));
-                    rec.put(metaColumns.get(i).getName(), StringUtil.string2col(value, metaColumns.get(i).getType(), null));
+                    rec.put(
+                            metaColumns.get(i).getName(),
+                            StringUtil.string2col(value, metaColumns.get(i).getType(), null));
                 }
             } else {
-                Map<String, Object> map = GsonUtil.GSON.fromJson(row.getField(0).toString(), GsonUtil.gsonMapTypeToken);
+                Map<String, Object> map =
+                        GsonUtil.GSON.fromJson(
+                                row.getField(0).toString(), GsonUtil.gsonMapTypeToken);
                 map.keySet().stream().forEach(key -> rec.put(key, map.get(key)));
             }
         } catch (Exception e) {
@@ -290,9 +303,7 @@ public class HudiOutputFormat extends BaseRichOutputFormat {
         return rec;
     }
 
-    /**
-     * Close client.
-     */
+    /** Close client. */
     @Override
     public void closeInternal() {
         LOG.warn("Hudi output closeInternal.");

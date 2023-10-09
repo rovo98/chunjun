@@ -24,5 +24,4 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
  *
  * @author wuhui
  */
-public class SaphanaOutputFormat extends JdbcOutputFormat {
-}
+public class SaphanaOutputFormat extends JdbcOutputFormat {}

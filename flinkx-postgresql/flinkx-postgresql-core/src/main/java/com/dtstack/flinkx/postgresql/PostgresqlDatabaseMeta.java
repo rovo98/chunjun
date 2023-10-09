@@ -20,17 +20,16 @@ package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
- * The class of PostgreSQL database prototype
+ * The class of PostgreSQL database prototype @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
@@ -52,7 +51,7 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("'%s' as %s",value,column);
+        return String.format("'%s' as %s", value, column);
     }
 
     @Override
@@ -67,27 +66,35 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSqlQueryFields(String tableName) {
-        return String.format("SELECT * FROM %s LIMIT 0",tableName);
+        return String.format("SELECT * FROM %s LIMIT 0", tableName);
     }
 
     @Override
     public String getSqlQueryColumnFields(List<String> column, String table) {
-        String sql = "select attrelid ::regclass as table_name, attname as col_name, atttypid ::regtype as col_type from pg_attribute \n" +
-                "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
-        return String.format(sql,table);
+        String sql =
+                "select attrelid ::regclass as table_name, attname as col_name, atttypid ::regtype as col_type from pg_attribute \n"
+                        + "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
+        return String.format(sql, table);
     }
+
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
+        return "INSERT INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") values "
                 + makeValues(column.size())
-                + " ON CONFLICT (" + StringUtils.join(updateKey.get("key"), ",") + ") DO UPDATE SET "
+                + " ON CONFLICT ("
+                + StringUtils.join(updateKey.get("key"), ",")
+                + ") DO UPDATE SET "
                 + makeUpdatePart(column);
     }
 
-    private String makeUpdatePart (List<String> column) {
+    private String makeUpdatePart(List<String> column) {
         List<String> updateList = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             String quotedCol = quoteColumn(col);
             updateList.add(quotedCol + "=excluded." + quotedCol);
         }
@@ -101,16 +108,17 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
-        return String.format(" mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+        return String.format(
+                " mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
-    public int getFetchSize(){
+    public int getFetchSize() {
         return 1000;
     }
 
     @Override
-    public int getQueryTimeout(){
+    public int getQueryTimeout() {
         return 1000;
     }
 

@@ -23,12 +23,12 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.sqlservercdc.Lsn;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
 import com.dtstack.flinkx.sqlservercdc.SqlserverCdcEnum;
-import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,8 +45,7 @@ import java.util.Set;
 import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -94,7 +93,6 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.lsn = lsn;
     }
 
-
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
@@ -123,7 +121,8 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
         if (speed.getReaderChannel() > 1) {
-            sb.append("sqlServerCdc can not support readerChannel bigger than 1, current readerChannel is [")
+            sb.append(
+                            "sqlServerCdc can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(speed.getReaderChannel())
                     .append("];\n");
         } else if (speed.getChannel() > 1) {
@@ -132,11 +131,14 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                     .append("];\n");
         }
 
-        //校验cat
-        HashSet<String> set = Sets.newHashSet(SqlserverCdcEnum.DELETE.name,
-                SqlserverCdcEnum.UPDATE.name,
-                SqlserverCdcEnum.INSERT.name);
-        ArrayList<String> cats = Lists.newArrayList(format.getCat().split(ConstantValue.COMMA_SYMBOL));
+        // 校验cat
+        HashSet<String> set =
+                Sets.newHashSet(
+                        SqlserverCdcEnum.DELETE.name,
+                        SqlserverCdcEnum.UPDATE.name,
+                        SqlserverCdcEnum.INSERT.name);
+        ArrayList<String> cats =
+                Lists.newArrayList(format.getCat().split(ConstantValue.COMMA_SYMBOL));
         cats.removeIf(s -> set.contains(s.toLowerCase(Locale.ENGLISH)));
         if (CollectionUtils.isNotEmpty(cats)) {
             sb.append("sqlServer cat not support-> ")
@@ -147,47 +149,63 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
 
         ClassUtil.forName(DRIVER, getClass().getClassLoader());
-        try (Connection conn = RetryUtil.executeWithRetry(
-                () -> SqlServerCdcUtil.getConnection(format.url, format.username, format.password), SqlServerCdcUtil.RETRY_TIMES,
-                SqlServerCdcUtil.SLEEP_TIME,
-                false)) {
+        try (Connection conn =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                SqlServerCdcUtil.getConnection(
+                                        format.url, format.username, format.password),
+                        SqlServerCdcUtil.RETRY_TIMES,
+                        SqlServerCdcUtil.SLEEP_TIME,
+                        false)) {
 
-            //效验是否开启agent
+            // 效验是否开启agent
             if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
                 sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
             }
 
-            //校验数据库是否开启cdc
+            // 校验数据库是否开启cdc
             SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
-                sb.append(format.databaseName).append(" is not enable sqlServer CDC;\n")
-                        .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
+                sb.append(format.databaseName)
+                        .append(" is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable databaseCDC：\nUSE ")
+                        .append(format.databaseName)
+                        .append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
 
-            //如果数据库没有开启cdc 则直接抛出异常 不需要进行后续cdc相关配置校验(否则部分sql查询会报错 如查询最大LSN)
+            // 如果数据库没有开启cdc 则直接抛出异常 不需要进行后续cdc相关配置校验(否则部分sql查询会报错 如查询最大LSN)
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
 
-            //效验表是否开启cdc
-            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
+            // 效验表是否开启cdc
+            Set<String> unEnabledCdcTables =
+                    SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
             if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
                 String tables = unEnabledCdcTables.toString();
-                sb.append(GsonUtil.GSON.toJson(tables)).append("  is not enable sqlServer CDC;\n")
+                sb.append(GsonUtil.GSON.toJson(tables))
+                        .append("  is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable tableCDC: ");
-                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
+                String tableEnableCdcTemplate =
+                        "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
 
                 for (String table : unEnabledCdcTables) {
-                    List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+                    List<String> strings =
+                            StringUtil.splitIgnoreQuota(
+                                    table, ConstantValue.POINT_SYMBOL.charAt(0));
                     if (strings.size() == 2) {
-                        sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                        sb.append(
+                                String.format(
+                                        tableEnableCdcTemplate, strings.get(0), strings.get(1)));
                     } else if (strings.size() == 1) {
-                        sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
+                        sb.append(
+                                String.format(
+                                        tableEnableCdcTemplate, "yourSchema", strings.get(0)));
                     }
                 }
             }
 
-            //效验lsn是否超过max_lsn
+            // 效验lsn是否超过max_lsn
             Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
             if (StringUtils.isNotBlank(format.lsn)) {
                 if (currentMaxLsn.compareTo(Lsn.valueOf(format.lsn)) < 0) {
@@ -202,13 +220,17 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         } catch (SQLException e) {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
-            if(sb.length() > 0 ){
-                detailsInfo.append("sqlserverCDC config not right，details is ").append(sb.toString());
+            if (sb.length() > 0) {
+                detailsInfo
+                        .append("sqlserverCDC config not right，details is ")
+                        .append(sb.toString());
             }
 
-            detailsInfo.append(" \n error to check sqlServerCDC config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+            detailsInfo
+                    .append(" \n error to check sqlServerCDC config, e = ")
+                    .append(ExceptionUtil.getErrorMessage(e));
 
-            throw new RuntimeException(detailsInfo.toString() , e);
+            throw new RuntimeException(detailsInfo.toString(), e);
         }
     }
 }

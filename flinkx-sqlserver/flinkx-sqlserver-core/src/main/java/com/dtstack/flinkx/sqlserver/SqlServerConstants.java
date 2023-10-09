@@ -20,9 +20,8 @@ package com.dtstack.flinkx.sqlserver;
 /**
  * SqlServerConstants
  *
- * @author by dujie@dtstack.com
- * @Date 2020/8/19
+ * @author by dujie@dtstack.com @Date 2020/8/19
  */
 public class SqlServerConstants {
-   public static final String WITH_NO_LOCK = " with(nolock)";
+    public static final String WITH_NO_LOCK = " with(nolock)";
 }

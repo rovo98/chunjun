@@ -24,6 +24,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.es.Es7xUtil;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

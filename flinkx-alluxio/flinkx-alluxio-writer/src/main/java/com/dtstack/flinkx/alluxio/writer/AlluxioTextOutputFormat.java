@@ -6,6 +6,7 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
@@ -37,7 +38,9 @@ public class AlluxioTextOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected void flushDataInternal() throws IOException {
-        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info(
+                "Close current text stream, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
         if (stream != null) {
             stream.flush();
@@ -80,8 +83,11 @@ public class AlluxioTextOutputFormat extends BaseAlluxioOutputFormat {
                 } else if (compressType == ECompressType.TEXT_BZIP2) {
                     stream = new BZip2CompressorOutputStream(fs.create(p));
                 } else if (compressType == ECompressType.TEXT_LZO) {
-                    CompressionCodecFactory factory = new CompressionCodecFactory(new Configuration());
-                    stream = factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec").createOutputStream(fs.create(p));
+                    CompressionCodecFactory factory =
+                            new CompressionCodecFactory(new Configuration());
+                    stream =
+                            factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec")
+                                    .createOutputStream(fs.create(p));
                 }
             }
 
@@ -215,7 +221,13 @@ public class AlluxioTextOutputFormat extends BaseAlluxioOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nAlluxioTextOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nAlluxioTextOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + columnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
@@ -227,5 +239,4 @@ public class AlluxioTextOutputFormat extends BaseAlluxioOutputFormat {
             s.close();
         }
     }
-
 }

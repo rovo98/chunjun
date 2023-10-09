@@ -6,10 +6,10 @@ package com.dtstack.flinkx.alluxio.util;
  */
 public class StringUtil {
     /**
-     * <p>Check if a String starts with a specified prefix.</p>
+     * Check if a String starts with a specified prefix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case sensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case sensitive.
      *
      * <pre>
      * StringUtils.startsWith(null, null)      = true
@@ -19,10 +19,10 @@ public class StringUtil {
      * StringUtils.startsWith("ABCDEF", "abc") = false
      * </pre>
      *
-     * @param str    the String to check, may be null
+     * @param str the String to check, may be null
      * @param prefix the prefix to find, may be null
-     * @return <code>true</code> if the String starts with the prefix, case sensitive, or
-     * both <code>null</code>
+     * @return <code>true</code> if the String starts with the prefix, case sensitive, or both
+     *     <code>null</code>
      * @see String#startsWith(String)
      * @since 2.4
      */
@@ -31,10 +31,10 @@ public class StringUtil {
     }
 
     /**
-     * <p>Case insensitive check if a String starts with a specified prefix.</p>
+     * Case insensitive check if a String starts with a specified prefix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case insensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case insensitive.
      *
      * <pre>
      * StringUtils.startsWithIgnoreCase(null, null)      = true
@@ -44,10 +44,10 @@ public class StringUtil {
      * StringUtils.startsWithIgnoreCase("ABCDEF", "abc") = true
      * </pre>
      *
-     * @param str    the String to check, may be null
+     * @param str the String to check, may be null
      * @param prefix the prefix to find, may be null
-     * @return <code>true</code> if the String starts with the prefix, case insensitive, or
-     * both <code>null</code>
+     * @return <code>true</code> if the String starts with the prefix, case insensitive, or both
+     *     <code>null</code>
      * @see String#startsWith(String)
      * @since 2.4
      */
@@ -56,14 +56,13 @@ public class StringUtil {
     }
 
     /**
-     * <p>Check if a String starts with a specified prefix (optionally case insensitive).</p>
+     * Check if a String starts with a specified prefix (optionally case insensitive).
      *
-     * @param str        the String to check, may be null
-     * @param prefix     the prefix to find, may be null
-     * @param ignoreCase inidicates whether the compare should ignore case
-     *                   (case insensitive) or not.
-     * @return <code>true</code> if the String starts with the prefix or
-     * both <code>null</code>
+     * @param str the String to check, may be null
+     * @param prefix the prefix to find, may be null
+     * @param ignoreCase inidicates whether the compare should ignore case (case insensitive) or
+     *     not.
+     * @return <code>true</code> if the String starts with the prefix or both <code>null</code>
      * @see String#startsWith(String)
      */
     private static boolean startsWith(String str, String prefix, boolean ignoreCase) {
@@ -77,10 +76,10 @@ public class StringUtil {
     }
 
     /**
-     * <p>Check if a String ends with a specified suffix.</p>
+     * Check if a String ends with a specified suffix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case sensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case sensitive.
      *
      * <pre>
      * StringUtils.endsWith(null, null)      = true
@@ -91,10 +90,10 @@ public class StringUtil {
      * StringUtils.endsWith("ABCDEF", "cde") = false
      * </pre>
      *
-     * @param str    the String to check, may be null
+     * @param str the String to check, may be null
      * @param suffix the suffix to find, may be null
-     * @return <code>true</code> if the String ends with the suffix, case sensitive, or
-     * both <code>null</code>
+     * @return <code>true</code> if the String ends with the suffix, case sensitive, or both <code>
+     *     null</code>
      * @see String#endsWith(String)
      * @since 2.4
      */
@@ -103,10 +102,10 @@ public class StringUtil {
     }
 
     /**
-     * <p>Case insensitive check if a String ends with a specified suffix.</p>
+     * Case insensitive check if a String ends with a specified suffix.
      *
-     * <p><code>null</code>s are handled without exceptions. Two <code>null</code>
-     * references are considered to be equal. The comparison is case insensitive.</p>
+     * <p><code>null</code>s are handled without exceptions. Two <code>null</code> references are
+     * considered to be equal. The comparison is case insensitive.
      *
      * <pre>
      * StringUtils.endsWithIgnoreCase(null, null)      = true
@@ -117,10 +116,10 @@ public class StringUtil {
      * StringUtils.endsWithIgnoreCase("ABCDEF", "cde") = false
      * </pre>
      *
-     * @param str    the String to check, may be null
+     * @param str the String to check, may be null
      * @param suffix the suffix to find, may be null
-     * @return <code>true</code> if the String ends with the suffix, case insensitive, or
-     * both <code>null</code>
+     * @return <code>true</code> if the String ends with the suffix, case insensitive, or both
+     *     <code>null</code>
      * @see String#endsWith(String)
      * @since 2.4
      */
@@ -129,14 +128,13 @@ public class StringUtil {
     }
 
     /**
-     * <p>Check if a String ends with a specified suffix (optionally case insensitive).</p>
+     * Check if a String ends with a specified suffix (optionally case insensitive).
      *
-     * @param str        the String to check, may be null
-     * @param suffix     the suffix to find, may be null
-     * @param ignoreCase inidicates whether the compare should ignore case
-     *                   (case insensitive) or not.
-     * @return <code>true</code> if the String starts with the prefix or
-     * both <code>null</code>
+     * @param str the String to check, may be null
+     * @param suffix the suffix to find, may be null
+     * @param ignoreCase inidicates whether the compare should ignore case (case insensitive) or
+     *     not.
+     * @return <code>true</code> if the String starts with the prefix or both <code>null</code>
      * @see String#endsWith(String)
      */
     private static boolean endsWith(String str, String suffix, boolean ignoreCase) {

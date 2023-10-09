@@ -24,6 +24,7 @@ import com.dtstack.flinkx.restapi.client.ResponseValue;
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import com.dtstack.flinkx.restore.FormatState;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -37,44 +38,28 @@ import java.util.List;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-
-    /**
-     * 是否是实时任务
-     **/
+    /** 是否是实时任务 */
     protected boolean isStream;
 
-    /**
-     * 是否读取结束
-     **/
+    /** 是否读取结束 */
     protected boolean reachEnd;
 
-    /**
-     * 执行请求客户端
-     **/
+    /** 执行请求客户端 */
     protected HttpClient myHttpClient;
 
     protected HttpRestConfig httpRestConfig;
 
-    /**
-     * 原始请求参数body
-     */
+    /** 原始请求参数body */
     protected List<MetaParam> metaBodys;
 
-    /**
-     * 原始请求参数param
-     */
+    /** 原始请求参数param */
     protected List<MetaParam> metaParams;
 
-    /**
-     * 原始请求header
-     */
+    /** 原始请求header */
     protected List<MetaParam> metaHeaders;
 
-    /**
-     * 读取的最新数据，checkpoint时保存
-     */
+    /** 读取的最新数据，checkpoint时保存 */
     protected ResponseValue state;
-
 
     @Override
     public void openInputFormat() throws IOException {
@@ -82,7 +67,6 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         reachEnd = false;
         initPosition();
     }
-
 
     @Override
     @SuppressWarnings("unchecked")
@@ -112,18 +96,29 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         }
         ResponseValue value = (ResponseValue) row.getField(0);
         if (value.isNormal()) {
-            //如果status是0代表是触发了异常策略stop，reachEnd更新为true
-            //todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
+            // 如果status是0代表是触发了异常策略stop，reachEnd更新为true
+            // todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
             if (value.getStatus() == 0) {
-                throw new RuntimeException("the strategy [" + value.getErrorMsg() + " ] is triggered ，and the request param is [" + value.getRequestParam().toString() + "]" + " and the response value is " + value.getOriginResponseValue() + " job end" );
+                throw new RuntimeException(
+                        "the strategy ["
+                                + value.getErrorMsg()
+                                + " ] is triggered ，and the request param is ["
+                                + value.getRequestParam().toString()
+                                + "]"
+                                + " and the response value is "
+                                + value.getOriginResponseValue()
+                                + " job end");
             }
-            state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()), value.getOriginResponseValue());
+            state =
+                    new ResponseValue(
+                            "",
+                            HttpRequestParam.copy(value.getRequestParam()),
+                            value.getOriginResponseValue());
             return Row.of(value.getData());
         } else {
             throw new RuntimeException("request data error,msg is " + value.getErrorMsg());
         }
     }
-
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
@@ -152,9 +147,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         return reachEnd;
     }
 
-
     public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
     }
-
 }

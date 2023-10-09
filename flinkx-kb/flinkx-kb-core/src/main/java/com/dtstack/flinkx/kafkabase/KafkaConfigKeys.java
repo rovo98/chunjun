@@ -22,8 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -40,12 +39,13 @@ public class KafkaConfigKeys {
     public static final String KEY_ASSIGNER_FIELDS = "partitionAssignColumns";
     public static final String DATA_COMPEL_ORDER = "dataCompelOrder";
     public static final String KEY_MODE = "mode";
-    //partition:0,offset:42;partition:1,offset:300
+    // partition:0,offset:42;partition:1,offset:300
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_TIMESTAMP = "timestamp";
-    public static List<String> KEY_ASSIGNER_DEFAULT_RULE = Arrays.asList("database", "schema", "table");
+    public static List<String> KEY_ASSIGNER_DEFAULT_RULE =
+            Arrays.asList("database", "schema", "table");
 
     public static final String GROUP_ID = "group.id";
 
-    public static final String BOOTSTRAP_SERVERS= "bootstrap.servers";
+    public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
 }

@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class CassandraOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -60,14 +60,15 @@ public class CassandraOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.consistancyLevel = consistancyLevel;
     }
 
-    public void setCassandraConfig(Map<String,Object> cassandraConfig){
+    public void setCassandraConfig(Map<String, Object> cassandraConfig) {
         format.cassandraConfig = cassandraConfig;
     }
 
     @Override
     protected void checkFormat() {
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            throw new UnsupportedOperationException(
+                    "This plugin not support restore from failed state");
         }
     }
 }

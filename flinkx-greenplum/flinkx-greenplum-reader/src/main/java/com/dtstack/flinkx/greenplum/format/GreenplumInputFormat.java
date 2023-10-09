@@ -20,11 +20,9 @@ package com.dtstack.flinkx.greenplum.format;
 
 import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 
-/**Simple inheritance of PostgresqlInputFormat
+/**
+ * Simple inheritance of PostgresqlInputFormat @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
-
-public class GreenplumInputFormat extends PostgresqlInputFormat {
-}
+public class GreenplumInputFormat extends PostgresqlInputFormat {}

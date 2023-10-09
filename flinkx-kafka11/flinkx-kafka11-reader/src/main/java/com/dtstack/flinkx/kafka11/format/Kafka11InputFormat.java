@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kafka11.format;
 
 import com.dtstack.flinkx.kafka11.client.Kafka11Consumer;

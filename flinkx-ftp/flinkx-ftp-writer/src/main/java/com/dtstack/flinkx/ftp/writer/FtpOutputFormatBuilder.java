@@ -20,12 +20,14 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.ftp.FtpConfig;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
+
 import java.util.List;
 
 /**
  * The builder of FtpOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
@@ -45,7 +47,7 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
         format.columnTypes = columnTypes;
     }
 
-    public void setFtpConfig(FtpConfig ftpConfig){
+    public void setFtpConfig(FtpConfig ftpConfig) {
         format.ftpConfig = ftpConfig;
     }
 
@@ -53,5 +55,4 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
     protected void checkFormat() {
         notSupportBatchWrite("FtpWriter");
     }
-
 }

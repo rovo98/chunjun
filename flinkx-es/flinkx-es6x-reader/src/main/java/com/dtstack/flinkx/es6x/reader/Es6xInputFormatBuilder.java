@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es6x.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+
 import java.util.List;
 import java.util.Map;
 

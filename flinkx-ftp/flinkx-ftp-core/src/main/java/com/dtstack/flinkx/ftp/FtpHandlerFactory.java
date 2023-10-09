@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.ftp;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,11 +26,11 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class FtpHandlerFactory {
 
-    public static IFtpHandler createFtpHandler(String protocolStr){
+    public static IFtpHandler createFtpHandler(String protocolStr) {
         IFtpHandler ftpHandler;
 
         Protocol protocol = Protocol.getByName(protocolStr);
-        if(Protocol.SFTP.equals(protocol)) {
+        if (Protocol.SFTP.equals(protocol)) {
             ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
@@ -40,8 +39,9 @@ public class FtpHandlerFactory {
         return ftpHandler;
     }
 
-    enum Protocol{
-        FTP, SFTP;
+    enum Protocol {
+        FTP,
+        SFTP;
 
         public static Protocol getByName(String name) {
             if (StringUtils.isEmpty(name)) {

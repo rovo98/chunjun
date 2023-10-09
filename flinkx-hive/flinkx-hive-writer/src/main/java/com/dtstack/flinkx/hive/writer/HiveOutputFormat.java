@@ -30,6 +30,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.MapUtils;
@@ -48,28 +49,20 @@ import java.util.Map;
 import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_SCHEMA;
 import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private static final String SP = "/";
 
-    /**
-     * hdfs高可用配置
-     */
+    /** hdfs高可用配置 */
     protected Map<String, Object> hadoopConfig;
 
     protected String fileType;
 
-    /**
-     * 写入模式
-     */
+    /** 写入模式 */
     protected String writeMode;
 
-    /**
-     * 压缩方式
-     */
+    /** 压缩方式 */
     protected String compress;
 
     protected String defaultFs;
@@ -128,7 +121,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         this.numTasks = numTasks;
 
         if (null != formatState && null != formatState.getState()) {
-            HiveFormatState hiveFormatState = (HiveFormatState)formatState.getState();
+            HiveFormatState hiveFormatState = (HiveFormatState) formatState.getState();
             formatStateMap.putAll(hiveFormatState.getFormatStateMap());
         }
 
@@ -143,8 +136,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-    }
+    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {}
 
     @Override
     public FormatState getFormatState() {
@@ -164,7 +156,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private Map<String, FormatState> flushOutputFormat() {
         Map<String, FormatState> formatStateMap = new HashMap<>(outputFormats.size());
-        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator =
+                outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
             FormatState formatState = entry.getValue().getFormatState();
@@ -205,15 +198,16 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 } else if (tempObj instanceof String) {
                     try {
                         event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
-                    }catch (JsonSyntaxException e){
+                    } catch (JsonSyntaxException e) {
                         // is not a json string
-                        //tempObj 不是map类型 则event直接往下传递
-                       // LOG.warn("bad json string:【{}】", tempObj);
+                        // tempObj 不是map类型 则event直接往下传递
+                        // LOG.warn("bad json string:【{}】", tempObj);
                     }
                 }
             }
 
-            tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            tablePath =
+                    PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
             fromLogData = true;
         } else {
             tablePath = tableBasePath;
@@ -228,15 +222,19 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
         Row rowData = row;
         if (fromLogData) {
-            rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
+            rowData =
+                    setChannelInformation(
+                            event, row.getField(1), formatPair.getSecond().getColumns());
         }
 
         try {
             formatPair.getFirst().writeRecord(rowData);
 
-            //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
+            // row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add((long)row.toString().getBytes().length - rowData.toString().getBytes().length);
+                bytesWriteCounter.add(
+                        (long) row.toString().getBytes().length
+                                - rowData.toString().getBytes().length);
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
@@ -251,17 +249,23 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         closeOutputFormats();
     }
 
-    private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
-        //如果写入字段只有一个且名称为message 同时 kafka原始数据里没有message字段  默认将kafka原始数据全部写入message里
-        if(columns.size() == 1 && "message".equals(columns.get(0)) && !event.containsKey("message")){
-            return Row.of(gson.toJson(event),channel);
+    private Row setChannelInformation(
+            Map<String, Object> event, Object channel, List<String> columns) {
+        // 如果写入字段只有一个且名称为message 同时 kafka原始数据里没有message字段  默认将kafka原始数据全部写入message里
+        if (columns.size() == 1
+                && "message".equals(columns.get(0))
+                && !event.containsKey("message")) {
+            return Row.of(gson.toJson(event), channel);
         }
         Row rowData = new Row(columns.size() + 1);
-        //防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
+        // 防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
         HashMap<Object, Object> newEvent = new HashMap<>(event.size() * 2);
-        event.entrySet().forEach(data->{
-            newEvent.put(data.getKey().toLowerCase(Locale.ENGLISH),data.getValue());
-        });
+        event.entrySet()
+                .forEach(
+                        data -> {
+                            newEvent.put(
+                                    data.getKey().toLowerCase(Locale.ENGLISH), data.getValue());
+                        });
 
         for (int i = 0; i < columns.size(); i++) {
             rowData.setField(i, newEvent.get(columns.get(i).toLowerCase(Locale.ENGLISH)));
@@ -270,9 +274,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return rowData;
     }
 
-    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
+    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event)
+            throws Exception {
         String partitionValue = partitionFormat.currentTime();
-        String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionValue);
+        String partitionPath =
+                String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionValue);
         String hiveTablePath = tablePath + SP + partitionPath;
 
         BaseHdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
@@ -287,14 +293,16 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return new Pair<BaseHdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private BaseHdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path, String hiveTablePath) {
+    private BaseHdfsOutputFormat createHdfsOutputFormat(
+            TableInfo tableInfo, String path, String hiveTablePath) {
         try {
             HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
             hdfsOutputFormatBuilder.setPath(path);
             hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-            BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            BaseHdfsOutputFormat outputFormat =
+                    (BaseHdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
@@ -332,7 +340,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     private void closeOutputFormats() {
-        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator =
+                outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             try {
                 Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
@@ -359,17 +368,15 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return builder;
     }
 
-    /**
-     * 预先建表
-     * 只适用于analyticalRules参数为schema和table的情况
-     */
-    private void primaryCreateTable(){
-        for(Map.Entry<String, TableInfo> entry : tableInfos.entrySet()){
+    /** 预先建表 只适用于analyticalRules参数为schema和table的情况 */
+    private void primaryCreateTable() {
+        for (Map.Entry<String, TableInfo> entry : tableInfos.entrySet()) {
             Map<String, String> event = new HashMap<>(4);
             event.put(KEY_SCHEMA, schema);
             event.put(KEY_TABLE, entry.getKey());
             TableInfo tableInfo = entry.getValue();
-            String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            String tablePath =
+                    PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
             tableInfo.setTablePath(tablePath);
             checkCreateTable(tablePath, event);
         }

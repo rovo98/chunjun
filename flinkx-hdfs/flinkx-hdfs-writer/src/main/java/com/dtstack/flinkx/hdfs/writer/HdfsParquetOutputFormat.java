@@ -25,11 +25,10 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -60,7 +59,8 @@ import java.util.Map;
 /**
  * The subclass of HdfsOutputFormat writing parquet files
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
@@ -71,69 +71,73 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     private MessageType schema;
 
-    private static ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(10, 0);
+    private static ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
+            new ColumnTypeUtil.DecimalInfo(10, 0);
 
     @Override
-    protected void openSource() throws IOException{
+    protected void openSource() throws IOException {
         super.openSource();
 
         schema = buildSchema();
-        GroupWriteSupport.setSchema(schema,conf);
+        GroupWriteSupport.setSchema(schema, conf);
         groupFactory = new SimpleGroupFactory(schema);
     }
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
-        if (writer != null){
+        if (writer != null) {
             return;
         }
 
         try {
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             Path writePath = new Path(currentBlockTmpPath);
-            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
-                    .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                    .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                    .withCompressionCodec(getCompressType())
-                    .withConf(conf)
-                    .withType(schema)
-                    .withDictionaryEncoding(enableDictionary)
-                    .withRowGroupSize(rowGroupSize);
+            ExampleParquetWriter.Builder builder =
+                    ExampleParquetWriter.builder(writePath)
+                            .withWriteMode(ParquetFileWriter.Mode.CREATE)
+                            .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                            .withCompressionCodec(getCompressType())
+                            .withConf(conf)
+                            .withType(schema)
+                            .withDictionaryEncoding(enableDictionary)
+                            .withRowGroupSize(rowGroupSize);
 
-            //开启kerberos 需要在ugi里进行build
-            if(FileSystemUtil.isOpenKerberos(hadoopConfig)){
+            // 开启kerberos 需要在ugi里进行build
+            if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
                 UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
-                ugi.doAs((PrivilegedAction<Object>) () -> {
-                    try {
-                        writer = builder.build();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return null;
-                });
-            }else{
+                ugi.doAs(
+                        (PrivilegedAction<Object>)
+                                () -> {
+                                    try {
+                                        writer = builder.build();
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    return null;
+                                });
+            } else {
                 writer = builder.build();
             }
             blockIndex++;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private CompressionCodecName getCompressType(){
+    private CompressionCodecName getCompressType() {
         // Compatible with old code
-        if(StringUtils.isEmpty(compress)){
+        if (StringUtils.isEmpty(compress)) {
             compress = ECompressType.PARQUET_SNAPPY.getType();
         }
 
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
-        if(ECompressType.PARQUET_SNAPPY.equals(compressType)){
+        if (ECompressType.PARQUET_SNAPPY.equals(compressType)) {
             return CompressionCodecName.SNAPPY;
-        }else if(ECompressType.PARQUET_GZIP.equals(compressType)){
+        } else if (ECompressType.PARQUET_GZIP.equals(compressType)) {
             return CompressionCodecName.GZIP;
-        }else if(ECompressType.PARQUET_LZO.equals(compressType)){
+        } else if (ECompressType.PARQUET_LZO.equals(compressType)) {
             return CompressionCodecName.LZO;
         } else {
             return CompressionCodecName.UNCOMPRESSED;
@@ -147,17 +151,19 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
-    public void flushDataInternal() throws IOException{
-        LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+    public void flushDataInternal() throws IOException {
+        LOG.info(
+                "Close current parquet record writer, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
-        if (writer != null){
+        if (writer != null) {
             writer.close();
             writer = null;
         }
     }
 
     @Override
-    public float getDeviation(){
+    public float getDeviation() {
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
         return compressType.getDeviation();
     }
@@ -165,7 +171,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
 
-        if(writer == null){
+        if (writer == null) {
             nextBlock();
         }
 
@@ -174,17 +180,19 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         try {
             for (; i < fullColumnNames.size(); i++) {
                 int colIndex = colIndices[i];
-                if(colIndex > -1){
+                if (colIndex > -1) {
                     Object valObj = row.getField(colIndex);
-                    if(valObj == null || (valObj.toString().length() == 0 && !ColumnType.isStringType(fullColumnTypes.get(i)))){
+                    if (valObj == null
+                            || (valObj.toString().length() == 0
+                                    && !ColumnType.isStringType(fullColumnTypes.get(i)))) {
                         continue;
                     }
 
                     addDataToGroup(group, valObj, i);
                 }
             }
-        } catch (Exception e){
-            if(e instanceof WriteRecordException){
+        } catch (Exception e) {
+            if (e instanceof WriteRecordException) {
                 throw (WriteRecordException) e;
             } else {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
@@ -195,7 +203,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             writer.write(group);
             rowsOfCurrentBlock++;
 
-            if(restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 lastRow = row;
             }
         } catch (IOException e) {
@@ -203,116 +211,169 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         }
     }
 
-    private void addDataToGroup(Group group, Object valObj, int i) throws Exception{
+    private void addDataToGroup(Group group, Object valObj, int i) throws Exception {
         String colName = fullColumnNames.get(i);
         String colType = fullColumnTypes.get(i);
         colType = ColumnType.fromString(colType).name().toLowerCase();
 
         String val = valObj.toString();
 
-        switch (colType){
-            case "tinyint" :
-            case "smallint" :
-            case "int" :
-                if (valObj instanceof Timestamp){
+        switch (colType) {
+            case "tinyint":
+            case "smallint":
+            case "int":
+                if (valObj instanceof Timestamp) {
                     ((Timestamp) valObj).getTime();
-                    group.add(colName,(int)((Timestamp) valObj).getTime());
-                } else if(valObj instanceof Date){
-                    group.add(colName,(int)((Date) valObj).getTime());
+                    group.add(colName, (int) ((Timestamp) valObj).getTime());
+                } else if (valObj instanceof Date) {
+                    group.add(colName, (int) ((Date) valObj).getTime());
                 } else {
-                    group.add(colName,Integer.parseInt(val));
+                    group.add(colName, Integer.parseInt(val));
                 }
                 break;
-            case "bigint" :
-                if (valObj instanceof Timestamp){
-                    group.add(colName,((Timestamp) valObj).getTime());
-                } else if(valObj instanceof Date){
-                    group.add(colName,((Date) valObj).getTime());
+            case "bigint":
+                if (valObj instanceof Timestamp) {
+                    group.add(colName, ((Timestamp) valObj).getTime());
+                } else if (valObj instanceof Date) {
+                    group.add(colName, ((Date) valObj).getTime());
                 } else {
-                    group.add(colName,Long.parseLong(val));
+                    group.add(colName, Long.parseLong(val));
                 }
                 break;
-            case "float" : group.add(colName,Float.parseFloat(val));break;
-            case "double" : group.add(colName,Double.parseDouble(val));break;
-            case "binary" :group.add(colName,Binary.fromString(val));break;
-            case "char" :
-            case "varchar" :
-            case "string" :
-                if (valObj instanceof Timestamp){
-                    val=DateUtil.getDateTimeFormatterForMillisencond().format(valObj);
-                    group.add(colName,val);
-                }else if (valObj instanceof Map || valObj instanceof List){
-                    group.add(colName,gson.toJson(valObj));
-                }else {
-                    group.add(colName,val);
+            case "float":
+                group.add(colName, Float.parseFloat(val));
+                break;
+            case "double":
+                group.add(colName, Double.parseDouble(val));
+                break;
+            case "binary":
+                group.add(colName, Binary.fromString(val));
+                break;
+            case "char":
+            case "varchar":
+            case "string":
+                if (valObj instanceof Timestamp) {
+                    val = DateUtil.getDateTimeFormatterForMillisencond().format(valObj);
+                    group.add(colName, val);
+                } else if (valObj instanceof Map || valObj instanceof List) {
+                    group.add(colName, gson.toJson(valObj));
+                } else {
+                    group.add(colName, val);
                 }
                 break;
-            case "boolean" : group.add(colName,StringUtil.parseBoolean(val));break;
-            case "timestamp" :
-                Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
+            case "boolean":
+                group.add(colName, StringUtil.parseBoolean(val));
+                break;
+            case "timestamp":
+                Timestamp ts = DateUtil.columnToTimestamp(valObj, null);
                 byte[] dst = HdfsUtil.longToByteArray(ts.getTime());
                 group.add(colName, Binary.fromConstantByteArray(dst));
                 break;
-            case "decimal" :
+            case "decimal":
                 ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(colName);
 
                 HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
-                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
-                if(hiveDecimal == null){
-                    String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", i, decimalInfo.getPrecision(), decimalInfo.getScale(), valObj);
+                hiveDecimal =
+                        HiveDecimal.enforcePrecisionScale(
+                                hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                if (hiveDecimal == null) {
+                    String msg =
+                            String.format(
+                                    "第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)",
+                                    i, decimalInfo.getPrecision(), decimalInfo.getScale(), valObj);
                     throw new WriteRecordException(msg, new IllegalArgumentException());
                 }
 
-                group.add(colName, HdfsUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                group.add(
+                        colName,
+                        HdfsUtil.decimalToBinary(
+                                hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
                 break;
-            case "date" :
-                Date date = DateUtil.columnToDate(valObj,null);
+            case "date":
+                Date date = DateUtil.columnToDate(valObj, null);
                 group.add(colName, DateWritable.dateToDays(new java.sql.Date(date.getTime())));
                 break;
-            default: group.add(colName,val);break;
+            default:
+                group.add(colName, val);
+                break;
         }
     }
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nHdfsParquetOutputFormat [" + jobName + "] writeRecord error: when converting field[" + fullColumnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nHdfsParquetOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + fullColumnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
     protected void closeSource() throws IOException {
-        if (writer != null){
+        if (writer != null) {
             writer.close();
         }
     }
 
-    private MessageType buildSchema(){
+    private MessageType buildSchema() {
         decimalColInfo = new HashMap<>(16);
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNames.size(); i++) {
             String name = fullColumnNames.get(i);
             String colType = fullColumnTypes.get(i).toLowerCase();
-            switch (colType){
-                case "tinyint" :
-                case "smallint" :
-                case "int" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).named(name);break;
-                case "bigint" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT64).named(name);break;
-                case "float" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);break;
-                case "double" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);break;
-                case "binary" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);break;
-                case "char" :
-                case "varchar" :
-                case "string" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);break;
-                case "boolean" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);break;
-                case "timestamp" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT96).named(name);break;
-                case "date" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);break;
+            switch (colType) {
+                case "tinyint":
+                case "smallint":
+                case "int":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).named(name);
+                    break;
+                case "bigint":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT64).named(name);
+                    break;
+                case "float":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);
+                    break;
+                case "double":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);
+                    break;
+                case "binary":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
+                    break;
+                case "char":
+                case "varchar":
+                case "string":
+                    typeBuilder
+                            .optional(PrimitiveType.PrimitiveTypeName.BINARY)
+                            .as(OriginalType.UTF8)
+                            .named(name);
+                    break;
+                case "boolean":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);
+                    break;
+                case "timestamp":
+                    typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT96).named(name);
+                    break;
+                case "date":
+                    typeBuilder
+                            .optional(PrimitiveType.PrimitiveTypeName.INT32)
+                            .as(OriginalType.DATE)
+                            .named(name);
+                    break;
                 default:
-                    if(ColumnTypeUtil.isDecimalType(colType)){
-                        ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(colType, PARQUET_DEFAULT_DECIMAL_INFO);
-                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
+                    if (ColumnTypeUtil.isDecimalType(colType)) {
+                        ColumnTypeUtil.DecimalInfo decimalInfo =
+                                ColumnTypeUtil.getDecimalInfo(
+                                        colType, PARQUET_DEFAULT_DECIMAL_INFO);
+                        typeBuilder
+                                .optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(decimalInfo.getPrecision())
                                 .scale(decimalInfo.getScale())
-                                .length(HdfsUtil.computeMinBytesForPrecision(decimalInfo.getPrecision()))
+                                .length(
+                                        HdfsUtil.computeMinBytesForPrecision(
+                                                decimalInfo.getPrecision()))
                                 .named(name);
 
                         decimalColInfo.put(name, decimalInfo);

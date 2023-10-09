@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es6x.reader;
 
 import com.dtstack.flinkx.es.Es6xUtil;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;

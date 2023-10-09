@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.kafka.format;
 
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -29,6 +28,7 @@ import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.kafkabase.util.KafkaUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.RangeSplitUtil;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.kafka.common.PartitionInfo;
@@ -39,8 +39,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -49,22 +48,24 @@ public class KafkaInputFormat extends KafkaBaseInputFormat {
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         List<kafkaState> stateList = new ArrayList<>();
-        org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<>(KafkaUtil.geneConsumerProp(consumerSettings, mode));
-        if(StartupMode.TIMESTAMP.equals(mode)){
+        org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer =
+                new org.apache.kafka.clients.consumer.KafkaConsumer<>(
+                        KafkaUtil.geneConsumerProp(consumerSettings, mode));
+        if (StartupMode.TIMESTAMP.equals(mode)) {
             List<PartitionInfo> partitionInfoList = consumer.partitionsFor(topic);
             for (PartitionInfo p : partitionInfoList) {
                 stateList.add(new kafkaState(p.topic(), p.partition(), null, timestamp));
             }
-        }else if(StartupMode.SPECIFIC_OFFSETS.equals(mode)){
+        } else if (StartupMode.SPECIFIC_OFFSETS.equals(mode)) {
             stateList = KafkaUtil.parseSpecificOffsetsString(topic, offset);
-        }else{
+        } else {
             String[] topics = topic.split(ConstantValue.COMMA_SYMBOL);
-            if(topics.length == 1){
+            if (topics.length == 1) {
                 List<PartitionInfo> partitionInfoList = consumer.partitionsFor(topic);
                 for (PartitionInfo p : partitionInfoList) {
                     stateList.add(new kafkaState(p.topic(), p.partition(), null, null));
                 }
-            }else{
+            } else {
                 for (String tp : topics) {
                     List<PartitionInfo> partitionInfoList = consumer.partitionsFor(tp);
                     for (PartitionInfo p : partitionInfoList) {

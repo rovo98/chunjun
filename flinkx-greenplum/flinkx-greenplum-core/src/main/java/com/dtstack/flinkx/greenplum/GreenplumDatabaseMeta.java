@@ -25,16 +25,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The class of Greenplum database prototype
+ * The class of Greenplum database prototype @Company: www.dtstack.com
  *
- * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
-
 public class GreenplumDatabaseMeta extends PostgresqlDatabaseMeta {
 
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String, List<String>> updateKey) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
         throw new UnsupportedOperationException("Greenplum not support update mode");
     }
 

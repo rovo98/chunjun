@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.config;
 
 import com.dtstack.flinkx.util.GsonUtil;
+
 import com.google.gson.internal.LinkedTreeMap;
 
 import java.io.Serializable;
@@ -31,22 +32,23 @@ import java.util.Properties;
 /**
  * Abstract Config
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class AbstractConfig implements Serializable {
 
-    protected Map<String,Object> internalMap;
+    protected Map<String, Object> internalMap;
 
-    public AbstractConfig(Map<String,Object> map) {
-        if(map != null) {
+    public AbstractConfig(Map<String, Object> map) {
+        if (map != null) {
             internalMap = map;
         } else {
             internalMap = new HashMap<>();
         }
     }
 
-    public Map<String,Object> getAll(){
+    public Map<String, Object> getAll() {
         return internalMap;
     }
 
@@ -78,7 +80,8 @@ public abstract class AbstractConfig implements Serializable {
         Object obj = internalMap.get(key);
         if (obj instanceof LinkedTreeMap) {
             LinkedTreeMap treeMap = (LinkedTreeMap) obj;
-            Map<String, Object> map = new HashMap<>(Math.max((int) (treeMap.size()/.75f) + 1, 16));
+            Map<String, Object> map =
+                    new HashMap<>(Math.max((int) (treeMap.size() / .75f) + 1, 16));
             map.putAll(treeMap);
             return map;
         }
@@ -87,7 +90,7 @@ public abstract class AbstractConfig implements Serializable {
 
     public Object getVal(String key, Object defaultValue) {
         Object ret = getVal(key);
-        if(ret == null) {
+        if (ret == null) {
             return defaultValue;
         }
         return ret;
@@ -99,7 +102,7 @@ public abstract class AbstractConfig implements Serializable {
 
     public String getStringVal(String key, String defaultValue) {
         String ret = getStringVal(key);
-        if(ret == null || ret.trim().length() == 0) {
+        if (ret == null || ret.trim().length() == 0) {
             return defaultValue;
         }
         return ret;
@@ -107,60 +110,66 @@ public abstract class AbstractConfig implements Serializable {
 
     public int getIntVal(String key, int defaultValue) {
         Object ret = internalMap.get(key);
-        if(ret == null) {
+        if (ret == null) {
             return defaultValue;
         }
-        if(ret instanceof Integer) {
+        if (ret instanceof Integer) {
             return (Integer) ret;
         }
-        if(ret instanceof String) {
+        if (ret instanceof String) {
             return Integer.parseInt((String) ret);
         }
-        if(ret instanceof Long) {
-            return ((Long)ret).intValue();
+        if (ret instanceof Long) {
+            return ((Long) ret).intValue();
         }
-        if(ret instanceof Float) {
-            return ((Float)ret).intValue();
+        if (ret instanceof Float) {
+            return ((Float) ret).intValue();
         }
-        if(ret instanceof Double) {
-            return ((Double)ret).intValue();
+        if (ret instanceof Double) {
+            return ((Double) ret).intValue();
         }
-        if(ret instanceof BigInteger) {
-            return ((BigInteger)ret).intValue();
+        if (ret instanceof BigInteger) {
+            return ((BigInteger) ret).intValue();
         }
-        if(ret instanceof BigDecimal) {
-            return ((BigDecimal)ret).intValue();
+        if (ret instanceof BigDecimal) {
+            return ((BigDecimal) ret).intValue();
         }
-        throw new RuntimeException(String.format("cant't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
+        throw new RuntimeException(
+                String.format(
+                        "cant't %s from %s to int, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
     }
 
     public long getLongVal(String key, long defaultValue) {
         Object ret = internalMap.get(key);
-        if(ret == null) {
+        if (ret == null) {
             return defaultValue;
         }
-        if(ret instanceof Long) {
-            return ((Long)ret);
+        if (ret instanceof Long) {
+            return ((Long) ret);
         }
-        if(ret instanceof Integer) {
-            return ((Integer)ret).longValue();
+        if (ret instanceof Integer) {
+            return ((Integer) ret).longValue();
         }
-        if(ret instanceof String) {
-            return Long.parseLong((String)ret);
+        if (ret instanceof String) {
+            return Long.parseLong((String) ret);
         }
-        if(ret instanceof Float) {
-            return ((Float)ret).longValue();
+        if (ret instanceof Float) {
+            return ((Float) ret).longValue();
         }
-        if(ret instanceof Double) {
-            return ((Double)ret).longValue();
+        if (ret instanceof Double) {
+            return ((Double) ret).longValue();
         }
-        if(ret instanceof BigInteger) {
-            return ((BigInteger)ret).longValue();
+        if (ret instanceof BigInteger) {
+            return ((BigInteger) ret).longValue();
         }
-        if(ret instanceof BigDecimal) {
-            return ((BigDecimal)ret).longValue();
+        if (ret instanceof BigDecimal) {
+            return ((BigDecimal) ret).longValue();
         }
-        throw new RuntimeException(String.format("cant't %s from %s to long, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
+        throw new RuntimeException(
+                String.format(
+                        "cant't %s from %s to long, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
     }
 
     public double getDoubleVal(String key, double defaultValue) {
@@ -189,9 +198,11 @@ public abstract class AbstractConfig implements Serializable {
         if (ret instanceof BigDecimal) {
             return ((BigDecimal) ret).doubleValue();
         }
-        throw new RuntimeException(String.format("cant't %s from %s to double, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
+        throw new RuntimeException(
+                String.format(
+                        "cant't %s from %s to double, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
     }
-
 
     public boolean getBooleanVal(String key, boolean defaultValue) {
         Object ret = internalMap.get(key);
@@ -201,33 +212,39 @@ public abstract class AbstractConfig implements Serializable {
         if (ret instanceof Boolean) {
             return (Boolean) ret;
         }
-        throw new RuntimeException(String.format("cant't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
+        throw new RuntimeException(
+                String.format(
+                        "cant't %s from %s to boolean, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
     }
 
     /**
      * 从指定key中获取Properties配置信息
+     *
      * @param key
      * @param p
      * @return
      */
     @SuppressWarnings("unchecked")
-    public Properties getProperties(String key, Properties p ){
+    public Properties getProperties(String key, Properties p) {
         Object ret = internalMap.get(key);
-        if(p == null){
+        if (p == null) {
             p = new Properties();
         }
         if (ret == null) {
             return p;
         }
-        if(ret instanceof Map){
+        if (ret instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) ret;
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 p.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
             }
             return p;
-        }else{
-            throw new RuntimeException(String.format("cant't %s from %s to map, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
+        } else {
+            throw new RuntimeException(
+                    String.format(
+                            "cant't %s from %s to map, internalMap = %s",
+                            key, ret.getClass().getName(), GsonUtil.GSON.toJson(internalMap)));
         }
     }
-
 }

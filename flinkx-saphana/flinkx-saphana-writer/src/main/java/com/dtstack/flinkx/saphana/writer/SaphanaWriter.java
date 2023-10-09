@@ -30,7 +30,8 @@ import java.util.Collections;
 /**
  * SpaHana writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class SaphanaWriter extends JdbcDataWriter {
@@ -38,7 +39,9 @@ public class SaphanaWriter extends JdbcDataWriter {
     public SaphanaWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new SaphanaDatabaseMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        dbUrl =
+                DbUtil.formatJdbcUrl(
+                        dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override

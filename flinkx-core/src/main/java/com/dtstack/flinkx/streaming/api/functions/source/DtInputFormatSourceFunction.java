@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -54,22 +55,23 @@ import java.util.NoSuchElementException;
  * @author jiangbo
  */
 @Internal
-public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT> implements CheckpointedFunction {
-	private static final long serialVersionUID = 1L;
+public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT>
+        implements CheckpointedFunction {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(DtInputFormatSourceFunction.class);
 
-	private TypeInformation<OUT> typeInfo;
-	private transient TypeSerializer<OUT> serializer;
+    private TypeInformation<OUT> typeInfo;
+    private transient TypeSerializer<OUT> serializer;
 
-	private InputFormat<OUT, InputSplit> format;
+    private InputFormat<OUT, InputSplit> format;
 
-	private transient InputSplitProvider provider;
-	private transient Iterator<InputSplit> splitIterator;
+    private transient InputSplitProvider provider;
+    private transient Iterator<InputSplit> splitIterator;
 
-	private volatile boolean isRunning = true;
+    private volatile boolean isRunning = true;
 
-    private Map<Integer,FormatState> formatStateMap;
+    private Map<Integer, FormatState> formatStateMap;
 
     private static final String LOCATION_STATE_NAME = "data-sync-location-states";
 
@@ -77,212 +79,222 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private boolean isStream;
 
-	@SuppressWarnings("unchecked")
-	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
-		super(format, typeInfo);
-		this.format = (InputFormat<OUT, InputSplit>) format;
-		this.typeInfo = typeInfo;
-	}
+    @SuppressWarnings("unchecked")
+    public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
+        super(format, typeInfo);
+        this.format = (InputFormat<OUT, InputSplit>) format;
+        this.typeInfo = typeInfo;
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public void open(Configuration parameters) throws Exception {
-		StreamingRuntimeContext context = (StreamingRuntimeContext) getRuntimeContext();
+    @Override
+    @SuppressWarnings("unchecked")
+    public void open(Configuration parameters) throws Exception {
+        StreamingRuntimeContext context = (StreamingRuntimeContext) getRuntimeContext();
 
-		if (format instanceof RichInputFormat) {
-			((RichInputFormat) format).setRuntimeContext(context);
-		}
+        if (format instanceof RichInputFormat) {
+            ((RichInputFormat) format).setRuntimeContext(context);
+        }
 
-        if (format instanceof BaseRichInputFormat){
-			RestoreConfig restoreConfig = ((BaseRichInputFormat) format).getRestoreConfig();
-			isStream = restoreConfig != null && restoreConfig.isStream();
-            if(formatStateMap != null){
-                ((BaseRichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+        if (format instanceof BaseRichInputFormat) {
+            RestoreConfig restoreConfig = ((BaseRichInputFormat) format).getRestoreConfig();
+            isStream = restoreConfig != null && restoreConfig.isStream();
+            if (formatStateMap != null) {
+                ((BaseRichInputFormat) format)
+                        .setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
         }
 
-		format.configure(parameters);
+        format.configure(parameters);
 
-		provider = context.getInputSplitProvider();
-		serializer = typeInfo.createSerializer(getRuntimeContext().getExecutionConfig());
-		splitIterator = getInputSplits();
-		isRunning = splitIterator.hasNext();
-	}
+        provider = context.getInputSplitProvider();
+        serializer = typeInfo.createSerializer(getRuntimeContext().getExecutionConfig());
+        splitIterator = getInputSplits();
+        isRunning = splitIterator.hasNext();
+    }
 
-	@Override
-	public void run(SourceContext<OUT> ctx) throws Exception {
-		Exception tryException = null;
-		try {
+    @Override
+    public void run(SourceContext<OUT> ctx) throws Exception {
+        Exception tryException = null;
+        try {
 
-			Counter completedSplitsCounter = getRuntimeContext().getMetricGroup().counter("numSplitsProcessed");
-			if (isRunning && format instanceof RichInputFormat) {
-				((RichInputFormat) format).openInputFormat();
-			}
+            Counter completedSplitsCounter =
+                    getRuntimeContext().getMetricGroup().counter("numSplitsProcessed");
+            if (isRunning && format instanceof RichInputFormat) {
+                ((RichInputFormat) format).openInputFormat();
+            }
 
-			OUT nextElement = serializer.createInstance();
-			while (isRunning) {
-				format.open(splitIterator.next());
+            OUT nextElement = serializer.createInstance();
+            while (isRunning) {
+                format.open(splitIterator.next());
 
-				// for each element we also check if cancel
-				// was called by checking the isRunning flag
+                // for each element we also check if cancel
+                // was called by checking the isRunning flag
 
-				while (isRunning && !format.reachedEnd()) {
-				    if(isStream){
+                while (isRunning && !format.reachedEnd()) {
+                    if (isStream) {
                         nextElement = format.nextRecord(nextElement);
                         if (nextElement != null) {
                             ctx.collect(nextElement);
                         }
                     } else {
-                        synchronized (ctx.getCheckpointLock()){
+                        synchronized (ctx.getCheckpointLock()) {
                             nextElement = format.nextRecord(nextElement);
                             if (nextElement != null) {
                                 ctx.collect(nextElement);
                             }
                         }
                     }
-				}
-				format.close();
-				completedSplitsCounter.inc();
+                }
+                format.close();
+                completedSplitsCounter.inc();
 
-				if (isRunning) {
-					isRunning = splitIterator.hasNext();
-				}
-			}
-		} catch (Exception exception){
-				tryException = exception;
-		} finally {
-			isRunning = false;
-			try {
-				format.close();
-				if (format instanceof RichInputFormat) {
-					((RichInputFormat) format).closeInputFormat();
-				}
-			}catch (Exception finallyException){
-				if(null != tryException){
-					LOG.error(ExceptionUtil.getErrorMessage(finallyException));
-					tryException.addSuppressed(finallyException);
-				}else {
-					tryException = finallyException;
-				}
-			}
-			throwException(tryException);
-		}
-	}
+                if (isRunning) {
+                    isRunning = splitIterator.hasNext();
+                }
+            }
+        } catch (Exception exception) {
+            tryException = exception;
+        } finally {
+            isRunning = false;
+            try {
+                format.close();
+                if (format instanceof RichInputFormat) {
+                    ((RichInputFormat) format).closeInputFormat();
+                }
+            } catch (Exception finallyException) {
+                if (null != tryException) {
+                    LOG.error(ExceptionUtil.getErrorMessage(finallyException));
+                    tryException.addSuppressed(finallyException);
+                } else {
+                    tryException = finallyException;
+                }
+            }
+            throwException(tryException);
+        }
+    }
 
-	@Override
-	public void cancel() {
-		isRunning = false;
-	}
+    @Override
+    public void cancel() {
+        isRunning = false;
+    }
 
-	@Override
-	public void close() throws Exception {
-		format.close();
-		if (format instanceof RichInputFormat) {
-			((RichInputFormat) format).closeInputFormat();
-		}
-	}
+    @Override
+    public void close() throws Exception {
+        format.close();
+        if (format instanceof RichInputFormat) {
+            ((RichInputFormat) format).closeInputFormat();
+        }
+    }
 
-	/**
-	 * Returns the {@code InputFormat}. This is only needed because we need to set the input
-	 * split assigner on the {@code StreamGraph}.
-	 */
-	@Override
-	public InputFormat<OUT, InputSplit> getFormat() {
-		return format;
-	}
+    /**
+     * Returns the {@code InputFormat}. This is only needed because we need to set the input split
+     * assigner on the {@code StreamGraph}.
+     */
+    @Override
+    public InputFormat<OUT, InputSplit> getFormat() {
+        return format;
+    }
 
-	private Iterator<InputSplit> getInputSplits() {
+    private Iterator<InputSplit> getInputSplits() {
 
-		return new Iterator<InputSplit>() {
+        return new Iterator<InputSplit>() {
 
-			private InputSplit nextSplit;
+            private InputSplit nextSplit;
 
-			private boolean exhausted;
+            private boolean exhausted;
 
-			@Override
-			public boolean hasNext() {
-				if (exhausted) {
-					return false;
-				}
+            @Override
+            public boolean hasNext() {
+                if (exhausted) {
+                    return false;
+                }
 
-				if (nextSplit != null) {
-					return true;
-				}
+                if (nextSplit != null) {
+                    return true;
+                }
 
-				final InputSplit split;
-				try {
-					split = provider.getNextInputSplit(getRuntimeContext().getUserCodeClassLoader());
-				} catch (InputSplitProviderException e) {
-					throw new RuntimeException("Could not retrieve next input split.", e);
-				}
+                final InputSplit split;
+                try {
+                    split =
+                            provider.getNextInputSplit(
+                                    getRuntimeContext().getUserCodeClassLoader());
+                } catch (InputSplitProviderException e) {
+                    throw new RuntimeException("Could not retrieve next input split.", e);
+                }
 
-				if (split != null) {
-					this.nextSplit = split;
-					return true;
-				} else {
-					exhausted = true;
-					return false;
-				}
-			}
+                if (split != null) {
+                    this.nextSplit = split;
+                    return true;
+                } else {
+                    exhausted = true;
+                    return false;
+                }
+            }
 
-			@Override
-			public InputSplit next() {
-				if (this.nextSplit == null && !hasNext()) {
-					throw new NoSuchElementException();
-				}
+            @Override
+            public InputSplit next() {
+                if (this.nextSplit == null && !hasNext()) {
+                    throw new NoSuchElementException();
+                }
 
-				final InputSplit tmp = this.nextSplit;
-				this.nextSplit = null;
-				return tmp;
-			}
+                final InputSplit tmp = this.nextSplit;
+                this.nextSplit = null;
+                return tmp;
+            }
 
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
-	}
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
 
-	@Override
-	public void snapshotState(FunctionSnapshotContext context) throws Exception {
+    @Override
+    public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((BaseRichInputFormat) format).getFormatState();
-        if (formatState != null){
+        if (formatState != null) {
             LOG.info("InputFormat format state:{}", formatState.toString());
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
-	}
+    }
 
-	@Override
-	public void initializeState(FunctionInitializationContext context) throws Exception {
-	    LOG.info("Start initialize input format state");
+    @Override
+    public void initializeState(FunctionInitializationContext context) throws Exception {
+        LOG.info("Start initialize input format state");
 
-		OperatorStateStore stateStore = context.getOperatorStateStore();
-        unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
-				LOCATION_STATE_NAME,
-				TypeInformation.of(new TypeHint<FormatState>() {})));
+        OperatorStateStore stateStore = context.getOperatorStateStore();
+        unionOffsetStates =
+                stateStore.getUnionListState(
+                        new ListStateDescriptor<>(
+                                LOCATION_STATE_NAME,
+                                TypeInformation.of(new TypeHint<FormatState>() {})));
 
         LOG.info("Is restored:{}", context.isRestored());
-		if (context.isRestored()){
-			formatStateMap = new HashMap<>(16);
-			for (FormatState formatState : unionOffsetStates.get()) {
-				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-				LOG.info("Input format state into:{}", formatState.toString());
-			}
-		}
+        if (context.isRestored()) {
+            formatStateMap = new HashMap<>(16);
+            for (FormatState formatState : unionOffsetStates.get()) {
+                formatStateMap.put(formatState.getNumOfSubTask(), formatState);
+                LOG.info("Input format state into:{}", formatState.toString());
+            }
+        }
 
         LOG.info("End initialize input format state");
-	}
+    }
 
-	/**
-	 * 抛出异常
-	 * @param e 需要抛出的异常
-	 * @throws Exception 异常
-	 */
-	public void throwException(Exception e) throws Exception {
-		if(null != e) {
-			LOG.error("DtInputFormatSourceFunction error, info: {}",ExceptionUtil.getErrorMessage(e), e);
-			throw e;
-		}
-	}
+    /**
+     * 抛出异常
+     *
+     * @param e 需要抛出的异常
+     * @throws Exception 异常
+     */
+    public void throwException(Exception e) throws Exception {
+        if (null != e) {
+            LOG.error(
+                    "DtInputFormatSourceFunction error, info: {}",
+                    ExceptionUtil.getErrorMessage(e),
+                    e);
+            throw e;
+        }
+    }
 }

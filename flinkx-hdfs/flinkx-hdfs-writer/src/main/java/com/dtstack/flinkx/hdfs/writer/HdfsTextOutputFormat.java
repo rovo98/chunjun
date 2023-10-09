@@ -24,6 +24,7 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
@@ -45,7 +46,8 @@ import java.util.Map;
 /**
  * The builder class of HdfsOutputFormat writing text files
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
@@ -57,9 +59,11 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() throws IOException {
-        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info(
+                "Close current text stream, write data size:[{}]",
+                bytesWriteCounter.getLocalValue());
 
-        if (stream != null){
+        if (stream != null) {
             stream.flush();
             stream.close();
             stream = null;
@@ -67,7 +71,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
-    public float getDeviation(){
+    public float getDeviation() {
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
         return compressType.getDeviation();
     }
@@ -79,43 +83,46 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
-        if (stream != null){
+        if (stream != null) {
             return;
         }
 
         try {
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
-            Path p  = new Path(currentBlockTmpPath);
+            Path p = new Path(currentBlockTmpPath);
 
             ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
-            if(ECompressType.TEXT_NONE.equals(compressType)){
+            if (ECompressType.TEXT_NONE.equals(compressType)) {
                 stream = fs.create(p);
             } else {
                 p = new Path(currentBlockTmpPath);
-                if (compressType == ECompressType.TEXT_GZIP){
+                if (compressType == ECompressType.TEXT_GZIP) {
                     stream = new GzipCompressorOutputStream(fs.create(p));
-                } else if(compressType == ECompressType.TEXT_BZIP2){
+                } else if (compressType == ECompressType.TEXT_BZIP2) {
                     stream = new BZip2CompressorOutputStream(fs.create(p));
                 } else if (compressType == ECompressType.TEXT_LZO) {
-                    CompressionCodecFactory factory = new CompressionCodecFactory(new Configuration());
-                    stream = factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec").createOutputStream(fs.create(p));
+                    CompressionCodecFactory factory =
+                            new CompressionCodecFactory(new Configuration());
+                    stream =
+                            factory.getCodecByClassName("com.hadoop.compression.lzo.LzopCodec")
+                                    .createOutputStream(fs.create(p));
                 }
             }
 
             LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
 
             blockIndex++;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        if(stream == null){
+        if (stream == null) {
             nextBlock();
         }
 
@@ -125,7 +132,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
             int cnt = fullColumnNames.size();
             for (; i < cnt; ++i) {
                 int j = colIndices[i];
-                if(j == -1) {
+                if (j == -1) {
                     continue;
                 }
 
@@ -135,8 +142,8 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
                 appendDataToString(sb, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
             }
-        } catch(Exception e) {
-            if(i < row.getArity()) {
+        } catch (Exception e) {
+            if (i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
@@ -148,11 +155,11 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
 
-            if(restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 lastRow = row;
             }
 
-            if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {
+            if (rowsOfCurrentBlock % BUFFER_SIZE == 0) {
                 this.stream.flush();
             }
         } catch (IOException e) {
@@ -161,13 +168,13 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     }
 
     private void appendDataToString(StringBuilder sb, Object column, ColumnType columnType) {
-        if(column == null) {
+        if (column == null) {
             sb.append(HdfsUtil.NULL_VALUE);
             return;
         }
 
         String rowData = column.toString();
-        if(rowData.length() == 0){
+        if (rowData.length() == 0) {
             sb.append("");
         } else {
             switch (columnType) {
@@ -181,14 +188,14 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                     sb.append(Integer.valueOf(rowData));
                     break;
                 case BIGINT:
-                    if (column instanceof Timestamp){
-                        column=((Timestamp) column).getTime();
+                    if (column instanceof Timestamp) {
+                        column = ((Timestamp) column).getTime();
                         sb.append(column);
                         break;
                     }
 
                     BigInteger data = new BigInteger(rowData);
-                    if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                    if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0) {
                         sb.append(data);
                     } else {
                         sb.append(Long.valueOf(rowData));
@@ -206,12 +213,12 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 case STRING:
                 case VARCHAR:
                 case CHAR:
-                    if (column instanceof Timestamp){
+                    if (column instanceof Timestamp) {
                         SimpleDateFormat fm = DateUtil.getDateTimeFormatterForMillisencond();
                         sb.append(fm.format(column));
-                    }else if (column instanceof Map || column instanceof List){
+                    } else if (column instanceof Map || column instanceof List) {
                         sb.append(gson.toJson(column));
-                    }else {
+                    } else {
                         sb.append(rowData);
                     }
                     break;
@@ -219,12 +226,12 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                     sb.append(StringUtil.parseBoolean(rowData));
                     break;
                 case DATE:
-                    column = DateUtil.columnToDate(column,null);
+                    column = DateUtil.columnToDate(column, null);
                     sb.append(DateUtil.dateToString((Date) column));
                     break;
                 case TIMESTAMP:
-                    column = DateUtil.columnToTimestamp(column,null);
-                    sb.append(DateUtil.timestampToString((Date)column));
+                    column = DateUtil.columnToTimestamp(column, null);
+                    sb.append(DateUtil.timestampToString((Date) column));
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported column type: " + columnType);
@@ -234,17 +241,22 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
-        return "\nHdfsTextOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
+        return "\nHdfsTextOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + columnNames.get(pos)
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
     public void closeSource() throws IOException {
         OutputStream s = this.stream;
-        if(s != null) {
+        if (s != null) {
             s.flush();
             this.stream = null;
             s.close();
         }
     }
-
 }

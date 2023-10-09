@@ -20,6 +20,7 @@ package com.dtstack.flinkx.kingbase.util;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -37,18 +38,18 @@ import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.KEY_UPDATE_KEY;
 /**
  * The class of KingBase database prototype
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author kunni@dtstack.com
  */
-
 public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder();
         sb.append(LEFT_PARENTHESIS_SYMBOL);
-        for(int i = 0; i < column.size(); ++i) {
-            if(i != 0) {
+        for (int i = 0; i < column.size(); ++i) {
+            if (i != 0) {
                 sb.append(COMMA_SYMBOL);
             }
             sb.append(quoteColumn(column.get(i)));
@@ -79,34 +80,45 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
     /**
      * Kingbase 的主键索引名为TABLE_PKEY格式
+     *
      * @param column column名
      * @param table 表名
      * @param updateKey 索引
      * @return updateSql
      */
     @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+    public String getUpsertStatement(
+            List<String> column, String table, Map<String, List<String>> updateKey) {
         List<String> columnList = new LinkedList<>();
-        updateKey.forEach((key, value) -> {
-            // 兼顾查询主键索引名或者填入key map的情况
-            if (StringUtils.endsWith(key, KEY_PRIMARY_SUFFIX) || StringUtils.equals(key, KEY_UPDATE_KEY)) {
-                columnList.addAll(value);
-            }
-        });
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") VALUES "
+        updateKey.forEach(
+                (key, value) -> {
+                    // 兼顾查询主键索引名或者填入key map的情况
+                    if (StringUtils.endsWith(key, KEY_PRIMARY_SUFFIX)
+                            || StringUtils.equals(key, KEY_UPDATE_KEY)) {
+                        columnList.addAll(value);
+                    }
+                });
+        return "INSERT INTO "
+                + quoteTable(table)
+                + " ("
+                + quoteColumns(column)
+                + ") VALUES "
                 + makeValues(column.size())
-                + " ON CONFLICT " +makeValues(columnList) + " DO UPDATE SET "
+                + " ON CONFLICT "
+                + makeValues(columnList)
+                + " DO UPDATE SET "
                 + makeUpdatePart(column);
     }
 
     private String makeValues(int nCols) {
-        return LEFT_PARENTHESIS_SYMBOL + StringUtils.repeat("?", ",", nCols) + RIGHT_PARENTHESIS_SYMBOL;
+        return LEFT_PARENTHESIS_SYMBOL
+                + StringUtils.repeat("?", ",", nCols)
+                + RIGHT_PARENTHESIS_SYMBOL;
     }
 
-    private String makeUpdatePart (List<String> column) {
+    private String makeUpdatePart(List<String> column) {
         List<String> updateList = new ArrayList<>();
-        for(String col : column) {
+        for (String col : column) {
             String quotedCol = quoteColumn(col);
             updateList.add(quotedCol + "=EXCLUDED." + quotedCol);
         }
@@ -115,7 +127,7 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String quoteValue(String value, String column) {
-        return String.format("\"%s\" as %s",value,column);
+        return String.format("\"%s\" as %s", value, column);
     }
 
     @Override
@@ -125,7 +137,8 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
-        return String.format("mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+        return String.format(
+                "mod(%s.%s, ${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override

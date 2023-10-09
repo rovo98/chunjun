@@ -20,6 +20,7 @@ package com.dtstack.flinkx.sqlservercdc;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +46,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -57,13 +57,18 @@ public class SqlServerCdcUtil {
     public static Pattern p = Pattern.compile("\\[(.*?)]");
 
     private static final String STATEMENTS_PLACEHOLDER = "#";
-    private static final String CHECK_CDC_DATABASE = "select 1 from sys.databases where name='%s' AND is_cdc_enabled=1";
-    private static final String CHECK_CDC_TABLE = "select sys.schemas.name+'.'+sys.tables.name from sys.tables, sys.schemas where sys.tables.is_tracked_by_cdc = 1 and sys.tables.schema_id = sys.schemas.schema_id;";
-    private static final String CHECK_CDC_AGENT = "EXEC xp_servicecontrol N'QUERYSTATE', N'SQLSERVERAGENT';";
-    private static final String GET_LIST_OF_CDC_ENABLED_TABLES = "EXEC sys.sp_cdc_help_change_data_capture";
+    private static final String CHECK_CDC_DATABASE =
+            "select 1 from sys.databases where name='%s' AND is_cdc_enabled=1";
+    private static final String CHECK_CDC_TABLE =
+            "select sys.schemas.name+'.'+sys.tables.name from sys.tables, sys.schemas where sys.tables.is_tracked_by_cdc = 1 and sys.tables.schema_id = sys.schemas.schema_id;";
+    private static final String CHECK_CDC_AGENT =
+            "EXEC xp_servicecontrol N'QUERYSTATE', N'SQLSERVERAGENT';";
+    private static final String GET_LIST_OF_CDC_ENABLED_TABLES =
+            "EXEC sys.sp_cdc_help_change_data_capture";
     private static final String GET_MAX_LSN = "SELECT sys.fn_cdc_get_max_lsn()";
     private static final String INCREMENT_LSN = "SELECT sys.fn_cdc_increment_lsn(?)";
-    private static final String GET_ALL_CHANGES_FOR_TABLE = "SELECT * FROM cdc.[fn_cdc_get_all_changes_#](ISNULL(?,sys.fn_cdc_get_min_lsn('#')), ?, N'all update old')";
+    private static final String GET_ALL_CHANGES_FOR_TABLE =
+            "SELECT * FROM cdc.[fn_cdc_get_all_changes_#](ISNULL(?,sys.fn_cdc_get_min_lsn('#')), ?, N'all update old')";
 
     public static final int RETRY_TIMES = 3;
 
@@ -75,22 +80,28 @@ public class SqlServerCdcUtil {
         }
     }
 
-    public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName) throws SQLException {
-
+    public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName)
+            throws SQLException {
 
         boolean ret;
         try (Statement statement = conn.createStatement()) {
-            try (ResultSet rs = statement.executeQuery(String.format(CHECK_CDC_DATABASE, databaseName))) {
+            try (ResultSet rs =
+                    statement.executeQuery(String.format(CHECK_CDC_DATABASE, databaseName))) {
                 ret = rs.next();
             }
         } catch (SQLException e) {
-            LOG.error("error to query {} Enabled CDC or not, sql = {}, e = {}", databaseName, String.format(CHECK_CDC_DATABASE, databaseName), ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "error to query {} Enabled CDC or not, sql = {}, e = {}",
+                    databaseName,
+                    String.format(CHECK_CDC_DATABASE, databaseName),
+                    ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return ret;
     }
 
-    public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet) throws SQLException {
+    public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet)
+            throws SQLException {
         CopyOnWriteArraySet<String> unEnabledCdcTables = new CopyOnWriteArraySet<>(tableSet);
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(CHECK_CDC_TABLE)) {
@@ -100,7 +111,10 @@ public class SqlServerCdcUtil {
                 }
             }
         } catch (SQLException e) {
-            LOG.error("error to query UnEnabled CDC Tables, sql = {}, e = {}", CHECK_CDC_TABLE, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "error to query UnEnabled CDC Tables, sql = {}, e = {}",
+                    CHECK_CDC_TABLE,
+                    ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return unEnabledCdcTables;
@@ -126,14 +140,18 @@ public class SqlServerCdcUtil {
                 return false;
             }
         } catch (SQLException e) {
-            LOG.error("error to query agent status, sql = {}, e = {}", CHECK_CDC_AGENT, ExceptionUtil.getErrorMessage(e));
-            //如果出现异常 就直接返回true  因为有可能是这个sql没有权限 即如果有权限就去判断 没权限就不需要判断
+            LOG.error(
+                    "error to query agent status, sql = {}, e = {}",
+                    CHECK_CDC_AGENT,
+                    ExceptionUtil.getErrorMessage(e));
+            // 如果出现异常 就直接返回true  因为有可能是这个sql没有权限 即如果有权限就去判断 没权限就不需要判断
             // throw e;
             return true;
         }
     }
 
-    public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName) throws SQLException {
+    public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName)
+            throws SQLException {
         Set<ChangeTable> changeTableSet = new HashSet<>();
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(GET_LIST_OF_CDC_ENABLED_TABLES)) {
@@ -151,9 +169,7 @@ public class SqlServerCdcUtil {
                                     rs.getInt(4),
                                     Lsn.valueOf(rs.getBytes(6)),
                                     Lsn.valueOf(rs.getBytes(7)),
-                                    columnList
-                            )
-                    );
+                                    columnList));
                 }
             }
         } catch (SQLException e) {
@@ -177,19 +193,27 @@ public class SqlServerCdcUtil {
         return lsn;
     }
 
-    public static ChangeTable[] getCdcTablesToQuery(Connection conn, String databaseName, List<String> tableList) throws SQLException {
-        Set<ChangeTable> cdcEnabledTableSet = SqlServerCdcUtil.queryChangeTableSet(conn, databaseName);
+    public static ChangeTable[] getCdcTablesToQuery(
+            Connection conn, String databaseName, List<String> tableList) throws SQLException {
+        Set<ChangeTable> cdcEnabledTableSet =
+                SqlServerCdcUtil.queryChangeTableSet(conn, databaseName);
 
         if (cdcEnabledTableSet.isEmpty()) {
-            LOG.error("No table has enabled CDC or security constraints prevents getting the list of change tables");
+            LOG.error(
+                    "No table has enabled CDC or security constraints prevents getting the list of change tables");
         }
 
-        Map<TableId, List<ChangeTable>> whitelistedCdcEnabledTables = cdcEnabledTableSet.stream()
-                .filter(changeTable -> {
-                    String tableName = changeTable.getSourceTableId().getSchemaName() + "." + changeTable.getSourceTableId().getTableName();
-                    return tableList.contains(tableName);
-                })
-                .collect(Collectors.groupingBy(ChangeTable::getSourceTableId));
+        Map<TableId, List<ChangeTable>> whitelistedCdcEnabledTables =
+                cdcEnabledTableSet.stream()
+                        .filter(
+                                changeTable -> {
+                                    String tableName =
+                                            changeTable.getSourceTableId().getSchemaName()
+                                                    + "."
+                                                    + changeTable.getSourceTableId().getTableName();
+                                    return tableList.contains(tableName);
+                                })
+                        .collect(Collectors.groupingBy(ChangeTable::getSourceTableId));
 
         List<ChangeTable> changeTableList = new ArrayList<>();
         for (List<ChangeTable> captures : whitelistedCdcEnabledTables.values()) {
@@ -204,7 +228,10 @@ public class SqlServerCdcUtil {
                 }
                 currentTable.setStopLsn(futureTable.getStartLsn());
                 changeTableList.add(futureTable);
-                LOG.info("Multiple capture instances present for the same table: {} and {}", currentTable, futureTable);
+                LOG.info(
+                        "Multiple capture instances present for the same table: {} and {}",
+                        currentTable,
+                        futureTable);
             }
             changeTableList.add(currentTable);
         }
@@ -227,14 +254,21 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
-    public static StatementResult[] getChangesForTables(Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn) throws SQLException {
+    public static StatementResult[] getChangesForTables(
+            Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn)
+            throws SQLException {
         StatementResult[] resultSets = new StatementResult[changeTables.length];
         String sql;
         int idx = 0;
         try {
             for (ChangeTable changeTable : changeTables) {
-                sql = GET_ALL_CHANGES_FOR_TABLE.replace(STATEMENTS_PLACEHOLDER, changeTable.getCaptureInstance());
-                Lsn fromLsn = changeTable.getStartLsn().compareTo(intervalFromLsn) > 0 ? changeTable.getStartLsn() : intervalFromLsn;
+                sql =
+                        GET_ALL_CHANGES_FOR_TABLE.replace(
+                                STATEMENTS_PLACEHOLDER, changeTable.getCaptureInstance());
+                Lsn fromLsn =
+                        changeTable.getStartLsn().compareTo(intervalFromLsn) > 0
+                                ? changeTable.getStartLsn()
+                                : intervalFromLsn;
 
                 PreparedStatement statement = conn.prepareStatement(sql);
                 statement.setBytes(1, fromLsn.getBinary());
@@ -276,13 +310,14 @@ public class SqlServerCdcUtil {
     /**
      * 获取jdbc连接(超时10S)
      *
-     * @param url      url
+     * @param url url
      * @param username 账号
      * @param password 密码
      * @return
      * @throws SQLException
      */
-    public static Connection getConnection(String url, String username, String password) throws SQLException {
+    public static Connection getConnection(String url, String username, String password)
+            throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);

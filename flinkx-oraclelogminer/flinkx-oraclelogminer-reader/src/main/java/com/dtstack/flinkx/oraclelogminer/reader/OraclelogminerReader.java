@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -43,7 +43,10 @@ public class OraclelogminerReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         try {
-            logMinerConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), LogMinerConfig.class);
+            logMinerConfig =
+                    objectMapper.readValue(
+                            objectMapper.writeValueAsString(readerConfig.getParameter().getAll()),
+                            LogMinerConfig.class);
         } catch (Exception e) {
             throw new RuntimeException("parse logMiner config error:", e);
         }
@@ -51,7 +54,7 @@ public class OraclelogminerReader extends BaseDataReader {
         buildTableListenerRegex();
     }
 
-    private void buildTableListenerRegex(){
+    private void buildTableListenerRegex() {
         if (CollectionUtils.isEmpty(logMinerConfig.getTable())) {
             return;
         }

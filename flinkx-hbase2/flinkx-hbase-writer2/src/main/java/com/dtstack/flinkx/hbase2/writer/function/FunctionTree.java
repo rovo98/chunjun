@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hbase2.writer.function;
 
 import com.google.common.collect.Lists;
@@ -40,12 +39,12 @@ public class FunctionTree {
 
     private List<FunctionTree> inputFunctions = Lists.newArrayList();
 
-    public String evaluate(Map<String, Object> nameValueMap) throws Exception{
-        if(StringUtils.isNotEmpty(columnName) && MapUtils.isNotEmpty(nameValueMap)){
+    public String evaluate(Map<String, Object> nameValueMap) throws Exception {
+        if (StringUtils.isNotEmpty(columnName) && MapUtils.isNotEmpty(nameValueMap)) {
             return function.evaluate(nameValueMap.get(columnName));
         }
 
-        if(CollectionUtils.isNotEmpty(inputFunctions)){
+        if (CollectionUtils.isNotEmpty(inputFunctions)) {
             List<String> subTaskVal = new ArrayList<>();
             for (FunctionTree inputFunction : inputFunctions) {
                 subTaskVal.add(inputFunction.evaluate(nameValueMap));
@@ -57,7 +56,7 @@ public class FunctionTree {
         }
     }
 
-    public void addInputFunction(FunctionTree inputFunction){
+    public void addInputFunction(FunctionTree inputFunction) {
         inputFunctions.add(inputFunction);
     }
 
@@ -76,5 +75,4 @@ public class FunctionTree {
     public void setFunction(IFunction function) {
         this.function = function;
     }
-
 }

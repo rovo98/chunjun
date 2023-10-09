@@ -21,8 +21,7 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
 
 /**
- * Date: 2019/11/13
- * Company: www.dtstack.com
+ * Date: 2019/11/13 Company: www.dtstack.com
  *
  * @author tudou
  */

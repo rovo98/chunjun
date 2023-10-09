@@ -23,6 +23,7 @@ import com.dtstack.flinkx.db2.Db2DatabaseMeta;
 import com.dtstack.flinkx.db2.format.Db2InputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**

@@ -19,6 +19,7 @@ package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ValueUtil;
+
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.hadoop.yarn.client.api.YarnClient;
@@ -32,21 +33,21 @@ import java.util.Properties;
 import static com.dtstack.flinkx.constants.ConfigConstant.YARN_RESOURCE_MANAGER_WEBAPP_ADDRESS_KEY;
 
 /**
- * Date: 2019/09/11
- * Company: www.dtstack.com
+ * Date: 2019/09/11 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class FlinkPerJobUtil {
     /**
-     * Minimum memory requirements, checked by the Client.
-     * the minimum memory should be higher than the min heap cutoff
+     * Minimum memory requirements, checked by the Client. the minimum memory should be higher than
+     * the min heap cutoff
      */
-    public final static int MIN_JM_MEMORY = 768;
-    public final static int MIN_TM_MEMORY = 1024;
-    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
-    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
-    public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    public static final int MIN_JM_MEMORY = 768;
+
+    public static final int MIN_TM_MEMORY = 1024;
+    public static final String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
+    public static final String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
+    public static final String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
     private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
 
     /**
@@ -63,9 +64,7 @@ public class FlinkPerJobUtil {
         if (conProp != null) {
             if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
                 int customJMMemoryMb = ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB));
-                jobManagerMemoryMb =
-                        Math.max(
-                                MIN_JM_MEMORY, customJMMemoryMb);
+                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, customJMMemoryMb);
                 LOG.info(
                         "Specified custom jobManagerMemoryMb: {}, and the actual used size is {}.",
                         customJMMemoryMb,
@@ -73,9 +72,7 @@ public class FlinkPerJobUtil {
             }
             if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
                 int customTMMemoryMb = ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB));
-                taskManagerMemoryMb =
-                        Math.max(
-                                MIN_TM_MEMORY, customTMMemoryMb);
+                taskManagerMemoryMb = Math.max(MIN_TM_MEMORY, customTMMemoryMb);
 
                 LOG.info(
                         "Specified custom taskManagerMemoryMb: {}, and the actual used size is {}.",
@@ -103,7 +100,7 @@ public class FlinkPerJobUtil {
 
             Field hField = rmClient.getClass().getSuperclass().getDeclaredField("h");
             hField.setAccessible(true);
-            //获取指定对象中此字段的值
+            // 获取指定对象中此字段的值
             Object h = hField.get(rmClient);
             Object currentProxy = null;
 
@@ -112,7 +109,7 @@ public class FlinkPerJobUtil {
                 currentProxyField.setAccessible(true);
                 currentProxy = currentProxyField.get(h);
             } catch (Exception e) {
-                //兼容Hadoop 2.7.3.2.6.4.91-3
+                // 兼容Hadoop 2.7.3.2.6.4.91-3
                 LOG.warn("get currentProxy error:{}", ExceptionUtil.getErrorMessage(e));
                 Field proxyDescriptorField = h.getClass().getDeclaredField("proxyDescriptor");
                 proxyDescriptorField.setAccessible(true);
@@ -141,7 +138,8 @@ public class FlinkPerJobUtil {
         return url;
     }
 
-    public static PackagedProgram buildProgram(String monitorUrl, ClusterSpecification clusterSpecification) throws Exception {
+    public static PackagedProgram buildProgram(
+            String monitorUrl, ClusterSpecification clusterSpecification) throws Exception {
         String[] args = clusterSpecification.getProgramArgs();
         for (int i = 0; i < args.length; i++) {
             if ("-monitor".equals(args[i])) {

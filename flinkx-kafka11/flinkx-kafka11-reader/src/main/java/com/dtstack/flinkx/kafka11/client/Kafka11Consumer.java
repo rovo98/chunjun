@@ -37,12 +37,21 @@ public class Kafka11Consumer extends KafkaBaseConsumer {
     }
 
     @Override
-    public KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit) {
+    public KafkaBaseConsumer createClient(
+            String topic,
+            String group,
+            KafkaBaseInputFormat format,
+            KafkaInputSplit kafkaInputSplit) {
         Properties clientProps = new Properties();
         clientProps.putAll(props);
         clientProps.put(KafkaConfigKeys.GROUP_ID, group);
 
-        client = new Kafka11Client(clientProps, Arrays.asList(topic.split(ConstantValue.COMMA_SYMBOL)), Long.MAX_VALUE, format);
+        client =
+                new Kafka11Client(
+                        clientProps,
+                        Arrays.asList(topic.split(ConstantValue.COMMA_SYMBOL)),
+                        Long.MAX_VALUE,
+                        format);
         return this;
     }
 }

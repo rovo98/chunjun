@@ -22,22 +22,25 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * The writer plugin of Odps
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class OdpsWriter extends BaseDataWriter {
 
-    private Map<String,String> odpsConfig;
+    private Map<String, String> odpsConfig;
 
     protected String[] columnName;
 
@@ -54,24 +57,26 @@ public class OdpsWriter extends BaseDataWriter {
     public OdpsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        odpsConfig = (Map<String, String>) writerConfig.getParameter().getVal(OdpsConfigKeys.KEY_ODPS_CONFIG);
+        odpsConfig =
+                (Map<String, String>)
+                        writerConfig.getParameter().getVal(OdpsConfigKeys.KEY_ODPS_CONFIG);
         tableName = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_TABLE);
         partition = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PARTITION);
         mode = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_WRITE_MODE);
         projectName = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PROJECT);
 
         bufferSize = writerConfig.getParameter().getLongVal(OdpsConfigKeys.KEY_BUFFER_SIZE, 0);
-        if (bufferSize == 0){
+        if (bufferSize == 0) {
             bufferSize = OdpsUtil.BUFFER_SIZE_DEFAULT;
         } else {
             bufferSize = bufferSize * 1024 * 1024;
         }
 
         List columns = (List) writerConfig.getParameter().getVal(OdpsConfigKeys.KEY_COLUMN_LIST);
-        if(CollectionUtils.isNotEmpty(columns)) {
+        if (CollectionUtils.isNotEmpty(columns)) {
             columnName = new String[columns.size()];
             columnType = new String[columns.size()];
-            for(int i = 0; i < columns.size(); ++i) {
+            for (int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
                 columnName[i] = (String) sm.get(OdpsConfigKeys.KEY_COLUMN_NAME);
                 columnType[i] = (String) sm.get(OdpsConfigKeys.KEY_COLUMN_TYPE);

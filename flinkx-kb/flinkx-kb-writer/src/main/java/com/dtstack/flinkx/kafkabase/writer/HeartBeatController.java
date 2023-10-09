@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.exception.DataSourceException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * HeartBeatController
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/11
+ * @author by dujie@dtstack.com @Date 2020/9/11
  */
 public class HeartBeatController implements Serializable {
 
@@ -39,9 +39,7 @@ public class HeartBeatController implements Serializable {
     private AtomicInteger failedTimes = new AtomicInteger(0);
     private Throwable e;
 
-    public HeartBeatController() {
-
-    }
+    public HeartBeatController() {}
 
     public HeartBeatController(int detectingRetryTimes, AtomicInteger failedTimes) {
         this.detectingRetryTimes = detectingRetryTimes;
@@ -50,25 +48,25 @@ public class HeartBeatController implements Serializable {
 
     public void onSuccess() {
         failedTimes.set(0);
-        this.e=null;
+        this.e = null;
     }
 
     public void onFailed(Throwable e) {
         failedTimes.incrementAndGet();
         this.e = e;
-
     }
 
     public void acquire() {
         if (Objects.isNull(e)) {
             return;
         }
-        //连续发送3次数据错误
-        if (failedTimes.get() >= detectingRetryTimes ) {
-            String message = "Failed to send data for three consecutive times，Please check whether the data source is normal，errorInfo->" + ExceptionUtil.getErrorMessage(e);
+        // 连续发送3次数据错误
+        if (failedTimes.get() >= detectingRetryTimes) {
+            String message =
+                    "Failed to send data for three consecutive times，Please check whether the data source is normal，errorInfo->"
+                            + ExceptionUtil.getErrorMessage(e);
             logger.error(message);
-            throw new DataSourceException("kafka",message, e);
+            throw new DataSourceException("kafka", message, e);
         }
     }
 }
-

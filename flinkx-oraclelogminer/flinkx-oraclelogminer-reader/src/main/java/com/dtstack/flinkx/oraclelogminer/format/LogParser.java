@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -54,11 +54,13 @@ public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
-    //TO_DATE函数值匹配
-    public static Pattern toDatePattern = Pattern.compile("(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
-    //TO_TIMESTAMP函数值匹配
-    public static Pattern timeStampPattern = Pattern.compile("(?i)(?<toTimeStamp>(TO_TIMESTAMP\\('(?<datetime>(.*?))'\\)))");
-
+    // TO_DATE函数值匹配
+    public static Pattern toDatePattern =
+            Pattern.compile(
+                    "(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
+    // TO_TIMESTAMP函数值匹配
+    public static Pattern timeStampPattern =
+            Pattern.compile("(?i)(?<toTimeStamp>(TO_TIMESTAMP\\('(?<datetime>(.*?))'\\)))");
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
@@ -69,7 +71,7 @@ public class LogParser {
     }
 
     private static String cleanString(String str) {
-        if("NULL".equalsIgnoreCase(str)){
+        if ("NULL".equalsIgnoreCase(str)) {
             return "";
         }
 
@@ -85,18 +87,21 @@ public class LogParser {
             str = str.substring(1, str.length() - 1);
         }
 
-        return str.replace("IS NULL","= NULL").trim();
+        return str.replace("IS NULL", "= NULL").trim();
     }
 
-    private static void parseInsertStmt(Insert insert, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
-        for (Column column : insert.getColumns()){
+    private static void parseInsertStmt(
+            Insert insert,
+            LinkedHashMap<String, String> beforeDataMap,
+            LinkedHashMap<String, String> afterDataMap) {
+        for (Column column : insert.getColumns()) {
             afterDataMap.put(cleanString(column.getColumnName()), null);
         }
 
         ExpressionList eList = (ExpressionList) insert.getItemsList();
         List<Expression> valueList = eList.getExpressions();
-        int i =0;
-        for (String key : afterDataMap.keySet()){
+        int i = 0;
+        for (String key : afterDataMap.keySet()) {
             String value = cleanString(valueList.get(i).toString());
             afterDataMap.put(key, value);
             beforeDataMap.put(key, null);
@@ -104,42 +109,59 @@ public class LogParser {
         }
     }
 
-    private static void parseUpdateStmt(Update update, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap, String sqlRedo){
+    private static void parseUpdateStmt(
+            Update update,
+            LinkedHashMap<String, String> beforeDataMap,
+            LinkedHashMap<String, String> afterDataMap,
+            String sqlRedo) {
         Iterator<Expression> iterator = update.getExpressions().iterator();
-        for (Column c : update.getColumns()){
-            afterDataMap.put(cleanString(c.getColumnName()), cleanString(iterator.next().toString()));
+        for (Column c : update.getColumns()) {
+            afterDataMap.put(
+                    cleanString(c.getColumnName()), cleanString(iterator.next().toString()));
         }
 
-        if(update.getWhere() != null){
-            update.getWhere().accept(new ExpressionVisitorAdapter() {
-                @Override
-                public void visit(final EqualsTo expr){
-                    String col = cleanString(expr.getLeftExpression().toString());
-                    if(afterDataMap.containsKey(col)){
-                        String value = cleanString(expr.getRightExpression().toString());
-                        beforeDataMap.put(col, value);
-                    } else {
-                        String value = cleanString(expr.getRightExpression().toString());
-                        beforeDataMap.put(col, value);
-                        afterDataMap.put(col, value);
-                    }
-                }
-            });
-        }else{
-            LOG.error("where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}", sqlRedo, update.toString());
+        if (update.getWhere() != null) {
+            update.getWhere()
+                    .accept(
+                            new ExpressionVisitorAdapter() {
+                                @Override
+                                public void visit(final EqualsTo expr) {
+                                    String col = cleanString(expr.getLeftExpression().toString());
+                                    if (afterDataMap.containsKey(col)) {
+                                        String value =
+                                                cleanString(expr.getRightExpression().toString());
+                                        beforeDataMap.put(col, value);
+                                    } else {
+                                        String value =
+                                                cleanString(expr.getRightExpression().toString());
+                                        beforeDataMap.put(col, value);
+                                        afterDataMap.put(col, value);
+                                    }
+                                }
+                            });
+        } else {
+            LOG.error(
+                    "where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}",
+                    sqlRedo,
+                    update.toString());
         }
     }
 
-    private static void parseDeleteStmt(Delete delete, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
-        delete.getWhere().accept(new ExpressionVisitorAdapter(){
-            @Override
-            public void visit(final EqualsTo expr){
-                String col = cleanString(expr.getLeftExpression().toString());
-                String value = cleanString(expr.getRightExpression().toString());
-                beforeDataMap.put(col, value);
-                afterDataMap.put(col, null);
-            }
-        });
+    private static void parseDeleteStmt(
+            Delete delete,
+            LinkedHashMap<String, String> beforeDataMap,
+            LinkedHashMap<String, String> afterDataMap) {
+        delete.getWhere()
+                .accept(
+                        new ExpressionVisitorAdapter() {
+                            @Override
+                            public void visit(final EqualsTo expr) {
+                                String col = cleanString(expr.getLeftExpression().toString());
+                                String value = cleanString(expr.getRightExpression().toString());
+                                beforeDataMap.put(col, value);
+                                afterDataMap.put(col, null);
+                            }
+                        });
     }
 
     public QueueData parse(QueueData pair, boolean isOracle10) throws JSQLParserException {
@@ -149,14 +171,14 @@ public class LogParser {
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
         String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
-        //只有oracle10需要进行toDate toTimestamp转换
-        LOG.debug("before parse toDate/toTimestamp sqlRedo = {}",sqlRedo);
+        // 只有oracle10需要进行toDate toTimestamp转换
+        LOG.debug("before parse toDate/toTimestamp sqlRedo = {}", sqlRedo);
         if (isOracle10) {
             sqlRedo = parseToTimeStamp(parseToDate(sqlRedo));
         }
-        Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
+        Timestamp timestamp = (Timestamp) MapUtils.getObject(logData, "opTime");
 
-        Map<String,Object> message = new LinkedHashMap<>();
+        Map<String, Object> message = new LinkedHashMap<>();
         message.put("scn", pair.getScn());
         message.put("type", operation);
         message.put("schema", schema);
@@ -164,22 +186,21 @@ public class LogParser {
         message.put("ts", idWorker.nextId());
         message.put("opTime", timestamp);
 
-
         Statement stmt;
         try {
             stmt = CCJSqlParserUtil.parse(sqlRedo);
-        }catch (JSQLParserException e){
+        } catch (JSQLParserException e) {
             LOG.info("sqlRedo = {}", sqlRedo);
-            stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'","\\ '"));
+            stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'", "\\ '"));
         }
-        LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
-        LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
+        LinkedHashMap<String, String> afterDataMap = new LinkedHashMap<>();
+        LinkedHashMap<String, String> beforeDataMap = new LinkedHashMap<>();
 
-        if (stmt instanceof Insert){
+        if (stmt instanceof Insert) {
             parseInsertStmt((Insert) stmt, beforeDataMap, afterDataMap);
-        }else if (stmt instanceof Update){
+        } else if (stmt instanceof Update) {
             parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap, sqlRedo);
-        }else if (stmt instanceof Delete){
+        } else if (stmt instanceof Delete) {
             parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
         }
 
@@ -192,7 +213,7 @@ public class LogParser {
         } else {
             message.put("before", beforeDataMap);
             message.put("after", afterDataMap);
-            Map<String,Object> event = Collections.singletonMap("message", message);
+            Map<String, Object> event = Collections.singletonMap("message", message);
 
             return new QueueData(pair.getScn(), event);
         }
@@ -215,7 +236,6 @@ public class LogParser {
         return replace(redoLog, replaceData);
     }
 
-
     /**
      * 解析to_timestamp函数
      *
@@ -233,11 +253,10 @@ public class LogParser {
         return replace(redoLog, replaceData);
     }
 
-
     private String replace(String redoLog, HashMap<String, String> replaceData) {
         if (MapUtils.isNotEmpty(replaceData)) {
             for (Map.Entry<String, String> entry : replaceData.entrySet()) {
-                //to_timeStamp/to_date()函数有括号 需要转义
+                // to_timeStamp/to_date()函数有括号 需要转义
                 String k = entry.getKey().replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)");
                 String v = entry.getValue();
                 redoLog = redoLog.replaceAll(k, v);
@@ -245,5 +264,4 @@ public class LogParser {
         }
         return redoLog;
     }
-
 }

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.gbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;

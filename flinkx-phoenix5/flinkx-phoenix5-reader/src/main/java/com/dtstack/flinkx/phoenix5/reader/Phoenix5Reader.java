@@ -25,13 +25,15 @@ import com.dtstack.flinkx.phoenix5.Phoenix5DatabaseMeta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5InputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.hadoop.hbase.HConstants;
 
 /**
  * phoenix reader plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class Phoenix5Reader extends JdbcDataReader {
@@ -42,15 +44,25 @@ public class Phoenix5Reader extends JdbcDataReader {
     public Phoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        readFromHbase = readerConfig.getParameter().getBooleanVal(Phoenix5ConfigKeys.KEY_READ_FROM_HBASE, false);
-        scanCacheSize = readerConfig.getParameter().getIntVal(Phoenix5ConfigKeys.KEY_SCAN_CACHE_SIZE, HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING);
-        scanBatchSize = readerConfig.getParameter().getIntVal(Phoenix5ConfigKeys.KEY_SCAN_BATCH_SIZE, -1);
+        readFromHbase =
+                readerConfig
+                        .getParameter()
+                        .getBooleanVal(Phoenix5ConfigKeys.KEY_READ_FROM_HBASE, false);
+        scanCacheSize =
+                readerConfig
+                        .getParameter()
+                        .getIntVal(
+                                Phoenix5ConfigKeys.KEY_SCAN_CACHE_SIZE,
+                                HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING);
+        scanBatchSize =
+                readerConfig.getParameter().getIntVal(Phoenix5ConfigKeys.KEY_SCAN_BATCH_SIZE, -1);
         setDatabaseInterface(new Phoenix5DatabaseMeta());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        Phoenix5InputFormatBuilder builder = new Phoenix5InputFormatBuilder(new Phoenix5InputFormat());
+        Phoenix5InputFormatBuilder builder =
+                new Phoenix5InputFormatBuilder(new Phoenix5InputFormat());
         builder.setReadFromHbase(readFromHbase);
         builder.setScanCacheSize(scanCacheSize);
         builder.setScanBatchSize(scanBatchSize);
@@ -59,6 +71,4 @@ public class Phoenix5Reader extends JdbcDataReader {
         builder.setOrderByColumn(orderByColumn);
         return builder;
     }
-
 }
-

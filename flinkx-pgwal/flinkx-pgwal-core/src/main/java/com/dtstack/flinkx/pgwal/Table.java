@@ -18,13 +18,11 @@
 package com.dtstack.flinkx.pgwal;
 
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.postgresql.replication.LogSequenceNumber;
 
 import java.util.List;
 
 /**
- * Date: 2019/12/14
- * Company: www.dtstack.com
+ * Date: 2019/12/14 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -47,8 +45,7 @@ public class Table {
         this.id = schema + "." + table;
     }
 
-    public Table() {
-    }
+    public Table() {}
 
     public String getId() {
         return id;

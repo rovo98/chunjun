@@ -17,7 +17,6 @@
 
 package com.dtstack.flinkx.carbondata.writer.dict;
 
-
 import org.apache.hadoop.util.Shell;
 
 import java.util.BitSet;
@@ -25,7 +24,8 @@ import java.util.BitSet;
 /**
  * external catalog utils
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class ExternalCatalogUtils {
@@ -33,14 +33,15 @@ public class ExternalCatalogUtils {
     private static BitSet charToEscape = new BitSet(20);
 
     static {
-        char[] clist = new char[] {
-                '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008', '\u0009',
-                '\n', '\u000B', '\u000C', '\r', '\u000E', '\u000F', '\u0010', '\u0011', '\u0012', '\u0013',
-                '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001A', '\u001B', '\u001C',
-                '\u001D', '\u001E', '\u001F', '"', '#', '%', '\'', '*', '/', ':', '=', '?', '\\', '\u007F',
-                '{', '[', ']', '^'
-        };
-        for(char c : clist) {
+        char[] clist =
+                new char[] {
+                    '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008',
+                    '\u0009', '\n', '\u000B', '\u000C', '\r', '\u000E', '\u000F', '\u0010',
+                    '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018',
+                    '\u0019', '\u001A', '\u001B', '\u001C', '\u001D', '\u001E', '\u001F', '"', '#',
+                    '%', '\'', '*', '/', ':', '=', '?', '\\', '\u007F', '{', '[', ']', '^'
+                };
+        for (char c : clist) {
             charToEscape.set(c);
         }
         if (Shell.WINDOWS) {
@@ -53,11 +54,11 @@ public class ExternalCatalogUtils {
 
     public static String escapePathName(String path) {
         StringBuilder builder = new StringBuilder();
-        for(int i = 0; i < path.length(); ++i) {
+        for (int i = 0; i < path.length(); ++i) {
             char c = path.charAt(i);
-            if(needsEscaping(c)) {
+            if (needsEscaping(c)) {
                 builder.append('%');
-                builder.append(String.format("%02X", (int)c));
+                builder.append(String.format("%02X", (int) c));
             } else {
                 builder.append(c);
             }

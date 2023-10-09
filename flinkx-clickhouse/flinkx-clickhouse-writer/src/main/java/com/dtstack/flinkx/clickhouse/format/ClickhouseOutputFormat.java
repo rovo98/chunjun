@@ -22,6 +22,7 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2019/11/05
- * Company: www.dtstack.com
+ * Date: 2019/11/05 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -52,7 +52,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
                 dbConn.setAutoCommit(false);
             }
 
-            if(CollectionUtils.isEmpty(fullColumn) || fullColumnType == null){
+            if (CollectionUtils.isEmpty(fullColumn) || fullColumnType == null) {
                 initFullColumnAndType();
             }
 
@@ -90,14 +90,14 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
         } catch (SQLException e) {
             LOG.error("error to get {} schema, e = {}", table, ExceptionUtil.getErrorMessage(e));
             throw e;
-        }finally {
-            DbUtil.closeDbResources(rs, stmt,null, false);
+        } finally {
+            DbUtil.closeDbResources(rs, stmt, null, false);
         }
 
-        if(CollectionUtils.isEmpty(fullColumn)) {
+        if (CollectionUtils.isEmpty(fullColumn)) {
             fullColumn = nameList;
         }
-        if(fullColumnType == null) {
+        if (fullColumnType == null) {
             fullColumnType = typeList;
         }
     }

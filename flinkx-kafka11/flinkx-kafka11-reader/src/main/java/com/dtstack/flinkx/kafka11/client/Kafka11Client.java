@@ -5,6 +5,7 @@ import com.dtstack.flinkx.kafkabase.client.IClient;
 import com.dtstack.flinkx.kafkabase.entity.kafkaState;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,8 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Date: 2019/12/26
- * Company: www.dtstack.com
+ * Date: 2019/12/26 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -33,7 +33,11 @@ public class Kafka11Client implements IClient {
     private KafkaBaseInputFormat format;
     private KafkaConsumer<String, String> consumer;
 
-    public Kafka11Client(Properties clientProps, List<String> topics, long pollTimeout, KafkaBaseInputFormat format) {
+    public Kafka11Client(
+            Properties clientProps,
+            List<String> topics,
+            long pollTimeout,
+            KafkaBaseInputFormat format) {
         this.pollTimeout = pollTimeout;
         this.blankIgnore = format.getBlankIgnore();
         this.format = format;
@@ -44,27 +48,38 @@ public class Kafka11Client implements IClient {
 
     @Override
     public void run() {
-        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
-            LOG.warn("KafkaClient run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
-        });
+        Thread.currentThread()
+                .setUncaughtExceptionHandler(
+                        (t, e) -> {
+                            LOG.warn(
+                                    "KafkaClient run failed, Throwable = {}",
+                                    ExceptionUtil.getErrorMessage(e));
+                        });
         try {
             while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                 for (ConsumerRecord<String, String> r : records) {
-                    boolean isIgnoreCurrent = r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
+                    boolean isIgnoreCurrent =
+                            r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
                     if (isIgnoreCurrent) {
                         continue;
                     }
 
                     try {
-                        processMessage(r.value(), r.topic(), r.partition(), r.offset(), r.timestamp());
+                        processMessage(
+                                r.value(), r.topic(), r.partition(), r.offset(), r.timestamp());
                     } catch (Throwable e) {
-                        LOG.error("kafka consumer fetch is error, message = {}, e = {}", r.value(), ExceptionUtil.getErrorMessage(e));
+                        LOG.error(
+                                "kafka consumer fetch is error, message = {}, e = {}",
+                                r.value(),
+                                ExceptionUtil.getErrorMessage(e));
                     }
                 }
             }
         } catch (WakeupException e) {
-            LOG.warn("WakeupException to close kafka consumer, e = {}", ExceptionUtil.getErrorMessage(e));
+            LOG.warn(
+                    "WakeupException to close kafka consumer, e = {}",
+                    ExceptionUtil.getErrorMessage(e));
         } catch (Throwable e) {
             LOG.error("kafka consumer fetch is error, e = {}", ExceptionUtil.getErrorMessage(e));
         } finally {
@@ -73,10 +88,12 @@ public class Kafka11Client implements IClient {
     }
 
     @Override
-    public void processMessage(String message, String topic, Integer partition, Long offset, Long timestamp) {
+    public void processMessage(
+            String message, String topic, Integer partition, Long offset, Long timestamp) {
         Map<String, Object> event = decode.decode(message);
         if (event != null && event.size() > 0) {
-            format.processEvent(Pair.of(event, new kafkaState(topic, partition, offset, timestamp)));
+            format.processEvent(
+                    Pair.of(event, new kafkaState(topic, partition, offset, timestamp)));
         }
     }
 

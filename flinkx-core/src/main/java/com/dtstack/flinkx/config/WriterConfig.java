@@ -27,7 +27,8 @@ import java.util.Map;
 /**
  * The configuration of writer configuration
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class WriterConfig extends AbstractConfig {
@@ -68,10 +69,11 @@ public class WriterConfig extends AbstractConfig {
         public ParameterConfig(Map<String, Object> map) {
             super(map);
             column = (List) getVal(KEY_COLUMN_LIST);
-            List<Map<String,Object>> connList = (List<Map<String, Object>>) getVal(KEY_CONNECTION_CONFIG_LIST);
+            List<Map<String, Object>> connList =
+                    (List<Map<String, Object>>) getVal(KEY_CONNECTION_CONFIG_LIST);
             connection = new ArrayList<>();
-            if(connList != null) {
-                for(Map<String,Object> conn : connList) {
+            if (connList != null) {
+                for (Map<String, Object> conn : connList) {
                     connection.add(new ConnectionConfig(conn));
                 }
             }
@@ -105,9 +107,10 @@ public class WriterConfig extends AbstractConfig {
             public ConnectionConfig(Map<String, Object> map) {
                 super(map);
                 Object jdbcUrlObj = internalMap.get(KEY_JDBC_URL);
-                if(jdbcUrlObj instanceof String){
+                if (jdbcUrlObj instanceof String) {
                     jdbcUrl = jdbcUrlObj.toString();
-                } else if(jdbcUrlObj instanceof List && CollectionUtils.isNotEmpty((List) jdbcUrlObj)){
+                } else if (jdbcUrlObj instanceof List
+                        && CollectionUtils.isNotEmpty((List) jdbcUrlObj)) {
                     jdbcUrl = ((List) jdbcUrlObj).get(0).toString();
                 }
                 table = (List<String>) getVal(KEY_TABLE_LIST);
@@ -130,12 +133,13 @@ public class WriterConfig extends AbstractConfig {
                 this.table = table;
             }
 
-            public String getSchema(){return schema;}
+            public String getSchema() {
+                return schema;
+            }
 
-            public void setSchema(String schema){this.schema = schema;}
+            public void setSchema(String schema) {
+                this.schema = schema;
+            }
         }
-
     }
-
-
 }

@@ -20,8 +20,7 @@ package com.dtstack.flinkx.oraclelogminer.entity;
 import java.util.Map;
 
 /**
- * Date: 2020/06/01
- * Company: www.dtstack.com
+ * Date: 2020/06/01 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -44,9 +43,6 @@ public class QueueData {
 
     @Override
     public String toString() {
-        return "QueueData{" +
-                "scn=" + scn +
-                ", data=" + data +
-                '}';
+        return "QueueData{" + "scn=" + scn + ", data=" + data + '}';
     }
 }

@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.log;
 
+import com.dtstack.flinkx.config.LogConfig;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.filter.ThresholdFilter;
@@ -24,7 +26,6 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
 import ch.qos.logback.core.util.FileSize;
 import ch.qos.logback.core.util.OptionHelper;
-import com.dtstack.flinkx.config.LogConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -44,8 +45,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Date: 2019/12/18
- * Company: www.dtstack.com
+ * Date: 2019/12/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -81,21 +81,24 @@ public class DtLogger {
                 } else if (LOGBACK.equalsIgnoreCase(type)) {
                     configLogback(logConfig, jobId);
                     isLog4j2 = false;
-                }else{
-                    LOG.warn("log type {} is not [org.apache.logging.slf4j.Log4jLoggerFactory], either nor [ch.qos.logback.classic.util.ContextSelectorStaticBinder]", type);
+                } else {
+                    LOG.warn(
+                            "log type {} is not [org.apache.logging.slf4j.Log4jLoggerFactory], either nor [ch.qos.logback.classic.util.ContextSelectorStaticBinder]",
+                            type);
                 }
 
                 init = true;
             }
         }
-     }
+    }
 
     private static void configLog4j(LogConfig logConfig, String jobId) {
         LOG.info("start to config log4j...");
         LoggerContext loggerContext = (LoggerContext) LogManager.getContext();
         Configuration config = loggerContext.getConfiguration();
 
-        org.apache.logging.log4j.Level level = org.apache.logging.log4j.Level.toLevel(logConfig.getLevel());
+        org.apache.logging.log4j.Level level =
+                org.apache.logging.log4j.Level.toLevel(logConfig.getLevel());
         LEVEL_INT = level.intLevel();
         String pattern = logConfig.getPattern();
         String path = logConfig.getPath();
@@ -104,27 +107,31 @@ public class DtLogger {
             pattern = LogConfig.DEFAULT_LOG4J_PATTERN;
         }
 
-        PatternLayout layout = PatternLayout.newBuilder()
-                .withCharset(StandardCharsets.UTF_8)
-                .withConfiguration(config)
-                .withPattern(pattern)
-                .build();
+        PatternLayout layout =
+                PatternLayout.newBuilder()
+                        .withCharset(StandardCharsets.UTF_8)
+                        .withConfiguration(config)
+                        .withPattern(pattern)
+                        .build();
 
-        Filter filter = LevelRangeFilter.createFilter(org.apache.logging.log4j.Level.ERROR,
-                level,
-                Filter.Result.ACCEPT,
-                Filter.Result.DENY);
+        Filter filter =
+                LevelRangeFilter.createFilter(
+                        org.apache.logging.log4j.Level.ERROR,
+                        level,
+                        Filter.Result.ACCEPT,
+                        Filter.Result.DENY);
 
-        Appender appender = org.apache.logging.log4j.core.appender.RollingFileAppender.newBuilder()
-                .withAppend(true)
-//                .setFilter(filter)
-                .withFileName(path + File.separator + jobId + ".log")
-                .withFilePattern(path + File.separator + jobId + ".%i.log")
-                .setName(APPEND_NAME)
-                .withPolicy(SizeBasedTriggeringPolicy.createPolicy("1GB"))
-                .setLayout(layout)
-                .setConfiguration(config)
-                .build();
+        Appender appender =
+                org.apache.logging.log4j.core.appender.RollingFileAppender.newBuilder()
+                        .withAppend(true)
+                        //                .setFilter(filter)
+                        .withFileName(path + File.separator + jobId + ".log")
+                        .withFilePattern(path + File.separator + jobId + ".%i.log")
+                        .setName(APPEND_NAME)
+                        .withPolicy(SizeBasedTriggeringPolicy.createPolicy("1GB"))
+                        .setLayout(layout)
+                        .setConfiguration(config)
+                        .build();
         appender.start();
 
         for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
@@ -139,7 +146,8 @@ public class DtLogger {
     @SuppressWarnings("unchecked")
     private static void configLogback(LogConfig logConfig, String jobId) {
         LOG.info("start to config logback...");
-        final ch.qos.logback.classic.LoggerContext context = (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
+        final ch.qos.logback.classic.LoggerContext context =
+                (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
         final ch.qos.logback.classic.Logger logger = context.getLogger(LOGGER_NAME);
 
         Level level = Level.toLevel(logConfig.getLevel());
@@ -159,7 +167,7 @@ public class DtLogger {
         appender.setAppend(true);
         appender.setPrudent(false);
         SizeAndTimeBasedRollingPolicy policy = new SizeAndTimeBasedRollingPolicy();
-        String fp = OptionHelper.substVars(path+ jobId + "/.%d{yyyy-MM-dd}.%i.log",context);
+        String fp = OptionHelper.substVars(path + jobId + "/.%d{yyyy-MM-dd}.%i.log", context);
         policy.setMaxFileSize("1GB");
         policy.setFileNamePattern(fp);
         policy.setMaxHistory(15);
@@ -180,9 +188,9 @@ public class DtLogger {
         appender.setRollingPolicy(policy);
         appender.setEncoder(encoder);
         appender.start();
-        ch.qos.logback.classic.Logger root = context.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+        ch.qos.logback.classic.Logger root =
+                context.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
         root.setLevel(level);
-
 
         logger.setLevel(level);
         logger.setAdditive(true);
@@ -191,18 +199,18 @@ public class DtLogger {
         LOG.info("DtLogger config successfully, current log is [logback]");
     }
 
-    public static boolean isEnableTrace(){
-        if(isLog4j2){
+    public static boolean isEnableTrace() {
+        if (isLog4j2) {
             return StandardLevel.TRACE.intLevel() >= LEVEL_INT;
-        }else{
+        } else {
             return Level.TRACE.levelInt >= LEVEL_INT;
         }
     }
 
-    public static boolean isEnableDebug(){
-        if(isLog4j2){
+    public static boolean isEnableDebug() {
+        if (isLog4j2) {
             return StandardLevel.DEBUG.intLevel() >= LEVEL_INT;
-        }else{
+        } else {
             return Level.DEBUG.levelInt >= LEVEL_INT;
         }
     }

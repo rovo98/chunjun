@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.oraclelogminer.util.OraUtil;
 import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -65,9 +65,7 @@ public class LogMinerListener implements Runnable {
 
     private transient LogMinerListener listener;
 
-    /**
-     * 连续接收到错误数据的次数
-     */
+    /** 连续接收到错误数据的次数 */
     private int failedTimes;
 
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
@@ -79,13 +77,17 @@ public class LogMinerListener implements Runnable {
     public void init() {
         queue = new SynchronousQueue<>(false);
 
-        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("LogMiner-pool-%d").build();
-        executor = new ThreadPoolExecutor(1,
-                1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(1024),
-                namedThreadFactory,
-                new ThreadPoolExecutor.AbortPolicy());
+        ThreadFactory namedThreadFactory =
+                new ThreadFactoryBuilder().setNameFormat("LogMiner-pool-%d").build();
+        executor =
+                new ThreadPoolExecutor(
+                        1,
+                        1,
+                        0L,
+                        TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<>(1024),
+                        namedThreadFactory,
+                        new ThreadPoolExecutor.AbortPolicy());
 
         logMinerConnection = new LogMinerConnection(logMinerConfig);
         logParser = new LogParser(logMinerConfig);
@@ -99,18 +101,23 @@ public class LogMinerListener implements Runnable {
         logMinerConnection.setPreScn(startScn);
         positionManager.updatePosition(startScn);
 
-        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+        logMinerSelectSql =
+                SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
         executor.execute(this);
         running = true;
     }
 
     @Override
     public void run() {
-        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
-            LOG.warn("LogMinerListener run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
-            executor.execute(listener);
-            LOG.info("Re-execute LogMinerListener successfully");
-        });
+        Thread.currentThread()
+                .setUncaughtExceptionHandler(
+                        (t, e) -> {
+                            LOG.warn(
+                                    "LogMinerListener run failed, Throwable = {}",
+                                    ExceptionUtil.getErrorMessage(e));
+                            executor.execute(listener);
+                            LOG.info("Re-execute LogMinerListener successfully");
+                        });
 
         while (running) {
             QueueData log = null;
@@ -138,12 +145,16 @@ public class LogMinerListener implements Runnable {
                     queue.put(new QueueData(0L, Collections.singletonMap("e", msg)));
                     Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
-                    LOG.warn("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
+                    LOG.warn(
+                            "error to put exception message into queue, e = {}",
+                            ExceptionUtil.getErrorMessage(ex));
                 }
                 try {
                     logMinerConnection.disConnect();
                 } catch (Exception e1) {
-                    LOG.warn("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                    LOG.warn(
+                            "LogMiner Thread disConnect exception, e = {}",
+                            ExceptionUtil.getErrorMessage(e1));
                 }
 
                 logMinerConnection.connect();
@@ -175,11 +186,11 @@ public class LogMinerListener implements Runnable {
                 return data.getData();
             }
             if (++failedTimes >= 3) {
-                String errorMsg = (String)data.getData().get("e");
+                String errorMsg = (String) data.getData().get("e");
                 StringBuilder sb = new StringBuilder(errorMsg.length() + 128);
                 sb.append("Error data is received 3 times continuously, ");
                 Pair<String, String> pair = OraUtil.parseErrorMsg(errorMsg);
-                if(pair != null){
+                if (pair != null) {
                     sb.append("\nthe Cause maybe : ")
                             .append(pair.getLeft())
                             .append(", \nand the Solution maybe : ")

@@ -21,14 +21,13 @@ package com.dtstack.flinkx.enums;
 /**
  * Database type
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public enum EDatabaseType {
 
-    /**
-     * database type
-     */
+    /** database type */
     MySQL,
     SQLServer,
     Oracle,
@@ -40,9 +39,7 @@ public enum EDatabaseType {
     ES,
     TeraData,
 
-    /**
-     * contains ftp and sftp
-     */
+    /** contains ftp and sftp */
     FTP,
     Hbase,
     ODPS,

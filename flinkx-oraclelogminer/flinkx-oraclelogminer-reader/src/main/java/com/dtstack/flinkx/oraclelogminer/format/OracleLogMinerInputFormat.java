@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -31,9 +31,7 @@ import java.util.Map;
 /**
  * @author jiangbo
  * @date 2019/12/14
- *
- * 名词说明:
- * SCN 即系统改变号(System Change Number)
+ *     <p>名词说明: SCN 即系统改变号(System Change Number)
  */
 public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
@@ -45,7 +43,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int i) {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
+        return new InputSplit[] {new GenericInputSplit(1, 1)};
     }
 
     @Override
@@ -59,7 +57,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
-            positionManager.updatePosition((Long)formatState.getState());
+            positionManager.updatePosition((Long) formatState.getState());
         }
     }
 
@@ -72,7 +70,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     @Override
     protected Row nextRecordInternal(Row row) {
         Map<String, Object> data = logMinerListener.getData();
-        if(null != data) {
+        if (null != data) {
             return Row.of(data);
         } else {
             return null;

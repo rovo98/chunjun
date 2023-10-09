@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -36,16 +37,17 @@ import java.util.Map;
 /**
  * The Hdfs Implementation of InputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     private static final String PARTITION_SPLIT_CHAR = "=";
 
-    protected Map<String,Object> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
-    //hadoop是否是高可用
+    // hadoop是否是高可用
     protected boolean isHa;
 
     protected List<MetaColumn> metaColumns;
@@ -58,9 +60,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected transient RecordReader recordReader;
 
-    /**
-     * 目前只支持UTF-8
-     */
+    /** 目前只支持UTF-8 */
     protected String charsetName = "UTF-8";
 
     protected transient JobConf conf;
@@ -107,20 +107,21 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(recordReader != null) {
+        if (recordReader != null) {
             recordReader.close();
         }
     }
 
     /**
      * 从hdfs路径中获取当前分区信息
+     *
      * @param path hdfs路径
      */
-    public void findCurrentPartition(Path path){
+    public void findCurrentPartition(Path path) {
         Map<String, String> map = new HashMap<>(16);
         String pathStr = path.getParent().toString();
         int index;
-        while((index = pathStr.lastIndexOf(PARTITION_SPLIT_CHAR)) > 0){
+        while ((index = pathStr.lastIndexOf(PARTITION_SPLIT_CHAR)) > 0) {
             int i = pathStr.lastIndexOf(File.separator);
             String name = pathStr.substring(i + 1, index);
             String value = pathStr.substring(index + 1);
@@ -129,10 +130,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         }
 
         for (MetaColumn column : metaColumns) {
-            if(column.getPart()){
+            if (column.getPart()) {
                 column.setValue(map.get(column.getName()));
             }
         }
     }
-
 }

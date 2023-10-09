@@ -4,6 +4,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.emqx.format.EmqxInputFormatBuilder;
 import com.dtstack.flinkx.reader.BaseDataReader;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -17,8 +18,7 @@ import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_TOPIC;
 import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_USERNAME;
 
 /**
- * Date: 2020/02/12
- * Company: www.dtstack.com
+ * Date: 2020/02/12 Company: www.dtstack.com
  *
  * @author tudou
  */

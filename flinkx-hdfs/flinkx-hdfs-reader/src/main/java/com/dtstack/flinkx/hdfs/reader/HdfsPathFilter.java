@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.hdfs.reader;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,27 +43,27 @@ public class HdfsPathFilter implements HdfsConfigurablePathFilter {
     public static final String KEY_REGEX = "file.path.regexFilter";
     public static final String KEY_PATH = "file.path";
 
-    private static final PathFilter HIDDEN_FILE_FILTER = p -> {
-        String name = p.getName();
-        return !name.startsWith("_") && !name.startsWith(".");
-    };
+    private static final PathFilter HIDDEN_FILE_FILTER =
+            p -> {
+                String name = p.getName();
+                return !name.startsWith("_") && !name.startsWith(".");
+            };
 
-    public HdfsPathFilter() {
-    }
+    public HdfsPathFilter() {}
 
     public HdfsPathFilter(String regex) {
         this.regex = regex;
         compileRegex();
     }
 
-    private void compileRegex(){
+    private void compileRegex() {
         String compileRegex = StringUtils.isEmpty(regex) ? DEFAULT_REGEX : regex;
         PATTERN = Pattern.compile(compileRegex);
     }
 
     @Override
     public boolean accept(Path path) {
-        if(!HIDDEN_FILE_FILTER.accept(path)){
+        if (!HIDDEN_FILE_FILTER.accept(path)) {
             return false;
         }
 
@@ -88,6 +87,4 @@ public class HdfsPathFilter implements HdfsConfigurablePathFilter {
     }
 }
 
-interface HdfsConfigurablePathFilter extends PathFilter, JobConfigurable{
-
-}
+interface HdfsConfigurablePathFilter extends PathFilter, JobConfigurable {}

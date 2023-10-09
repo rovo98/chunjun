@@ -17,22 +17,23 @@
  */
 package com.dtstack.flinkx.carbondata.writer;
 
-
 import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Carbondata writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan_zju@163.com
  */
 public class CarbondataWriter extends BaseDataWriter {
@@ -43,7 +44,7 @@ public class CarbondataWriter extends BaseDataWriter {
 
     protected String path;
 
-    protected Map<String,String> hadoopConfig;
+    protected Map<String, String> hadoopConfig;
 
     protected List<String> column;
 
@@ -58,7 +59,9 @@ public class CarbondataWriter extends BaseDataWriter {
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(CarbonConfigKeys.KEY_HADOOP_CONFIG);
+        hadoopConfig =
+                (Map<String, String>)
+                        writerConfig.getParameter().getVal(CarbonConfigKeys.KEY_HADOOP_CONFIG);
         table = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE);
         database = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
@@ -66,7 +69,12 @@ public class CarbondataWriter extends BaseDataWriter {
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
         defaultFs = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         partition = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_PARTITION);
-        batchSize = writerConfig.getParameter().getIntVal(CarbonConfigKeys.KEY_BATCH_SIZE, CarbonConfigKeys.DEFAULT_BATCH_SIZE);
+        batchSize =
+                writerConfig
+                        .getParameter()
+                        .getIntVal(
+                                CarbonConfigKeys.KEY_BATCH_SIZE,
+                                CarbonConfigKeys.DEFAULT_BATCH_SIZE);
     }
 
     @Override
@@ -90,6 +98,4 @@ public class CarbondataWriter extends BaseDataWriter {
 
         return createOutput(dataSet, builder.finish());
     }
-
 }
-

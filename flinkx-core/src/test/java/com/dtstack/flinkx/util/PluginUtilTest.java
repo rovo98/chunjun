@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.classloader.PluginUtil;
+
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -26,26 +27,28 @@ import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author tiezhu
- * Date 2020/6/19 星期五
- */
+/** @author tiezhu Date 2020/6/19 星期五 */
 public class PluginUtilTest {
 
     @Test
     public void testGetJarFileDirPath() {
         String pluginName = "mysqlreader";
-        String pluginRoot = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
-        String remotePluginPath = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
+        String pluginRoot =
+                "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
+        String remotePluginPath =
+                "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
 
-        assertEquals(4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
+        assertEquals(
+                4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
     }
 
     private static final String PKG_PREFIX = "com.dtstack.flinkx.";
 
     @Test
-    public void testCamelize() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method camelizeMethod = PluginUtil.class.getDeclaredMethod("camelize", String.class, String.class);
+    public void testCamelize()
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method camelizeMethod =
+                PluginUtil.class.getDeclaredMethod("camelize", String.class, String.class);
         camelizeMethod.setAccessible(true);
 
         String es6xReaderFullClassName =

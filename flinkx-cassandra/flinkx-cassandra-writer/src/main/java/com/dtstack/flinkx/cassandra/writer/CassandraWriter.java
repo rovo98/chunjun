@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -32,8 +33,8 @@ import java.util.Map;
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
 
 /**
- *
  * @Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class CassandraWriter extends BaseDataWriter {
@@ -64,8 +65,7 @@ public class CassandraWriter extends BaseDataWriter {
 
     protected Long batchSize;
 
-    protected Map<String,Object> cassandraConfig;
-
+    protected Map<String, Object> cassandraConfig;
 
     public CassandraWriter(DataTransferConfig config) {
         super(config);
@@ -79,12 +79,15 @@ public class CassandraWriter extends BaseDataWriter {
         keySpace = writerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = writerConfig.getParameter().getStringVal(KEY_TABLE);
         connectionsPerHost = writerConfig.getParameter().getIntVal(KEY_CONNECTION_PER_HOST, 8);
-        maxPendingPerConnection = writerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
+        maxPendingPerConnection =
+                writerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
         asyncWrite = writerConfig.getParameter().getBooleanVal(KEY_ASYNC_WRITE, false);
         batchSize = writerConfig.getParameter().getLongVal(KEY_BATCH_SIZE, 1);
         consistancyLevel = writerConfig.getParameter().getStringVal(KEY_CONSITANCY_LEVEL);
 
-        cassandraConfig = (Map<String,Object>)writerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
+        cassandraConfig =
+                (Map<String, Object>)
+                        writerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
         cassandraConfig.put(KEY_HOST, host);
         cassandraConfig.put(KEY_PORT, port);
         cassandraConfig.put(KEY_USERNAME, username);

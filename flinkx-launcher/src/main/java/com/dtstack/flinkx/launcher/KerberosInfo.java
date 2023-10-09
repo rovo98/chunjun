@@ -19,6 +19,7 @@ package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.SecurityOptions;
@@ -34,13 +35,11 @@ import java.io.IOException;
 /**
  * KerberosInfo
  *
- * @author by dujie@dtstack.com
- * @Date 2020/8/21
+ * @author by dujie@dtstack.com @Date 2020/8/21
  */
 public class KerberosInfo {
 
     private static final Logger LOG = LoggerFactory.getLogger(KerberosInfo.class);
-
 
     private final String krb5confPath;
     private final String keytab;
@@ -48,18 +47,19 @@ public class KerberosInfo {
     private final Configuration config;
     private final org.apache.hadoop.conf.Configuration hadoopConfiguration;
 
-    public KerberosInfo(String krb5confPath, String keytab, String principal, Configuration config) {
+    public KerberosInfo(
+            String krb5confPath, String keytab, String principal, Configuration config) {
         this.krb5confPath = krb5confPath;
         this.config = config;
         this.hadoopConfiguration = HadoopUtils.getHadoopConfiguration(this.config);
 
-        //keytab, launcherOptions.getKeytab() 比flinkConfiguration里配置的优先级高
+        // keytab, launcherOptions.getKeytab() 比flinkConfiguration里配置的优先级高
         if (StringUtils.isBlank(keytab)) {
             this.keytab = this.config.getString(SecurityOptions.KERBEROS_LOGIN_KEYTAB);
         } else {
             this.keytab = keytab;
         }
-        //principal信息, launcherOptions.getPrincipal() 比flinkConfiguration里配置的优先级高
+        // principal信息, launcherOptions.getPrincipal() 比flinkConfiguration里配置的优先级高
         if (StringUtils.isBlank(principal)) {
             this.principal = this.config.getString(SecurityOptions.KERBEROS_LOGIN_PRINCIPAL);
         } else {
@@ -133,7 +133,7 @@ public class KerberosInfo {
         }
     }
 
-    //是否需要kerberos验证
+    // 是否需要kerberos验证
     public boolean isVerify() {
         UserGroupInformation.AuthenticationMethod authenticationMethod =
                 SecurityUtil.getAuthenticationMethod(hadoopConfiguration);
@@ -167,10 +167,7 @@ public class KerberosInfo {
         return keytab;
     }
 
-
     public String getPrincipal() {
         return principal;
     }
-
-
 }

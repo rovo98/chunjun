@@ -22,8 +22,7 @@ import com.dtstack.flinkx.mysql.writer.MysqlWriter;
 import com.dtstack.flinkx.polardbd.PolardbDatabaseMeta;
 
 /**
- * Date: 2019/11/13
- * Company: www.dtstack.com
+ * Date: 2019/11/13 Company: www.dtstack.com
  *
  * @author tudou
  */

@@ -27,7 +27,8 @@ import com.dtstack.flinkx.teradata.format.TeradataOutputFormat;
 /**
  * Teradata writer plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author wuhui
  */
 public class TeradataWriter extends JdbcDataWriter {

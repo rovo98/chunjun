@@ -20,6 +20,7 @@ package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
+
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
@@ -34,12 +35,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is user for speed control
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ByteRateLimiter {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ByteRateLimiter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ByteRateLimiter.class);
 
     public static final int MIN_RECORD_NUMBER_UPDATE_RATE = 1000;
 
@@ -51,26 +53,28 @@ public class ByteRateLimiter {
 
     private ScheduledExecutorService scheduledExecutorService;
 
-    public ByteRateLimiter(AccumulatorCollector accumulatorCollector, double expectedBytePerSecond) {
+    public ByteRateLimiter(
+            AccumulatorCollector accumulatorCollector, double expectedBytePerSecond) {
         double initialRate = 1000.0;
         this.rateLimiter = RateLimiter.create(initialRate);
         this.expectedBytePerSecond = expectedBytePerSecond;
         this.accumulatorCollector = accumulatorCollector;
 
-        ThreadFactory threadFactory = new BasicThreadFactory
-                .Builder()
-                .namingPattern("ByteRateCheckerThread-%d")
-                .daemon(true)
-                .build();
+        ThreadFactory threadFactory =
+                new BasicThreadFactory.Builder()
+                        .namingPattern("ByteRateCheckerThread-%d")
+                        .daemon(true)
+                        .build();
         scheduledExecutorService = new ScheduledThreadPoolExecutor(1, threadFactory);
     }
 
-    public void start(){
-        scheduledExecutorService.scheduleAtFixedRate(this::updateRate,0, 1000L, TimeUnit.MILLISECONDS);
+    public void start() {
+        scheduledExecutorService.scheduleAtFixedRate(
+                this::updateRate, 0, 1000L, TimeUnit.MILLISECONDS);
     }
 
-    public void stop(){
-        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
+    public void stop() {
+        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
             scheduledExecutorService.shutdown();
         }
     }
@@ -79,16 +83,18 @@ public class ByteRateLimiter {
         rateLimiter.acquire();
     }
 
-    private void updateRate(){
+    private void updateRate() {
         long totalBytes = accumulatorCollector.getAccumulatorValue(Metrics.READ_BYTES);
         long thisRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_READS);
         long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
 
-        BigDecimal thisWriteRatio = BigDecimal.valueOf(totalRecords == 0 ? 0 : thisRecords / (double) totalRecords);
+        BigDecimal thisWriteRatio =
+                BigDecimal.valueOf(totalRecords == 0 ? 0 : thisRecords / (double) totalRecords);
 
-        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE && totalBytes != 0
+        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE
+                && totalBytes != 0
                 && thisWriteRatio.compareTo(BigDecimal.ZERO) != 0) {
-            double bpr = totalBytes / (double)totalRecords;
+            double bpr = totalBytes / (double) totalRecords;
             double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio.doubleValue();
             rateLimiter.setRate(permitsPerSecond);
         }

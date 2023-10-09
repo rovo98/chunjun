@@ -22,6 +22,7 @@ import com.dtstack.flinkx.phoenix5.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -31,12 +32,13 @@ import org.apache.flink.util.FlinkUserCodeClassLoader;
 import org.apache.phoenix.query.QueryServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.URLClassPath;
 
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
+
+import sun.misc.URLClassPath;
 
 /**
  * Company: www.dtstack.com
@@ -50,17 +52,19 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
     private static final String PHOENIX5_WRITER_PREFIX = "flinkx-phoenix5-writer";
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks){
+    protected void openInternal(int taskNumber, int numTasks) {
         try {
-            Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
+            Field declaredField =
+                    ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
             declaredField.setAccessible(true);
-            URLClassPath urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
+            URLClassPath urlClassPath =
+                    (URLClassPath) declaredField.get(getClass().getClassLoader());
             declaredField.setAccessible(false);
 
             List<URL> needJar = Lists.newArrayList();
-            for(URL url : urlClassPath.getURLs()){
+            for (URL url : urlClassPath.getURLs()) {
                 String urlFileName = FilenameUtils.getName(url.getPath());
-                if(urlFileName.startsWith(PHOENIX5_WRITER_PREFIX)){
+                if (urlFileName.startsWith(PHOENIX5_WRITER_PREFIX)) {
                     needJar.add(url);
                 }
             }
@@ -78,41 +82,41 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
                             false);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
-            if(StringUtils.isNotEmpty(username)){
+            if (StringUtils.isNotEmpty(username)) {
                 properties.setProperty("user", username);
             }
-            if(StringUtils.isNotEmpty(password)){
+            if (StringUtils.isNotEmpty(password)) {
                 properties.setProperty("password", password);
             }
-            if(properties.get(QueryServices.MUTATE_BATCH_SIZE_ATTRIB) == null){
-                //执行过程中被批处理并自动提交的行数
+            if (properties.get(QueryServices.MUTATE_BATCH_SIZE_ATTRIB) == null) {
+                // 执行过程中被批处理并自动提交的行数
                 properties.setProperty(QueryServices.MUTATE_BATCH_SIZE_ATTRIB, "100000");
             }
-            if(properties.get(QueryServices.MAX_MUTATION_SIZE_ATTRIB) == null){
-                //客户端批处理的最大行数
+            if (properties.get(QueryServices.MAX_MUTATION_SIZE_ATTRIB) == null) {
+                // 客户端批处理的最大行数
                 properties.setProperty(QueryServices.MAX_MUTATION_SIZE_ATTRIB, "1000000");
             }
-            if(properties.get(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB) == null){
-                //客户端批处理的最大数据量（单位：B）1GB
+            if (properties.get(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB) == null) {
+                // 客户端批处理的最大数据量（单位：B）1GB
                 properties.setProperty(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB, "1073741824");
             }
             dbConn = PhoenixUtil.getHelper(childFirstClassLoader).getConn(dbUrl, properties);
 
-            if (restoreConfig.isRestore()){
+            if (restoreConfig.isRestore()) {
                 dbConn.setAutoCommit(false);
             }
 
-            if(CollectionUtils.isEmpty(fullColumn)) {
+            if (CollectionUtils.isEmpty(fullColumn)) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
 
-            if(fullColumnType == null) {
+            if (fullColumnType == null) {
                 fullColumnType = analyzeTable();
             }
 
-            for(String col : column) {
+            for (String col : column) {
                 for (int i = 0; i < fullColumn.size(); i++) {
-                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                    if (col.equalsIgnoreCase(fullColumn.get(i))) {
                         columnType.add(fullColumnType.get(i));
                         break;
                     }
@@ -127,5 +131,4 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             throw new IllegalArgumentException("open() failed.", sqe);
         }
     }
-
 }

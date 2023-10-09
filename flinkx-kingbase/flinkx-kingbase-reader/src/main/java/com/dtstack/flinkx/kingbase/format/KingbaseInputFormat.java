@@ -21,6 +21,7 @@ package com.dtstack.flinkx.kingbase.format;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -31,22 +32,21 @@ import java.sql.ResultSet;
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
- *
- *
  * Company: www.dtstack.com
+ *
  * @author kunni@Dtstack.com
  */
-
 public class KingbaseInputFormat extends JdbcInputFormat {
 
     /**
      * 避免Operation requires a scrollable ResultSet问题
+     *
      * @param inputSplit 分片
      * @throws IOException IO异常
      */
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        if(incrementConfig.isPolling()){
+        if (incrementConfig.isPolling()) {
             resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
         }
         super.openInternal(inputSplit);
@@ -62,15 +62,15 @@ public class KingbaseInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(columnTypeList)) {
                         String columnType = columnTypeList.get(pos);
-                        if("year".equalsIgnoreCase(columnType)) {
+                        if ("year".equalsIgnoreCase(columnType)) {
                             java.util.Date date = (java.util.Date) obj;
                             obj = DateUtil.dateToYearString(date);
-                        } else if("tinyint".equalsIgnoreCase(columnType)
+                        } else if ("tinyint".equalsIgnoreCase(columnType)
                                 || "bit".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
+                            if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
                         }
@@ -81,9 +81,8 @@ public class KingbaseInputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + ExceptionUtil.getErrorMessage(e), e);
         }
     }
-
 }
