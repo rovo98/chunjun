@@ -21,6 +21,7 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
@@ -953,8 +954,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return connection
      */
     protected Connection getConnection() throws SQLException {
-        return RetryUtil.executeWithRetry(
-                () -> DriverManager.getConnection(dbUrl, username, password), 3, 2000, false);
+        Connection conn =
+                RetryUtil.executeWithRetry(
+                        () -> DriverManager.getConnection(dbUrl, username, password),
+                        3,
+                        2000,
+                        false);
+        EDatabaseType dbType = databaseInterface.getDatabaseType();
+        if (dbType == EDatabaseType.PostgreSQL) {
+            conn.setNetworkTimeout(null /* not used*/, queryTimeOut);
+        }
+        return conn;
     }
 
     /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
