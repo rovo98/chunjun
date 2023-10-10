@@ -962,7 +962,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         false);
         EDatabaseType dbType = databaseInterface.getDatabaseType();
         if (dbType == EDatabaseType.PostgreSQL) {
-            conn.setNetworkTimeout(null /* not used*/, queryTimeOut);
+            conn.setNetworkTimeout(null /* not used*/, queryTimeOut * 1000);
         }
         return conn;
     }
