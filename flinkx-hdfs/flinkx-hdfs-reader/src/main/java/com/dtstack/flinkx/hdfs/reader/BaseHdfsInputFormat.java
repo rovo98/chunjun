@@ -120,9 +120,16 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     public void findCurrentPartition(Path path) {
         Map<String, String> map = new HashMap<>(16);
         String pathStr = path.getParent().toString();
+
         int index;
         while ((index = pathStr.lastIndexOf(PARTITION_SPLIT_CHAR)) > 0) {
-            int i = pathStr.lastIndexOf(File.separator);
+            // remove non partitions extra sub folders
+            while (!pathStr.substring(pathStr.lastIndexOf(File.separator) + 1)
+                    .contains(PARTITION_SPLIT_CHAR)) {
+                pathStr = pathStr.substring(0, pathStr.lastIndexOf(File.separator));
+            }
+
+            int i = pathStr.lastIndexOf(File.separator, index);
             String name = pathStr.substring(i + 1, index);
             String value = pathStr.substring(index + 1);
             map.put(name, value);
