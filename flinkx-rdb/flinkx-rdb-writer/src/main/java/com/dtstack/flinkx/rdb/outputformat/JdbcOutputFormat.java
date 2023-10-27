@@ -30,6 +30,7 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -196,6 +197,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
             preparedStatement = prepareTemplates();
             readyCheckpoint = false;
+
+            // condition checking
+            Preconditions.checkState(
+                    column.size() == columnType.size(),
+                    "Failed to fetch the metadata info for the columns("
+                            + column
+                            + "). Actual: "
+                            + columnType);
 
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
