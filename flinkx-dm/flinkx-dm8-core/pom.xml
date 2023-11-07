@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.dtstack.flinkx</groupId>
+        <artifactId>flinkx-dm</artifactId>
+        <version>1.6</version>
+    </parent>
+
+    <artifactId>flinkx-dm8-core</artifactId>
+    <packaging>jar</packaging>
+
+    <name>flinkx-dm8-core</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver18</artifactId>
+            <version>8.1.2.141</version>
+        </dependency>
+    </dependencies>
+</project>

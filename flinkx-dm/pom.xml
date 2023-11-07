@@ -11,10 +11,14 @@
 
     <artifactId>flinkx-dm</artifactId>
     <packaging>pom</packaging>
+
     <modules>
-        <module>flinkx-dm-core</module>
-        <module>flinkx-dm-reader</module>
-        <module>flinkx-dm-writer</module>
+        <module>flinkx-dm7-core</module>
+        <module>flinkx-dm7-reader</module>
+        <module>flinkx-dm7-writer</module>
+        <module>flinkx-dm8-core</module>
+        <module>flinkx-dm8-reader</module>
+        <module>flinkx-dm8-writer</module>
     </modules>
 
     <dependencies>
