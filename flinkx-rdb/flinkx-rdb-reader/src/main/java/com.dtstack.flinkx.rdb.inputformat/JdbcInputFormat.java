@@ -238,11 +238,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     }
 
                     if (val instanceof String) {
-                        val =
-                                StringUtil.string2col(
-                                        String.valueOf(val),
-                                        metaColumns.get(i).getType(),
-                                        metaColumns.get(i).getTimeFormat());
+                        try {
+                            val =
+                                    StringUtil.string2col(
+                                            String.valueOf(val),
+                                            metaColumns.get(i).getType(),
+                                            metaColumns.get(i).getTimeFormat());
+                        } catch (RuntimeException e) {
+                            LOG.error(
+                                    "Failed to convert field value. meta column[name: {}, type: {}, index: {}, time format: {}], given value: {}",
+                                    metaColumns.get(i).getName(),
+                                    metaColumns.get(i).getType(),
+                                    metaColumns.get(i).getIndex(),
+                                    metaColumns.get(i).getTimeFormat(),
+                                    val);
+                            throw e;
+                        }
                         row.setField(i, val);
                     }
                 }
