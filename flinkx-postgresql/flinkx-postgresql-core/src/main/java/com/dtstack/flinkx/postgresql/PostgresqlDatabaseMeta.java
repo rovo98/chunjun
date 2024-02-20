@@ -80,6 +80,9 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public String getUpsertStatement(
             List<String> column, String table, Map<String, List<String>> updateKey) {
+        if (updateKey == null || updateKey.isEmpty()) {
+            return getInsertStatement(column, table);
+        }
         return "INSERT INTO "
                 + quoteTable(table)
                 + " ("
@@ -87,9 +90,17 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
                 + ") values "
                 + makeValues(column.size())
                 + " ON CONFLICT ("
-                + StringUtils.join(updateKey.get("key"), ",")
+                + updateKeySql(updateKey)
                 + ") DO UPDATE SET "
                 + makeUpdatePart(column);
+    }
+
+    protected String updateKeySql(Map<String, List<String>> updateKey) {
+        List<String> allUpdateKeys = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : updateKey.entrySet()) {
+            allUpdateKeys.addAll(entry.getValue());
+        }
+        return StringUtils.join(allUpdateKeys, ",");
     }
 
     private String makeUpdatePart(List<String> column) {
