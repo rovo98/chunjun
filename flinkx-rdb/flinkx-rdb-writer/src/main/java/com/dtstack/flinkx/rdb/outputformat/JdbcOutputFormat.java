@@ -427,6 +427,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         while (rs.next()) {
             ret.add(rs.getString("COLUMN_NAME"));
         }
+        LOG.info("probe full columns: {}, target[schema: {}, table: {}]", ret, schema, table);
         return ret;
     }
 
@@ -449,6 +450,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 retMap.put(k, v);
             }
         }
+        LOG.info("probe primary keys: {}, target[schema: {}, table: {}].", retMap, schema, table);
         return retMap;
     }
 

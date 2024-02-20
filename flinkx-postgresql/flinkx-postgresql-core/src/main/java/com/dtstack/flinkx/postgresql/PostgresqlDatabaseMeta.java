@@ -24,8 +24,11 @@ import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The class of PostgreSQL database prototype @Company: www.dtstack.com
@@ -83,6 +86,10 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
         if (updateKey == null || updateKey.isEmpty()) {
             return getInsertStatement(column, table);
         }
+        updateKey.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        if (updateKey.isEmpty()) {
+            return getInsertStatement(column, table);
+        }
         return "INSERT INTO "
                 + quoteTable(table)
                 + " ("
@@ -92,7 +99,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
                 + " ON CONFLICT ("
                 + updateKeySql(updateKey)
                 + ") DO UPDATE SET "
-                + makeUpdatePart(column);
+                + makeUpdatePart(
+                        column,
+                        updateKey.values().stream()
+                                .flatMap(Collection::stream)
+                                .collect(Collectors.toSet()));
     }
 
     protected String updateKeySql(Map<String, List<String>> updateKey) {
@@ -103,11 +114,13 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
         return StringUtils.join(allUpdateKeys, ",");
     }
 
-    private String makeUpdatePart(List<String> column) {
+    private String makeUpdatePart(List<String> column, Set<String> uniqueKeys) {
         List<String> updateList = new ArrayList<>();
         for (String col : column) {
-            String quotedCol = quoteColumn(col);
-            updateList.add(quotedCol + "=excluded." + quotedCol);
+            if (!uniqueKeys.contains(col)) {
+                String quotedCol = quoteColumn(col);
+                updateList.add(quotedCol + "=excluded." + quotedCol);
+            }
         }
         return StringUtils.join(updateList, ",");
     }
