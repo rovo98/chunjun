@@ -423,7 +423,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected List<String> probeFullColumns(String table, Connection dbConn) throws SQLException {
         List<String> ret = new ArrayList<>();
-        ResultSet rs = dbConn.getMetaData().getColumns(null, null, table, null);
+        ResultSet rs = dbConn.getMetaData().getColumns(null, this.schema, table, null);
         while (rs.next()) {
             ret.add(rs.getString("COLUMN_NAME"));
         }
@@ -433,7 +433,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn)
             throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, this.schema, table, true, false);
         while (rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
             if (!map.containsKey(indexName)) {

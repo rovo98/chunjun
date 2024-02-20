@@ -19,6 +19,7 @@ package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 
 import org.apache.commons.lang3.StringUtils;
@@ -187,11 +188,21 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         if (StringUtils.isBlank(insertMode)) {
             return false;
         }
+        return INSERT_SQL_MODE_TYPE.equalsIgnoreCase(insertMode);
+    }
 
-        if (!INSERT_SQL_MODE_TYPE.equalsIgnoreCase(insertMode)) {
-            throw new RuntimeException("not support insertSqlMode:" + insertMode);
+    /**
+     * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
+     *
+     * @return
+     */
+    protected String getTable() {
+        String nt = table;
+        String[] parts = table.split("\\.");
+        if (parts.length == BaseDatabaseMeta.DB_TABLE_PART_SIZE) {
+            schema = parts[0];
+            nt = parts[1];
         }
-
-        return true;
+        return nt;
     }
 }

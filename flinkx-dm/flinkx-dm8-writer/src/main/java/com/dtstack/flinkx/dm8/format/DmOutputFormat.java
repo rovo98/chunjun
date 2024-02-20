@@ -84,7 +84,10 @@ public class DmOutputFormat extends JdbcOutputFormat {
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn)
             throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
-
+        String[] parts = table.split("\\.");
+        if (parts.length == BaseDatabaseMeta.DB_TABLE_PART_SIZE) {
+            table = parts[1];
+        }
         try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL, table));
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
