@@ -97,7 +97,7 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
     }
 
     @Override
-    protected Configuration getConfiguration() {
+    public Configuration getConfiguration() {
         return configuration;
     }
 

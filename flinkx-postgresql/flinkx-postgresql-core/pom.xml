@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flinkx-postgresql</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.7</version>
+        <version>1.8-flink-1.16</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +13,7 @@
 
     <dependencies>
 
+        <!-- TODO: bump driver version to the latest one -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>

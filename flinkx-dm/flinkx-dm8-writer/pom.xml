@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.dtstack.flinkx</groupId>
         <artifactId>flinkx-dm</artifactId>
-        <version>1.7</version>
+        <version>1.8-flink-1.16</version>
     </parent>
 
     <artifactId>flinkx-dm8-writer</artifactId>
@@ -16,13 +16,13 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-dm8-core</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-rdb-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
             <scope>provided</scope>
         </dependency>
 

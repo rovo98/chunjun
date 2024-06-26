@@ -28,12 +28,12 @@ import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
-import com.dtstack.flinkx.dm7.reader.DmReader;
-import com.dtstack.flinkx.dm7.writer.DmWriter;
+import com.dtstack.flinkx.dm7.reader.Dm7Reader;
+import com.dtstack.flinkx.dm7.writer.Dm7Writer;
 import com.dtstack.flinkx.emqx.reader.EmqxReader;
 import com.dtstack.flinkx.emqx.writer.EmqxWriter;
-import com.dtstack.flinkx.es.reader.EsReader;
-import com.dtstack.flinkx.es.writer.EsWriter;
+import com.dtstack.flinkx.es6x.reader.Es6xReader;
+import com.dtstack.flinkx.es6x.writer.Es6xWriter;
 import com.dtstack.flinkx.ftp.reader.FtpReader;
 import com.dtstack.flinkx.ftp.writer.FtpWriter;
 import com.dtstack.flinkx.gbase.reader.GbaseReader;
@@ -65,6 +65,7 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
+import com.dtstack.flinkx.oss.writer.OssWriter;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -231,7 +232,7 @@ public class LocalTest {
                 reader = new GbaseReader(config, env);
                 break;
             case PluginNameConstants.ES_READER:
-                reader = new EsReader(config, env);
+                reader = new Es6xReader(config, env);
                 break;
             case PluginNameConstants.FTP_READER:
                 reader = new FtpReader(config, env);
@@ -273,7 +274,7 @@ public class LocalTest {
                 reader = new EmqxReader(config, env);
                 break;
             case PluginNameConstants.DM_READER:
-                reader = new DmReader(config, env);
+                reader = new Dm7Reader(config, env);
                 break;
             case PluginNameConstants.GREENPLUM_READER:
                 reader = new GreenplumReader(config, env);
@@ -329,7 +330,7 @@ public class LocalTest {
                 writer = new GbaseWriter(config);
                 break;
             case PluginNameConstants.ES_WRITER:
-                writer = new EsWriter(config);
+                writer = new Es6xWriter(config);
                 break;
             case PluginNameConstants.FTP_WRITER:
                 writer = new FtpWriter(config);
@@ -374,7 +375,7 @@ public class LocalTest {
                 writer = new EmqxWriter(config);
                 break;
             case PluginNameConstants.DM_WRITER:
-                writer = new DmWriter(config);
+                writer = new Dm7Writer(config);
                 break;
             case PluginNameConstants.GREENPLUM_WRITER:
                 writer = new GreenplumWriter(config);

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flinkx-all</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.7</version>
+        <version>1.8-flink-1.16</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -61,7 +61,7 @@
 
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-metrics-prometheus_2.11</artifactId>
+            <artifactId>flink-metrics-prometheus</artifactId>
             <version>${flink.version}</version>
         </dependency>
 
@@ -86,67 +86,67 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-stream-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-stream-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-carbondata-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-carbondata-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-db2-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-db2-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-es6x-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-es6x-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-ftp-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-ftp-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
             <exclusions>
                 <exclusion>
                     <artifactId>hbase-client</artifactId>
@@ -161,7 +161,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
             <exclusions>
                 <exclusion>
                     <artifactId>hbase-client</artifactId>
@@ -177,131 +177,131 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-mongodb-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-mongodb-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-mysql-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-mysql-dreader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-mysql-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-odps-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-odps-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-oracle-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-oracle-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-postgresql-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-postgresql-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-sqlserver-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-sqlserver-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-redis-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-rdb-core</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-rdb-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-rdb-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-gbase-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-gbase-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-binlog-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hive-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
@@ -313,85 +313,85 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka11-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka11-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka10-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka10-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kudu-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kudu-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-clickhouse-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-clickhouse-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-polardb-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-polardb-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-oraclelogminer-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-sqlservercdc-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
@@ -417,63 +417,68 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-emqx-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-emqx-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-restapi-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-dm7-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-dm7-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-greenplum-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-greenplum-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-phoenix5-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-phoenix5-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kingbase-reader</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kingbase-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-alluxio-writer</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-oss-writer</artifactId>
+            <version>1.8-flink-1.16</version>
         </dependency>
     </dependencies>
 

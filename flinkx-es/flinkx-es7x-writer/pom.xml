@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.dtstack.flinkx</groupId>
         <artifactId>flinkx-es</artifactId>
-        <version>1.7</version>
+        <version>1.8-flink-1.16</version>
     </parent>
 
     <artifactId>flinkx-es7x-writer</artifactId>
@@ -16,7 +16,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-es7x-core</artifactId>
-            <version>1.7</version>
+            <version>1.8-flink-1.16</version>
         </dependency>
     </dependencies>
 
