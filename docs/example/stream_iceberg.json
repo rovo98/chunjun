@@ -1,0 +1,58 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "streamreader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount" : ["100"]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "uri": "thrift://172-16-xxx-xxx:9083",
+            "warehouse" : "hdfs:///hdfsCluster/hive/warehouse",
+            "database": "testdb",
+            "table": "test",
+            "hadoopConfig" : {
+              "dfs.ha.namenodes.ns1" : "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn2" : "host1:9000",
+              "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1" : "host2:9000",
+              "dfs.nameservices" : "ns1"
+            },
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "bigint"
+              },
+              {
+                "name": "name",
+                "index": 1,
+                "type": "string"
+              }
+            ],
+            "writeMode": "overwrite"
+          },
+          "name": "icebergwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false
+      }
+    }
+  }
+}
