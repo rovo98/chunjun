@@ -23,4 +23,6 @@ public class IcebergConfigKeys {
     public static final String KEY_COLUMN_NAME = "name";
 
     public static final String KEY_COLUMN_TYPE = "type";
+
+    public static final String KEY_WHERE = "where";
 }
