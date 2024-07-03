@@ -23,6 +23,7 @@ import com.dtstack.flinkx.options.Options;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.DeploymentOptions;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
@@ -75,6 +76,9 @@ public class PerJobClusterClientBuilder {
 
         flinkConfig = launcherOptions.loadFlinkConfiguration();
         conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+        // NOTE: `execution.target` is required by Flink YarnClusterDescriptor's new delegation
+        // token framework.
+        flinkConfig.setString(DeploymentOptions.TARGET, "yarn-per-job");
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         this.kerberosInfo =

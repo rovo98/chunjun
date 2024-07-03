@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Implementation-Title: Flink : Dist
+Implementation-Version: 1.16.1-TBDS-5.3.1.1
+Archiver-Version: Plexus Archiver
+Built-By: rovo98
+Specification-Vendor: The Apache Software Foundation
+Specification-Title: Flink : Dist
+Implementation-Vendor-Id: org.apache.flink
+Implementation-Vendor: The Apache Software Foundation
+Multi-Release: true
+Created-By: Apache Maven 3.8.6 (mvnd)
+Build-Jdk: 1.8.0_282
+Specification-Version: 1.16.1-TBDS-5.3.1.1
