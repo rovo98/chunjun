@@ -33,7 +33,6 @@ public class IcebergInputFormat extends BaseRichInputFormat {
 
     private final TableLoader tableLoader;
     private final List<MetaColumn> projectedColumns;
-    private final List<Expression> filters;
 
     private Table table;
     private FlinkInputFormat flinkInputFormat;
@@ -42,14 +41,10 @@ public class IcebergInputFormat extends BaseRichInputFormat {
 
     public IcebergInputFormat(
             TableLoader tableLoader, List<MetaColumn> metaColumns, List<Expression> filters) {
+        Preconditions.checkNotNull(tableLoader, "tableLoader must be configured");
         this.tableLoader = tableLoader;
         this.projectedColumns = metaColumns;
-        this.filters = filters;
-    }
 
-    @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        Preconditions.checkNotNull(tableLoader, "tableLoader must be configured");
         if (!tableLoader.isOpen()) {
             this.tableLoader.open();
         }
@@ -76,6 +71,11 @@ public class IcebergInputFormat extends BaseRichInputFormat {
                                                 TypeConversions.fromLogicalToDataType(f.getType())))
                         .toArray(DataTypes.Field[]::new);
         rd2rConverter = DataStructureConverters.getConverter(ROW(fields));
+    }
+
+    @Override
+    protected void openInternal(InputSplit inputSplit) throws IOException {
+        // Do nothing
     }
 
     private TableSchema constructProjectSchema() {

@@ -36,7 +36,7 @@ public class IcebergReader extends BaseDataReader {
     private List<Expression> filters = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
-    protected IcebergReader(DataTransferConfig config, StreamExecutionEnvironment env)
+    public IcebergReader(DataTransferConfig config, StreamExecutionEnvironment env)
             throws JSQLParserException {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
