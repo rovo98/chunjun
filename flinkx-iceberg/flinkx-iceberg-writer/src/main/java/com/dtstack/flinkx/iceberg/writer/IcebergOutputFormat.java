@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.iceberg.writer;
 
-import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 
 import org.apache.flink.types.Row;
@@ -17,17 +17,24 @@ public class IcebergOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) throws IOException {}
 
     @Override
+    protected void writeSingleRecord(Row row) {
+        // NOTE: do nothing there.
+    }
+
+    @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        // NOTE: do nothing here. Just let the super BaseRichOutputFormat class metrics collecting
-        // works.
-        LOG.info(
-                "subTaskIndex[{}]: {}",
-                taskNumber,
-                outputMetric.getMetricCounters().get(Metrics.NUM_WRITES).getLocalValue());
+        // NOTE: do nothing here.
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         notSupportBatchWrite("IcebergWriter");
+    }
+
+    public BaseMetric getFlinkXBaseMetric() {
+        if (readyToSyncData()) {
+            LOG.info("statistics metrics init successfully.");
+        }
+        return outputMetric;
     }
 }

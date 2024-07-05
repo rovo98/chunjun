@@ -166,9 +166,9 @@ public abstract class BaseRichOutputFormat
     /*
     indicators for indicating job's current executing operation.
     */
-    private IntCounter dataPreprocessIndicator;
-    private IntCounter dataSyncIndicator;
-    private IntCounter dataPostProcessIndicator;
+    protected IntCounter dataPreprocessIndicator;
+    protected IntCounter dataSyncIndicator;
+    protected IntCounter dataPostProcessIndicator;
 
     public String getDirtyPath() {
         return dirtyPath;
@@ -673,5 +673,9 @@ public abstract class BaseRichOutputFormat
 
     public void setFormatId(String formatId) {
         this.formatId = formatId;
+    }
+
+    public boolean readyToSyncData() {
+        return this.dataSyncIndicator != null;
     }
 }

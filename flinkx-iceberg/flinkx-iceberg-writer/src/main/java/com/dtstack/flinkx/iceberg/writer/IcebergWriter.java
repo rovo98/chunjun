@@ -77,14 +77,16 @@ public class IcebergWriter extends BaseDataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         TableLoader tableLoader = IcebergUtil.buildTableLoader(icebergConfig);
         Table table = tableLoader.loadTable();
-        // FIXME[rovo98]: Add dummy sink to collect output metrics...
-        createOutput(dataSet, new IcebergOutputFormat());
+        // NOTE: Add dummy sink to collect output metrics for FlinkX
+        IcebergOutputFormat outputFormat = new IcebergOutputFormat();
+        createOutput(dataSet, outputFormat, "metrics-collection-dummy-sink").setParallelism(1);
         //
         return FlinkSink.forRow(dataSet, FlinkSchemaUtil.toSchema(table.schema()))
                 .tableLoader(tableLoader)
                 .writeParallelism(parallelism)
                 .overwrite(isOverwrite)
                 .equalityFieldColumns(columnNames)
+                .flinkXMetrics(outputFormat.getFlinkXBaseMetric())
                 .append();
     }
 }
