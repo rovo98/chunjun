@@ -18,7 +18,7 @@
  */
 package org.apache.iceberg.flink.sink;
 
-import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.iceberg.writer.FlinkXBaseMetricsWaitBarrier;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -148,7 +148,7 @@ public class FlinkSink {
         private final Map<String, String> writeOptions = Maps.newHashMap();
         private FlinkWriteConf flinkWriteConf = null;
 
-        private BaseMetric flinkXBaseMetric = null;
+        private FlinkXBaseMetricsWaitBarrier flinkXBaseMetricsWaitBarrier = null;
 
         private Builder() {}
 
@@ -346,8 +346,8 @@ public class FlinkSink {
             return this;
         }
 
-        public Builder flinkXMetrics(BaseMetric metric) {
-            flinkXBaseMetric = metric;
+        public Builder flinkXMetrics(FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
+            flinkXBaseMetricsWaitBarrier = metricsWaitBarrier;
             return this;
         }
 
@@ -525,7 +525,7 @@ public class FlinkSink {
                             flinkWriteConf,
                             flinkRowType,
                             equalityFieldIds,
-                            flinkXBaseMetric);
+                            flinkXBaseMetricsWaitBarrier);
 
             int parallelism =
                     flinkWriteConf.writeParallelism() == null
@@ -651,7 +651,7 @@ public class FlinkSink {
             FlinkWriteConf flinkWriteConf,
             RowType flinkRowType,
             List<Integer> equalityFieldIds,
-            BaseMetric flinkXBaseMetric) {
+            FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
         Preconditions.checkArgument(
                 tableSupplier != null, "Iceberg table supplier shouldn't be null");
 
@@ -667,7 +667,7 @@ public class FlinkSink {
                         equalityFieldIds,
                         flinkWriteConf.upsertMode());
 
-        return new IcebergStreamWriter<>(initTable.name(), taskWriterFactory, flinkXBaseMetric);
+        return new IcebergStreamWriter<>(initTable.name(), taskWriterFactory, metricsWaitBarrier);
     }
 
     /**

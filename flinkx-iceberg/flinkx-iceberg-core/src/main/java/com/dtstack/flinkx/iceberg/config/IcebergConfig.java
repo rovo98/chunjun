@@ -6,10 +6,18 @@ import java.util.Map;
 public class IcebergConfig {
     private final String warehouse;
     private final String metastoreUris;
-    private Map<String, Object> hadoopConfig;
+    private final Map<String, Object> hadoopConfig;
 
     private final String database;
     private final String table;
+
+    // The properties can be set when using the Hive catalog
+    /** Path to a directory containing core-site.xml and hdfs-site.xml configuration files. */
+    private final String hadoopConfDir;
+
+    /** Path to a directory containing a hive-site.xml */
+    private final String hiveConfDir;
+    //
 
     private IcebergConfig(Builder builder) {
         this.warehouse = builder.warehouse;
@@ -17,6 +25,8 @@ public class IcebergConfig {
         this.hadoopConfig = builder.hadoopConfig;
         this.database = builder.database;
         this.table = builder.table;
+        this.hadoopConfDir = builder.hadoopConfDir;
+        this.hiveConfDir = builder.hiveConfDir;
     }
 
     public String getWarehouse() {
@@ -39,6 +49,14 @@ public class IcebergConfig {
         return table;
     }
 
+    public String getHadoopConfDir() {
+        return hadoopConfDir;
+    }
+
+    public String getHiveConfDir() {
+        return hiveConfDir;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -49,6 +67,8 @@ public class IcebergConfig {
         private String database;
         private String table;
         private Map<String, Object> hadoopConfig = new HashMap<>();
+        private String hadoopConfDir;
+        private String hiveConfDir;
 
         public Builder warehouse(String wh) {
             this.warehouse = wh;
@@ -80,6 +100,16 @@ public class IcebergConfig {
             return this;
         }
 
+        public Builder hadoopConfDir(String hadoopConfDir) {
+            this.hadoopConfDir = hadoopConfDir;
+            return this;
+        }
+
+        public Builder hiveConfDir(String hiveConfDir) {
+            this.hiveConfDir = hiveConfDir;
+            return this;
+        }
+
         public IcebergConfig build() {
             return new IcebergConfig(this);
         }
@@ -101,6 +131,12 @@ public class IcebergConfig {
                 + '\''
                 + ", table='"
                 + table
+                + '\''
+                + ", hadoopConfDir='"
+                + hadoopConfDir
+                + '\''
+                + ", hiveConfDir='"
+                + hiveConfDir
                 + '\''
                 + '}';
     }

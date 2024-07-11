@@ -22,6 +22,8 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_DATABASE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONF_DIR;
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HIVE_CONF_DIR;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_METASTORE_URIS;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_TABLE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_WAREHOUSE;
@@ -49,6 +51,9 @@ public class IcebergReader extends BaseDataReader {
                         .warehouse(readerConfig.getParameter().getStringVal(KEY_WAREHOUSE))
                         .database(readerConfig.getParameter().getStringVal(KEY_DATABASE))
                         .table(readerConfig.getParameter().getStringVal(KEY_TABLE))
+                        .hadoopConfDir(
+                                readerConfig.getParameter().getStringVal(KEY_HADOOP_CONF_DIR))
+                        .hiveConfDir(readerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
                         .build();
         projectColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
         final String where = readerConfig.getParameter().getStringVal(KEY_WHERE, "");

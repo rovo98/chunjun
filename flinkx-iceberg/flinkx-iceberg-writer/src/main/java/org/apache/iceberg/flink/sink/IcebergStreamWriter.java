@@ -19,7 +19,7 @@
 package org.apache.iceberg.flink.sink;
 
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.iceberg.writer.FlinkXBaseMetricsWaitBarrier;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
@@ -33,6 +33,7 @@ import org.apache.iceberg.relocated.com.google.common.base.MoreObjects;
 import org.apache.iceberg.relocated.com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
@@ -47,15 +48,18 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
     private transient int subTaskId;
     private transient int attemptId;
     private transient IcebergStreamWriterMetrics writerMetrics;
-    private transient BaseMetric flinkXBaseMetrics;
+    private transient FlinkXBaseMetricsWaitBarrier flinkXBaseMetricsWaitBarrier;
+
+    private boolean handleFlinkXOutputMetrics = false;
 
     IcebergStreamWriter(
             String fullTableName,
             TaskWriterFactory<T> taskWriterFactory,
-            BaseMetric flinkXBaseMetrics) {
+            FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
         this.fullTableName = fullTableName;
         this.taskWriterFactory = taskWriterFactory;
-        this.flinkXBaseMetrics = flinkXBaseMetrics;
+        this.flinkXBaseMetricsWaitBarrier = metricsWaitBarrier;
+        this.handleFlinkXOutputMetrics = Objects.nonNull(this.flinkXBaseMetricsWaitBarrier);
         setChainingStrategy(ChainingStrategy.ALWAYS);
     }
 
@@ -81,13 +85,21 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
     @Override
     public void processElement(StreamRecord<T> element) throws Exception {
         writer.write(element.getValue());
-        updateFlinkXOutputMetrics();
+        if (handleFlinkXOutputMetrics) {
+            flinkXBaseMetricsWaitBarrier.waitWhileMetricsInitialized();
+            updateFlinkXOutputMetrics();
+        }
     }
 
     private void updateFlinkXOutputMetrics() {
         Preconditions.checkState(
-                flinkXBaseMetrics != null, "FlinkX base metrics is not ready to use!");
-        LongCounter numWrites = flinkXBaseMetrics.getMetricCounters().get(Metrics.NUM_WRITES);
+                flinkXBaseMetricsWaitBarrier.getMetrics() != null,
+                "FlinkX base metrics is not ready to use!");
+        LongCounter numWrites =
+                flinkXBaseMetricsWaitBarrier
+                        .getMetrics()
+                        .getMetricCounters()
+                        .get(Metrics.NUM_WRITES);
         if (numWrites != null) {
             numWrites.add(1);
         } else {

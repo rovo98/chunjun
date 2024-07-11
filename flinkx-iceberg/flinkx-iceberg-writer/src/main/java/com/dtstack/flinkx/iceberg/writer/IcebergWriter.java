@@ -25,6 +25,8 @@ import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_COLUMN_NAM
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_COLUMN_TYPE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_DATABASE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONF_DIR;
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HIVE_CONF_DIR;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_METASTORE_URIS;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_TABLE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_WAREHOUSE;
@@ -54,6 +56,9 @@ public class IcebergWriter extends BaseDataWriter {
                         .metastoreUris(writerConfig.getParameter().getStringVal(KEY_METASTORE_URIS))
                         .database(writerConfig.getParameter().getStringVal(KEY_DATABASE))
                         .table(writerConfig.getParameter().getStringVal(KEY_TABLE))
+                        .hadoopConfDir(
+                                writerConfig.getParameter().getStringVal(KEY_HADOOP_CONF_DIR))
+                        .hiveConfDir(writerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
                         .build();
         isOverwrite =
                 writerConfig
@@ -86,7 +91,7 @@ public class IcebergWriter extends BaseDataWriter {
                 .writeParallelism(parallelism)
                 .overwrite(isOverwrite)
                 .equalityFieldColumns(columnNames)
-                .flinkXMetrics(outputFormat.getFlinkXBaseMetric())
+                .flinkXMetrics(new FlinkXBaseMetricsWaitBarrier(outputFormat))
                 .append();
     }
 }

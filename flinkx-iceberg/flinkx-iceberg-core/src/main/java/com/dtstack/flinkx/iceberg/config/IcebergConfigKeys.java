@@ -25,4 +25,8 @@ public class IcebergConfigKeys {
     public static final String KEY_COLUMN_TYPE = "type";
 
     public static final String KEY_WHERE = "where";
+
+    public static final String KEY_HADOOP_CONF_DIR = "hadoopConfDir";
+
+    public static final String KEY_HIVE_CONF_DIR = "hiveConfDir";
 }

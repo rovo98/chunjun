@@ -4,6 +4,7 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.iceberg.config.IcebergConfig;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.Parenthesis;
@@ -24,12 +25,15 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.utils.TypeConversions;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.iceberg.catalog.TableIdentifier;
 import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.flink.CatalogLoader;
 import org.apache.iceberg.flink.TableLoader;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -37,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,9 +58,12 @@ public final class IcebergUtil {
                     }
                 };
         // setup hadoop configuration
-        Configuration configuration = new Configuration();
-        icebergConfig.getHadoopConfig().forEach((k, v) -> configuration.set(k, (String) v));
-
+        Configuration configuration =
+                loadAndMergeHiveConf(
+                        icebergConfig.getHiveConfDir(), icebergConfig.getHadoopConfDir());
+        if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
+            icebergConfig.getHadoopConfig().forEach((k, v) -> configuration.set(k, (String) v));
+        }
         CatalogLoader hcl = CatalogLoader.hive(icebergConfig.getDatabase(), configuration, props);
         TableLoader tl =
                 TableLoader.fromCatalog(
@@ -65,6 +73,32 @@ public final class IcebergUtil {
             tl.open();
         }
         return tl;
+    }
+
+    private static Configuration loadAndMergeHiveConf(String hiveConfDir, String hadoopConfDir) {
+        Configuration hdpConf = new Configuration();
+        if (!Strings.isNullOrEmpty(hiveConfDir)) {
+            Preconditions.checkState(
+                    Files.exists(Paths.get(hiveConfDir, "hive-site.xml")),
+                    "There should be a hive-site.xml file under the directory %s",
+                    hiveConfDir);
+            hdpConf.addResource(new Path(hiveConfDir, "hive-site.xml"));
+        }
+        if (!Strings.isNullOrEmpty(hadoopConfDir)) {
+            java.nio.file.Path coreSiteConfFile = Paths.get(hadoopConfDir, "core-site.xml");
+            java.nio.file.Path hdfsSiteConfFile = Paths.get(hadoopConfDir, "hdfs-site.xml");
+            Preconditions.checkState(
+                    Files.exists(coreSiteConfFile),
+                    "Failed to load Hadoop configuration: missing %s",
+                    coreSiteConfFile);
+            Preconditions.checkState(
+                    Files.exists(hdfsSiteConfFile),
+                    "Failed to load Hadoop configuration: missing %s",
+                    hdfsSiteConfFile);
+            hdpConf.addResource(new Path(hadoopConfDir, "core-site.xml"));
+            hdpConf.addResource(new Path(hadoopConfDir, "hdfs-site.xml"));
+        }
+        return hdpConf;
     }
 
     public static DataType internalType2FlinkDataType(String type) {
