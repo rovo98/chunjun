@@ -20,7 +20,10 @@ import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.flink.FlinkSchemaUtil;
 import org.apache.iceberg.flink.TableLoader;
 import org.apache.iceberg.flink.source.FlinkInputFormat;
+import org.apache.iceberg.flink.source.FlinkInputSplit;
 import org.apache.iceberg.flink.source.FlinkSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +33,9 @@ import static org.apache.flink.table.api.DataTypes.FIELD;
 import static org.apache.flink.table.api.DataTypes.ROW;
 
 public class IcebergInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOG = LoggerFactory.getLogger(IcebergInputFormat.class);
 
     private final TableLoader tableLoader;
     private final List<MetaColumn> projectedColumns;
@@ -75,7 +81,8 @@ public class IcebergInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        // Do nothing
+        LOG.info("open inputFormat:> inputSplit -:> {}", inputSplit);
+        this.flinkInputFormat.open((FlinkInputSplit) inputSplit);
     }
 
     private TableSchema constructProjectSchema() {
@@ -85,9 +92,12 @@ public class IcebergInputFormat extends BaseRichInputFormat {
             names.add(mc.getName());
             datatypes.add(IcebergUtil.internalType2FlinkDataType(mc.getType()));
         }
-        return TableSchema.builder()
-                .fields(names.toArray(new String[0]), datatypes.toArray(new DataType[0]))
-                .build();
+        TableSchema tblSchema =
+                TableSchema.builder()
+                        .fields(names.toArray(new String[0]), datatypes.toArray(new DataType[0]))
+                        .build();
+        LOG.info("projected table schema :> {}", tblSchema);
+        return tblSchema;
     }
 
     @Override

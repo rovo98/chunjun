@@ -18,8 +18,6 @@
  */
 package org.apache.iceberg.flink.sink;
 
-import com.dtstack.flinkx.iceberg.writer.FlinkXBaseMetricsWaitBarrier;
-
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
@@ -147,8 +145,6 @@ public class FlinkSink {
         private ReadableConfig readableConfig = new Configuration();
         private final Map<String, String> writeOptions = Maps.newHashMap();
         private FlinkWriteConf flinkWriteConf = null;
-
-        private FlinkXBaseMetricsWaitBarrier flinkXBaseMetricsWaitBarrier = null;
 
         private Builder() {}
 
@@ -346,11 +342,6 @@ public class FlinkSink {
             return this;
         }
 
-        public Builder flinkXMetrics(FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
-            flinkXBaseMetricsWaitBarrier = metricsWaitBarrier;
-            return this;
-        }
-
         private <T> DataStreamSink<T> chainIcebergOperators() {
             Preconditions.checkArgument(
                     inputCreator != null,
@@ -521,11 +512,7 @@ public class FlinkSink {
 
             IcebergStreamWriter<RowData> streamWriter =
                     createStreamWriter(
-                            tableSupplier,
-                            flinkWriteConf,
-                            flinkRowType,
-                            equalityFieldIds,
-                            flinkXBaseMetricsWaitBarrier);
+                            tableSupplier, flinkWriteConf, flinkRowType, equalityFieldIds);
 
             int parallelism =
                     flinkWriteConf.writeParallelism() == null
@@ -650,8 +637,7 @@ public class FlinkSink {
             SerializableSupplier<Table> tableSupplier,
             FlinkWriteConf flinkWriteConf,
             RowType flinkRowType,
-            List<Integer> equalityFieldIds,
-            FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
+            List<Integer> equalityFieldIds) {
         Preconditions.checkArgument(
                 tableSupplier != null, "Iceberg table supplier shouldn't be null");
 
@@ -667,7 +653,7 @@ public class FlinkSink {
                         equalityFieldIds,
                         flinkWriteConf.upsertMode());
 
-        return new IcebergStreamWriter<>(initTable.name(), taskWriterFactory, metricsWaitBarrier);
+        return new IcebergStreamWriter<>(initTable.name(), taskWriterFactory);
     }
 
     /**

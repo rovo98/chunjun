@@ -19,8 +19,8 @@
 package org.apache.iceberg.flink.sink;
 
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.iceberg.writer.FlinkXBaseMetricsWaitBarrier;
 
+import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.BoundedOneInput;
@@ -30,10 +30,8 @@ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.iceberg.io.TaskWriter;
 import org.apache.iceberg.io.WriteResult;
 import org.apache.iceberg.relocated.com.google.common.base.MoreObjects;
-import org.apache.iceberg.relocated.com.google.common.base.Preconditions;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
@@ -48,18 +46,24 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
     private transient int subTaskId;
     private transient int attemptId;
     private transient IcebergStreamWriterMetrics writerMetrics;
-    private transient FlinkXBaseMetricsWaitBarrier flinkXBaseMetricsWaitBarrier;
 
-    private boolean handleFlinkXOutputMetrics = false;
+    // Adapt FlinkX metrics collection feature
+    private LongCounter numWriteCounter;
+    private LongCounter bytesWriteCounter;
+    private LongCounter durationCounter;
+    private long startTime;
 
-    IcebergStreamWriter(
-            String fullTableName,
-            TaskWriterFactory<T> taskWriterFactory,
-            FlinkXBaseMetricsWaitBarrier metricsWaitBarrier) {
+    /*
+    indicators for indicating job's current executing operation.
+    */
+    private IntCounter dataPreprocessIndicator;
+    private IntCounter dataSyncIndicator;
+    private IntCounter dataPostProcessIndicator;
+    //
+
+    IcebergStreamWriter(String fullTableName, TaskWriterFactory<T> taskWriterFactory) {
         this.fullTableName = fullTableName;
         this.taskWriterFactory = taskWriterFactory;
-        this.flinkXBaseMetricsWaitBarrier = metricsWaitBarrier;
-        this.handleFlinkXOutputMetrics = Objects.nonNull(this.flinkXBaseMetricsWaitBarrier);
         setChainingStrategy(ChainingStrategy.ALWAYS);
     }
 
@@ -74,6 +78,25 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
 
         // Initialize the task writer.
         this.writer = taskWriterFactory.create();
+
+        initStatisticsAccumulator();
+        dataPreprocessIndicator.add(1);
+        dataSyncIndicator.add(1);
+    }
+
+    private void initStatisticsAccumulator() {
+        numWriteCounter = getRuntimeContext().getLongCounter(Metrics.NUM_WRITES);
+        bytesWriteCounter = getRuntimeContext().getLongCounter(Metrics.WRITE_BYTES);
+        durationCounter = getRuntimeContext().getLongCounter(Metrics.WRITE_DURATION);
+        // for indicate job current operations
+        /*
+        if the value of the counter is positive, which indicate the corresponding operation
+        is doing or has been done.
+        */
+        dataPreprocessIndicator = getRuntimeContext().getIntCounter("indicator#pre");
+        dataSyncIndicator = getRuntimeContext().getIntCounter("indicator#sync");
+        dataPostProcessIndicator = getRuntimeContext().getIntCounter("indicator#post");
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -84,29 +107,15 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
 
     @Override
     public void processElement(StreamRecord<T> element) throws Exception {
-        writer.write(element.getValue());
-        if (handleFlinkXOutputMetrics) {
-            flinkXBaseMetricsWaitBarrier.waitWhileMetricsInitialized();
-            updateFlinkXOutputMetrics();
-        }
-    }
+        T record = element.getValue();
+        writer.write(record);
 
-    private void updateFlinkXOutputMetrics() {
-        Preconditions.checkState(
-                flinkXBaseMetricsWaitBarrier.getMetrics() != null,
-                "FlinkX base metrics is not ready to use!");
-        LongCounter numWrites =
-                flinkXBaseMetricsWaitBarrier
-                        .getMetrics()
-                        .getMetricCounters()
-                        .get(Metrics.NUM_WRITES);
-        if (numWrites != null) {
-            numWrites.add(1);
-        } else {
-            LOG.error("FlinkX base metric-> NUM_WRITES is null. Might not initialized!");
-            throw new IllegalStateException(
-                    "The FlinkX base metrics might not initialized successfully!");
-        }
+        // update metrics
+        numWriteCounter.add(1);
+        bytesWriteCounter.add(record.toString().getBytes().length);
+        //
+        durationCounter.resetLocal();
+        durationCounter.add(System.currentTimeMillis() - startTime);
     }
 
     @Override
@@ -115,6 +124,9 @@ class IcebergStreamWriter<T> extends AbstractStreamOperator<WriteResult>
         if (writer != null) {
             writer.close();
             writer = null;
+        }
+        if (dataPostProcessIndicator != null) {
+            dataPostProcessIndicator.add(1);
         }
     }
 

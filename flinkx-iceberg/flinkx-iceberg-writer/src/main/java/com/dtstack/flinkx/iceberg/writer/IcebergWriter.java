@@ -8,10 +8,10 @@ import com.dtstack.flinkx.writer.BaseDataWriter;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.apache.iceberg.Table;
-import org.apache.iceberg.flink.FlinkSchemaUtil;
 import org.apache.iceberg.flink.TableLoader;
 import org.apache.iceberg.flink.sink.FlinkSink;
 import org.slf4j.Logger;
@@ -81,17 +81,23 @@ public class IcebergWriter extends BaseDataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         TableLoader tableLoader = IcebergUtil.buildTableLoader(icebergConfig);
-        Table table = tableLoader.loadTable();
-        // NOTE: Add dummy sink to collect output metrics for FlinkX
-        IcebergOutputFormat outputFormat = new IcebergOutputFormat();
-        createOutput(dataSet, outputFormat, "metrics-collection-dummy-sink").setParallelism(1);
-        //
-        return FlinkSink.forRow(dataSet, FlinkSchemaUtil.toSchema(table.schema()))
+        TableSchema requestedTblSchema = constructRequestedTblSchema();
+        LOG.info("Requested table schema: {}", requestedTblSchema);
+        return FlinkSink.forRow(dataSet, requestedTblSchema)
                 .tableLoader(tableLoader)
                 .writeParallelism(parallelism)
                 .overwrite(isOverwrite)
-                .equalityFieldColumns(columnNames)
-                .flinkXMetrics(new FlinkXBaseMetricsWaitBarrier(outputFormat))
+                .tableSchema(requestedTblSchema)
                 .append();
+    }
+
+    private TableSchema constructRequestedTblSchema() {
+        DataType[] flinkDataTypes =
+                columnTypes.stream()
+                        .map(IcebergUtil::internalType2FlinkDataType)
+                        .toArray(DataType[]::new);
+        return TableSchema.builder()
+                .fields(columnNames.toArray(new String[0]), flinkDataTypes)
+                .build();
     }
 }

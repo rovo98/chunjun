@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.iceberg.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 
 import org.apache.flink.types.Row;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+// NOTE: useless anymore. Remove it in the future.
 public class IcebergOutputFormat extends BaseRichOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(IcebergOutputFormat.class);
 
@@ -29,12 +29,5 @@ public class IcebergOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         notSupportBatchWrite("IcebergWriter");
-    }
-
-    public BaseMetric getFlinkXBaseMetric() {
-        if (readyToSyncData()) {
-            LOG.info("statistics metrics init successfully.");
-        }
-        return outputMetric;
     }
 }

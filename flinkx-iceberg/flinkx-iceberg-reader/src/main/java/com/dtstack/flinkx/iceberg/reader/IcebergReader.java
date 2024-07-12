@@ -69,8 +69,13 @@ public class IcebergReader extends BaseDataReader {
 
     @Override
     public DataStream<Row> readData() {
-        return createInput(
+        IcebergInputFormat inputFormat =
                 new IcebergInputFormat(
-                        IcebergUtil.buildTableLoader(icebergConfig), projectColumns, filters));
+                        IcebergUtil.buildTableLoader(icebergConfig), projectColumns, filters);
+        inputFormat.setDataTransferConfig(dataTransferConfig);
+        inputFormat.setLogConfig(logConfig);
+        inputFormat.setTestConfig(testConfig);
+        inputFormat.setRestoreConfig(restoreConfig);
+        return createInput(inputFormat);
     }
 }

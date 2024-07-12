@@ -61,7 +61,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        return MockDataUtil.getMockRow(columns);
+        Row generated = MockDataUtil.getMockRow(columns);
+        LOG.info("generated row -> {}", generated);
+        return generated;
     }
 
     @Override
