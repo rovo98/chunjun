@@ -12,6 +12,9 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import org.apache.iceberg.Schema;
+import org.apache.iceberg.Table;
+import org.apache.iceberg.flink.FlinkSchemaUtil;
 import org.apache.iceberg.flink.TableLoader;
 import org.apache.iceberg.flink.sink.FlinkSink;
 import org.slf4j.Logger;
@@ -37,7 +40,7 @@ public class IcebergWriter extends BaseDataWriter {
 
     private final IcebergConfig icebergConfig;
 
-    private final boolean isOverwrite;
+    private WriteMode writeMode;
     private int parallelism;
 
     private List<String> columnNames;
@@ -60,11 +63,8 @@ public class IcebergWriter extends BaseDataWriter {
                                 writerConfig.getParameter().getStringVal(KEY_HADOOP_CONF_DIR))
                         .hiveConfDir(writerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
                         .build();
-        isOverwrite =
-                writerConfig
-                        .getParameter()
-                        .getStringVal(KEY_WRITE_MODE)
-                        .equalsIgnoreCase("overwrite");
+        writeMode =
+                WriteMode.of(writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, "default"));
         List<?> columns = writerConfig.getParameter().getColumn();
         parallelism = config.getJob().getSetting().getSpeed().getChannel();
         Preconditions.checkState(columns != null && !columns.isEmpty(), "columns is required!");
@@ -75,20 +75,35 @@ public class IcebergWriter extends BaseDataWriter {
             columnNames.add(cm.get(KEY_COLUMN_NAME));
             columnTypes.add(cm.get(KEY_COLUMN_TYPE));
         }
-        LOG.info("Accepted iceberg config -> {}, overwrite? -> {}", icebergConfig, isOverwrite);
+        LOG.info("Accepted iceberg config -> {}, writeMode? -> {}", icebergConfig, writeMode);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         TableLoader tableLoader = IcebergUtil.buildTableLoader(icebergConfig);
+        Table targetTable = tableLoader.loadTable();
+        Schema fullSchema = targetTable.schema();
         TableSchema requestedTblSchema = constructRequestedTblSchema();
-        LOG.info("Requested table schema: {}", requestedTblSchema);
-        return FlinkSink.forRow(dataSet, requestedTblSchema)
-                .tableLoader(tableLoader)
-                .writeParallelism(parallelism)
-                .overwrite(isOverwrite)
-                .tableSchema(requestedTblSchema)
-                .append();
+        DataStream<Row> schemaAligned =
+                dataSet.map(new SchemaAlignment(fullSchema, requestedTblSchema))
+                        .name("align-table-schema");
+
+        // TODO[rovo98]: Need to handle partial fields sink (with upsert support?)
+        FlinkSink.Builder sinkBuilder =
+                FlinkSink.forRow(schemaAligned, FlinkSchemaUtil.toSchema(fullSchema))
+                        .tableLoader(tableLoader)
+                        .writeParallelism(parallelism);
+        switch (writeMode) {
+            case UPSERT:
+                sinkBuilder.upsert(true);
+                break;
+            case OVERWRITE:
+                sinkBuilder.overwrite(true);
+                break;
+            default:
+                break;
+        }
+        return sinkBuilder.append();
     }
 
     private TableSchema constructRequestedTblSchema() {
