@@ -32,6 +32,7 @@ import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.flink.CatalogLoader;
 import org.apache.iceberg.flink.TableLoader;
 
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Date;
@@ -141,6 +142,9 @@ public final class IcebergUtil {
             case TIMESTAMP:
             case DATETIME:
                 datatypeOpt = TypeConversions.fromClassToDataType(Timestamp.class);
+                break;
+            case DECIMAL:
+                datatypeOpt = TypeConversions.fromClassToDataType(BigDecimal.class);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported type -> `" + type + "`.");
