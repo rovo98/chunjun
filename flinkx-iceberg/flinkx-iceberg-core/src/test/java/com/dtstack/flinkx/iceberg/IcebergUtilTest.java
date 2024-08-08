@@ -6,8 +6,10 @@ import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.expressions.Or;
 import org.apache.iceberg.expressions.UnboundPredicate;
 import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -21,8 +23,10 @@ public class IcebergUtilTest {
         final String filterSql =
                 "age > 30 AND name = 'John' AND status IN ('ACTIVE', 'PENDING')\n"
                         + "OR (id > 10012 AND gender = 'male')";
+        final Set<String> targetTableColumns =
+                Sets.newSet("id", "name", "gender", "age", "description", "code", "status");
 
-        List<Expression> filters = IcebergUtil.parseSQLFilters(filterSql);
+        List<Expression> filters = IcebergUtil.parseSQLFilters(filterSql, targetTableColumns);
         assertNotNull(filters);
         assertFalse(filters.isEmpty());
         assertEquals(1, filters.size());

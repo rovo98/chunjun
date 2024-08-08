@@ -7,16 +7,12 @@ import com.dtstack.flinkx.iceberg.config.IcebergConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 
-import net.sf.jsqlparser.JSQLParserException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import org.apache.iceberg.expressions.Expression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,11 +31,10 @@ public class IcebergReader extends BaseDataReader {
 
     private List<MetaColumn> projectColumns;
 
-    private List<Expression> filters = new ArrayList<>();
+    private String filterClause;
 
     @SuppressWarnings("unchecked")
-    public IcebergReader(DataTransferConfig config, StreamExecutionEnvironment env)
-            throws JSQLParserException {
+    public IcebergReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         icebergConfig =
@@ -56,22 +51,19 @@ public class IcebergReader extends BaseDataReader {
                         .hiveConfDir(readerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
                         .build();
         projectColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
-        final String where = readerConfig.getParameter().getStringVal(KEY_WHERE, "");
+        filterClause = readerConfig.getParameter().getStringVal(KEY_WHERE, "");
         LOG.info(
                 "Accepted iceberg config -> {}, metaColumns size -> {}, where clause -> {}.",
                 icebergConfig,
                 projectColumns.size(),
-                where);
-        if (StringUtils.isNotBlank(where)) {
-            filters = IcebergUtil.parseSQLFilters(where);
-        }
+                filterClause);
     }
 
     @Override
     public DataStream<Row> readData() {
         IcebergInputFormat inputFormat =
                 new IcebergInputFormat(
-                        IcebergUtil.buildTableLoader(icebergConfig), projectColumns, filters);
+                        IcebergUtil.buildTableLoader(icebergConfig), projectColumns, filterClause);
         inputFormat.setDataTransferConfig(dataTransferConfig);
         inputFormat.setLogConfig(logConfig);
         inputFormat.setTestConfig(testConfig);

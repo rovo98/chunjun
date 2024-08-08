@@ -5,6 +5,8 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import com.google.common.base.Preconditions;
+import net.sf.jsqlparser.JSQLParserException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
@@ -15,19 +17,22 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.utils.TypeConversions;
 import org.apache.flink.types.Row;
+import org.apache.iceberg.Schema;
 import org.apache.iceberg.Table;
-import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.flink.FlinkSchemaUtil;
 import org.apache.iceberg.flink.TableLoader;
 import org.apache.iceberg.flink.source.FlinkInputFormat;
 import org.apache.iceberg.flink.source.FlinkInputSplit;
 import org.apache.iceberg.flink.source.FlinkSource;
+import org.apache.iceberg.types.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.flink.table.api.DataTypes.FIELD;
 import static org.apache.flink.table.api.DataTypes.ROW;
@@ -46,7 +51,7 @@ public class IcebergInputFormat extends BaseRichInputFormat {
     private DataStructureConverter<Object, Object> rd2rConverter;
 
     public IcebergInputFormat(
-            TableLoader tableLoader, List<MetaColumn> metaColumns, List<Expression> filters) {
+            TableLoader tableLoader, List<MetaColumn> metaColumns, String filterClause) {
         Preconditions.checkNotNull(tableLoader, "tableLoader must be configured");
         this.tableLoader = tableLoader;
         this.projectedColumns = metaColumns;
@@ -61,13 +66,9 @@ public class IcebergInputFormat extends BaseRichInputFormat {
         if (projectedColumns != null && !projectedColumns.isEmpty()) {
             sourceBuilder.project(constructProjectSchema());
         }
-        // config filters for scan context.
-        if (filters != null && !filters.isEmpty()) {
-            sourceBuilder.filters(filters);
-        }
-        this.flinkInputFormat = sourceBuilder.buildFormat();
         // construct RowData to Row converter
-        RowType rowType = FlinkSchemaUtil.convert(this.table.schema());
+        Schema schema = this.table.schema();
+        RowType rowType = FlinkSchemaUtil.convert(schema);
         DataTypes.Field[] fields =
                 rowType.getFields().stream()
                         .map(
@@ -77,6 +78,20 @@ public class IcebergInputFormat extends BaseRichInputFormat {
                                                 TypeConversions.fromLogicalToDataType(f.getType())))
                         .toArray(DataTypes.Field[]::new);
         rd2rConverter = DataStructureConverters.getConverter(ROW(fields));
+
+        // config filters for scan context.
+        if (StringUtils.isNotBlank(filterClause)) {
+            Set<String> columnNames =
+                    schema.columns().stream()
+                            .map(Types.NestedField::name)
+                            .collect(Collectors.toSet());
+            try {
+                sourceBuilder.filters(IcebergUtil.parseSQLFilters(filterClause, columnNames));
+            } catch (JSQLParserException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        this.flinkInputFormat = sourceBuilder.buildFormat();
     }
 
     @Override

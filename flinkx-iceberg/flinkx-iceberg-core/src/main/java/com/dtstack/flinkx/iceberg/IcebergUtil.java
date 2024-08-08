@@ -27,6 +27,7 @@ import org.apache.flink.table.types.utils.TypeConversions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.iceberg.catalog.TableIdentifier;
+import org.apache.iceberg.exceptions.ValidationException;
 import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.flink.CatalogLoader;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class IcebergUtil {
@@ -156,46 +158,70 @@ public final class IcebergUtil {
     }
 
     public static List<Expression> parseSQLFilters(String whereClause) throws JSQLParserException {
+        return parseSQLFilters(whereClause, Collections.emptySet());
+    }
+
+    public static List<Expression> parseSQLFilters(
+            String whereClause, Set<String> targetTableColumns) throws JSQLParserException {
         net.sf.jsqlparser.expression.Expression expr =
                 CCJSqlParserUtil.parseCondExpression(whereClause);
-        return Collections.singletonList(convertToIcebergExpression(expr));
+        return Collections.singletonList(convertToIcebergExpression(expr, targetTableColumns));
+    }
+
+    private static String validateAndGetColumn(String col, Set<String> refTargetTblCols) {
+        if (refTargetTblCols.isEmpty()) return col;
+        if (!refTargetTblCols.contains(col)) {
+            throw new ValidationException(
+                    col
+                            + " field NOT found in target table. Available fields are: "
+                            + refTargetTblCols);
+        }
+        return col;
     }
 
     private static Expression convertToIcebergExpression(
-            net.sf.jsqlparser.expression.Expression expr) {
+            net.sf.jsqlparser.expression.Expression expr, Set<String> targetTableColumns) {
         if (expr instanceof EqualsTo) {
             EqualsTo equalsTo = (EqualsTo) expr;
             return Expressions.equal(
-                    equalsTo.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            equalsTo.getLeftExpression().toString(), targetTableColumns),
                     getValue(equalsTo.getRightExpression()));
         } else if (expr instanceof GreaterThan) {
             GreaterThan greaterThan = (GreaterThan) expr;
             return Expressions.greaterThan(
-                    greaterThan.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            greaterThan.getLeftExpression().toString(), targetTableColumns),
                     getValue(greaterThan.getRightExpression()));
         } else if (expr instanceof GreaterThanEquals) {
             GreaterThanEquals greaterThanEquals = (GreaterThanEquals) expr;
             return Expressions.greaterThanOrEqual(
-                    greaterThanEquals.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            greaterThanEquals.getLeftExpression().toString(), targetTableColumns),
                     getValue(greaterThanEquals.getRightExpression()));
         } else if (expr instanceof MinorThan) {
             MinorThan minorThan = (MinorThan) expr;
             return Expressions.lessThan(
-                    minorThan.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            minorThan.getLeftExpression().toString(), targetTableColumns),
                     getValue(minorThan.getRightExpression()));
         } else if (expr instanceof MinorThanEquals) {
             MinorThanEquals minorThanEquals = (MinorThanEquals) expr;
             return Expressions.lessThanOrEqual(
-                    minorThanEquals.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            minorThanEquals.getLeftExpression().toString(), targetTableColumns),
                     getValue(minorThanEquals.getRightExpression()));
         } else if (expr instanceof NotEqualsTo) {
             NotEqualsTo notEqualsTo = (NotEqualsTo) expr;
             return Expressions.notEqual(
-                    notEqualsTo.getLeftExpression().toString(),
+                    validateAndGetColumn(
+                            notEqualsTo.getLeftExpression().toString(), targetTableColumns),
                     getValue(notEqualsTo.getRightExpression()));
         } else if (expr instanceof InExpression) {
             InExpression inExpression = (InExpression) expr;
-            String column = inExpression.getLeftExpression().toString();
+            String column =
+                    validateAndGetColumn(
+                            inExpression.getLeftExpression().toString(), targetTableColumns);
             List<Object> inExprValues = getInExprValues(inExpression.getRightExpression());
             if (inExpression.isNot()) {
                 return Expressions.notIn(column, inExprValues);
@@ -206,31 +232,40 @@ public final class IcebergUtil {
             Between between = (Between) expr;
             return Expressions.and(
                     Expressions.greaterThanOrEqual(
-                            between.getLeftExpression().toString(),
+                            validateAndGetColumn(
+                                    between.getLeftExpression().toString(), targetTableColumns),
                             getValue(between.getBetweenExpressionStart())),
                     Expressions.lessThanOrEqual(
-                            between.getLeftExpression().toString(),
+                            validateAndGetColumn(
+                                    between.getLeftExpression().toString(), targetTableColumns),
                             getValue(between.getBetweenExpressionEnd())));
         } else if (expr instanceof IsNullExpression) {
             IsNullExpression isNullExpression = (IsNullExpression) expr;
+            String column =
+                    validateAndGetColumn(
+                            isNullExpression.getLeftExpression().toString(), targetTableColumns);
             if (isNullExpression.isNot()) {
-                return Expressions.notNull(isNullExpression.getLeftExpression().toString());
+                return Expressions.notNull(column);
             } else {
-                return Expressions.isNull(isNullExpression.getLeftExpression().toString());
+                return Expressions.isNull(column);
             }
         } else if (expr instanceof AndExpression) {
             AndExpression andExpression = (AndExpression) expr;
             return Expressions.and(
-                    convertToIcebergExpression(andExpression.getLeftExpression()),
-                    convertToIcebergExpression(andExpression.getRightExpression()));
+                    convertToIcebergExpression(
+                            andExpression.getLeftExpression(), targetTableColumns),
+                    convertToIcebergExpression(
+                            andExpression.getRightExpression(), targetTableColumns));
         } else if (expr instanceof OrExpression) {
             OrExpression orExpression = (OrExpression) expr;
             return Expressions.or(
-                    convertToIcebergExpression(orExpression.getLeftExpression()),
-                    convertToIcebergExpression(orExpression.getRightExpression()));
+                    convertToIcebergExpression(
+                            orExpression.getLeftExpression(), targetTableColumns),
+                    convertToIcebergExpression(
+                            orExpression.getRightExpression(), targetTableColumns));
         } else if (expr instanceof Parenthesis) {
             Parenthesis parenthesis = (Parenthesis) expr;
-            return convertToIcebergExpression(parenthesis.getExpression());
+            return convertToIcebergExpression(parenthesis.getExpression(), targetTableColumns);
         }
         throw new UnsupportedOperationException("Unsupported expression type: " + expr.getClass());
     }
