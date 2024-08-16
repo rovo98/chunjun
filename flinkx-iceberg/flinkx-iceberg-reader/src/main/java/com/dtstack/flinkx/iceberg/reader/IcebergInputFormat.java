@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,12 +63,18 @@ public class IcebergInputFormat extends BaseRichInputFormat {
         this.table = tableLoader.loadTable();
         FlinkSource.Builder sourceBuilder =
                 FlinkSource.forRowData().tableLoader(tableLoader).streaming(false);
+
+        Schema schema = null;
         // config projection fields
         if (projectedColumns != null && !projectedColumns.isEmpty()) {
-            sourceBuilder.project(constructProjectSchema());
+            TableSchema projectedSchema = constructProjectSchema();
+            sourceBuilder.project(projectedSchema);
+            schema = FlinkSchemaUtil.convert(projectedSchema);
         }
         // construct RowData to Row converter
-        Schema schema = this.table.schema();
+        if (Objects.isNull(schema)) {
+            schema = this.table.schema();
+        }
         RowType rowType = FlinkSchemaUtil.convert(schema);
         DataTypes.Field[] fields =
                 rowType.getFields().stream()
