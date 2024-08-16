@@ -104,8 +104,19 @@ public final class IcebergUtil {
         return hdpConf;
     }
 
+    private static String icebergType2FlinkXType(String type) {
+        switch (type.toLowerCase()) {
+            case "integer":
+                return "int";
+            case "long":
+                return "bigint";
+            default:
+                return type;
+        }
+    }
+
     public static DataType internalType2FlinkDataType(String type) {
-        ColumnType columnType = ColumnType.getType(type);
+        ColumnType columnType = ColumnType.getType(icebergType2FlinkXType(type));
         Optional<DataType> datatypeOpt;
         switch (columnType) {
             case TINYINT:
