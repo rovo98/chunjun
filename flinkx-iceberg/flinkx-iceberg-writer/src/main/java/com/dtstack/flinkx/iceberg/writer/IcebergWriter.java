@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_CATALOG_TYPE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_COLUMN_TYPE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_DATABASE;
@@ -62,6 +63,8 @@ public class IcebergWriter extends BaseDataWriter {
                         .hadoopConfDir(
                                 writerConfig.getParameter().getStringVal(KEY_HADOOP_CONF_DIR))
                         .hiveConfDir(writerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
+                        .catalogType(
+                                writerConfig.getParameter().getStringVal(KEY_CATALOG_TYPE, "hive"))
                         .build();
         writeMode =
                 WriteMode.of(writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, "default"));
@@ -81,14 +84,13 @@ public class IcebergWriter extends BaseDataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         TableLoader tableLoader = IcebergUtil.buildTableLoader(icebergConfig);
+        TableSchema requestedTblSchema = constructRequestedTblSchema();
         Table targetTable = tableLoader.loadTable();
         Schema fullSchema = targetTable.schema();
-        TableSchema requestedTblSchema = constructRequestedTblSchema();
+        LOG.info("Requested table schema for input rows -> {}", requestedTblSchema.toString());
         DataStream<Row> schemaAligned =
                 dataSet.map(new SchemaAlignment(fullSchema, requestedTblSchema))
                         .name("align-table-schema");
-
-        // TODO[rovo98]: Need to handle partial fields sink (with upsert support?)
         FlinkSink.Builder sinkBuilder =
                 FlinkSink.forRow(schemaAligned, FlinkSchemaUtil.toSchema(fullSchema))
                         .tableLoader(tableLoader)

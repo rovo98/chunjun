@@ -61,16 +61,36 @@ public final class IcebergUtil {
                     }
                 };
         // setup hadoop configuration
-        Configuration configuration =
-                loadAndMergeHiveConf(
-                        icebergConfig.getHiveConfDir(), icebergConfig.getHadoopConfDir());
+        Configuration configuration = new Configuration();
         if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
             icebergConfig.getHadoopConfig().forEach((k, v) -> configuration.set(k, (String) v));
         }
-        CatalogLoader hcl = CatalogLoader.hive(icebergConfig.getDatabase(), configuration, props);
+        CatalogLoader cl;
+        switch (icebergConfig.getCatalogType()) {
+            case "hive":
+                loadAndMergeHiveConf(
+                        configuration,
+                        icebergConfig.getHiveConfDir(),
+                        icebergConfig.getHadoopConfDir());
+                cl = CatalogLoader.hive(icebergConfig.getDatabase(), configuration, props);
+                break;
+            case "hadoop":
+                loadHadoopConf(configuration, icebergConfig.getHadoopConfDir());
+                cl = CatalogLoader.hadoop(icebergConfig.getDatabase(), configuration, props);
+                break;
+            case "rest":
+                loadHadoopConf(configuration, icebergConfig.getHadoopConfDir());
+                cl = CatalogLoader.rest(icebergConfig.getDatabase(), configuration, props);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Unknown catalog-type: "
+                                + icebergConfig.getCatalogType()
+                                + " (Must be 'hive', 'hadoop' or 'rest')");
+        }
         TableLoader tl =
                 TableLoader.fromCatalog(
-                        hcl,
+                        cl,
                         TableIdentifier.of(icebergConfig.getDatabase(), icebergConfig.getTable()));
         if (tl instanceof TableLoader.CatalogTableLoader) {
             tl.open();
@@ -78,8 +98,9 @@ public final class IcebergUtil {
         return tl;
     }
 
-    private static Configuration loadAndMergeHiveConf(String hiveConfDir, String hadoopConfDir) {
-        Configuration hdpConf = new Configuration();
+    private static void loadAndMergeHiveConf(
+            Configuration hdpConf, String hiveConfDir, String hadoopConfDir) {
+        Preconditions.checkNotNull(hdpConf);
         if (!Strings.isNullOrEmpty(hiveConfDir)) {
             Preconditions.checkState(
                     Files.exists(Paths.get(hiveConfDir, "hive-site.xml")),
@@ -87,6 +108,11 @@ public final class IcebergUtil {
                     hiveConfDir);
             hdpConf.addResource(new Path(hiveConfDir, "hive-site.xml"));
         }
+        loadHadoopConf(hdpConf, hadoopConfDir);
+    }
+
+    private static void loadHadoopConf(Configuration hdpConf, String hadoopConfDir) {
+        Preconditions.checkNotNull(hdpConf);
         if (!Strings.isNullOrEmpty(hadoopConfDir)) {
             java.nio.file.Path coreSiteConfFile = Paths.get(hadoopConfDir, "core-site.xml");
             java.nio.file.Path hdfsSiteConfFile = Paths.get(hadoopConfDir, "hdfs-site.xml");
@@ -101,7 +127,6 @@ public final class IcebergUtil {
             hdpConf.addResource(new Path(hadoopConfDir, "core-site.xml"));
             hdpConf.addResource(new Path(hadoopConfDir, "hdfs-site.xml"));
         }
-        return hdpConf;
     }
 
     private static String icebergType2FlinkXType(String type) {

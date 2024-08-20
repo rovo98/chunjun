@@ -615,6 +615,7 @@ public class FlinkSink {
             // iceberg schema.
             Schema writeSchema =
                     TypeUtil.reassignIds(FlinkSchemaUtil.convert(requestedSchema), schema);
+            LOG.info("Iceberg target write schema: {}", writeSchema);
             TypeUtil.validateWriteSchema(schema, writeSchema, true, true);
 
             // We use this flink schema to read values from RowData. The flink's TINYINT and

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_CATALOG_TYPE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_DATABASE;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONFIG;
 import static com.dtstack.flinkx.iceberg.config.IcebergConfigKeys.KEY_HADOOP_CONF_DIR;
@@ -49,6 +50,8 @@ public class IcebergReader extends BaseDataReader {
                         .hadoopConfDir(
                                 readerConfig.getParameter().getStringVal(KEY_HADOOP_CONF_DIR))
                         .hiveConfDir(readerConfig.getParameter().getStringVal(KEY_HIVE_CONF_DIR))
+                        .catalogType(
+                                readerConfig.getParameter().getStringVal(KEY_CATALOG_TYPE, "hive"))
                         .build();
         projectColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
         filterClause = readerConfig.getParameter().getStringVal(KEY_WHERE, "");

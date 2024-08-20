@@ -17,6 +17,8 @@ public class IcebergConfig {
 
     /** Path to a directory containing a hive-site.xml */
     private final String hiveConfDir;
+
+    private final String catalogType;
     //
 
     private IcebergConfig(Builder builder) {
@@ -27,6 +29,11 @@ public class IcebergConfig {
         this.table = builder.table;
         this.hadoopConfDir = builder.hadoopConfDir;
         this.hiveConfDir = builder.hiveConfDir;
+        this.catalogType = builder.catalogType;
+    }
+
+    public String getCatalogType() {
+        return catalogType;
     }
 
     public String getWarehouse() {
@@ -69,6 +76,7 @@ public class IcebergConfig {
         private Map<String, Object> hadoopConfig = new HashMap<>();
         private String hadoopConfDir;
         private String hiveConfDir;
+        private String catalogType = "hive";
 
         public Builder warehouse(String wh) {
             this.warehouse = wh;
@@ -110,6 +118,11 @@ public class IcebergConfig {
             return this;
         }
 
+        public Builder catalogType(String catalogType) {
+            this.catalogType = catalogType;
+            return this;
+        }
+
         public IcebergConfig build() {
             return new IcebergConfig(this);
         }
@@ -137,6 +150,9 @@ public class IcebergConfig {
                 + '\''
                 + ", hiveConfDir='"
                 + hiveConfDir
+                + '\''
+                + ", catalogType='"
+                + catalogType
                 + '\''
                 + '}';
     }

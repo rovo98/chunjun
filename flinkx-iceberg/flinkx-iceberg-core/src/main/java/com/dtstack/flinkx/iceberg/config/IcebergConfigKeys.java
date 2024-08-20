@@ -8,6 +8,9 @@ public class IcebergConfigKeys {
     /** Hive metastore uris */
     public static final String KEY_METASTORE_URIS = "uri";
 
+    /** iceberg catalog type */
+    public static final String KEY_CATALOG_TYPE = "catalogType";
+
     /** Specify customized hadoop configurations */
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
