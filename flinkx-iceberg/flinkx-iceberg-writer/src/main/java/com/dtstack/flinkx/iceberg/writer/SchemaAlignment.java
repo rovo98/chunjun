@@ -3,7 +3,6 @@ package com.dtstack.flinkx.iceberg.writer;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.types.Row;
-import org.apache.flink.types.RowKind;
 import org.apache.iceberg.Schema;
 import org.apache.iceberg.types.Types;
 
@@ -27,7 +26,7 @@ public class SchemaAlignment implements MapFunction<Row, Row> {
 
     @Override
     public Row map(Row value) throws Exception {
-        Row rowData = new Row(RowKind.INSERT, fullTableSchema.columns().size());
+        Row rowData = new Row(value.getKind(), fullTableSchema.columns().size());
         int i = 0;
         for (Types.NestedField tf : fullTableSchema.columns()) {
             if (rowFn2IndexMap.containsKey(tf.name())) {
