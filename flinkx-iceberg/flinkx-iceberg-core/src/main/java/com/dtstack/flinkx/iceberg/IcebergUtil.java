@@ -62,9 +62,6 @@ public final class IcebergUtil {
                 };
         // setup hadoop configuration
         Configuration configuration = new Configuration();
-        if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
-            icebergConfig.getHadoopConfig().forEach((k, v) -> configuration.set(k, (String) v));
-        }
         CatalogLoader cl;
         switch (icebergConfig.getCatalogType()) {
             case "hive":
@@ -72,14 +69,32 @@ public final class IcebergUtil {
                         configuration,
                         icebergConfig.getHiveConfDir(),
                         icebergConfig.getHadoopConfDir());
+                // override user-defined hadoop configurations
+                if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
+                    icebergConfig
+                            .getHadoopConfig()
+                            .forEach((k, v) -> configuration.set(k, (String) v));
+                }
                 cl = CatalogLoader.hive(icebergConfig.getDatabase(), configuration, props);
                 break;
             case "hadoop":
                 loadHadoopConf(configuration, icebergConfig.getHadoopConfDir());
+                // override user-defined hadoop configurations
+                if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
+                    icebergConfig
+                            .getHadoopConfig()
+                            .forEach((k, v) -> configuration.set(k, (String) v));
+                }
                 cl = CatalogLoader.hadoop(icebergConfig.getDatabase(), configuration, props);
                 break;
             case "rest":
                 loadHadoopConf(configuration, icebergConfig.getHadoopConfDir());
+                // override user-defined hadoop configurations
+                if (Objects.nonNull(icebergConfig.getHadoopConfig())) {
+                    icebergConfig
+                            .getHadoopConfig()
+                            .forEach((k, v) -> configuration.set(k, (String) v));
+                }
                 cl = CatalogLoader.rest(icebergConfig.getDatabase(), configuration, props);
                 break;
             default:
