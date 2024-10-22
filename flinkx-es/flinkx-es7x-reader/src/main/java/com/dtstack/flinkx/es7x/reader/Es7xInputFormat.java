@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * InputFormat for Elasticsearch
@@ -115,7 +116,9 @@ public class Es7xInputFormat extends BaseRichInputFormat {
         }
 
         searchRequest = new SearchRequest(index);
-        searchRequest.types(type);
+        if (Objects.nonNull(type) && type.length > 0) {
+            searchRequest.types(type);
+        }
         searchRequest.scroll(scroll);
         searchRequest.source(searchSourceBuilder);
     }
