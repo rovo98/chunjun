@@ -73,11 +73,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.hbasereader.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.hbasereader.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

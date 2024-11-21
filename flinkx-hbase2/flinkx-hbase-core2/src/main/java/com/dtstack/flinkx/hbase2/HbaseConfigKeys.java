@@ -32,6 +32,8 @@ public class HbaseConfigKeys {
 
     public static final String KEY_TABLE = "table";
 
+    public static final String NAME_SPACE = "namespace";
+
     public static final String KEY_HBASE_CONFIG = "hbaseConfig";
 
     public static final String KEY_START_ROW_KEY = "startRowkey";
@@ -59,6 +61,8 @@ public class HbaseConfigKeys {
     public static final String KEY_NULL_MODE = "nullMode";
 
     public static final String KEY_WAL_FLAG = "walFlag";
+
+    public static final String REDUNDANT = "redundant";
 
     public static final String KEY_VERSION_COLUMN = "versionColumn";
 

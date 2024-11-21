@@ -85,6 +85,10 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.scanCacheSize = scanCacheSize;
     }
 
+    public void setNamespace(String namespace) {
+        format.namespace = namespace;
+    }
+
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.columnTypes);

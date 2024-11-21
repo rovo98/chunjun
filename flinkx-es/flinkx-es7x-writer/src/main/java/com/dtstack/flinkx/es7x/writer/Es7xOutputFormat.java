@@ -72,9 +72,11 @@ public class Es7xOutputFormat extends BaseRichOutputFormat {
 
     private transient BulkRequest bulkRequest;
 
+    protected String requestSchema;
+
     @Override
     public void configure(Configuration configuration) {
-        client = Es7xUtil.getClient(address, username, password, clientConfig);
+        client = Es7xUtil.getClient(requestSchema, address, username, password, clientConfig);
         bulkRequest = new BulkRequest();
     }
 
@@ -91,6 +93,7 @@ public class Es7xOutputFormat extends BaseRichOutputFormat {
         request = request.source(Es7xUtil.rowToJsonMap(row, columnNames, columnTypes));
         try {
             client.index(request, RequestOptions.DEFAULT);
+
         } catch (Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
@@ -115,22 +118,20 @@ public class Es7xOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    private void processFailResponse(BulkResponse response) {
+    private void processFailResponse(BulkResponse response) throws WriteRecordException {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
         for (int i = 0; i < itemResponses.length; i++) {
             if (itemResponses[i].isFailed()) {
+                exception =
+                        new WriteRecordException(
+                                itemResponses[i].getFailureMessage(),
+                                itemResponses[i].getFailure().getCause());
                 if (dirtyDataManager != null) {
-                    exception =
-                            new WriteRecordException(
-                                    itemResponses[i].getFailureMessage(),
-                                    itemResponses[i].getFailure().getCause());
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
-                if (errCounter != null) {
-                    errCounter.add(1);
-                }
+                throw exception;
             }
         }
     }

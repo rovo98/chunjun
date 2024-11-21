@@ -144,8 +144,9 @@ public class HbaseHelper {
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
-    public static RegionLocator getRegionLocator(Connection hConnection, String userTable) {
-        TableName hTableName = TableName.valueOf(userTable);
+    public static RegionLocator getRegionLocator(
+            Connection hConnection, String namespace, String userTable) {
+        TableName hTableName = TableName.valueOf(namespace, userTable);
         Admin admin = null;
         RegionLocator regionLocator = null;
         try {
@@ -222,6 +223,7 @@ public class HbaseHelper {
     public static void closeBufferedMutator(BufferedMutator bufferedMutator) {
         try {
             if (null != bufferedMutator) {
+                bufferedMutator.flush();
                 bufferedMutator.close();
             }
         } catch (IOException e) {

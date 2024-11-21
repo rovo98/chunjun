@@ -50,6 +50,7 @@ public class Es7xWriter extends BaseDataWriter {
     private String index;
     private String type;
     private int bulkAction;
+    private String requestSchema;
     private Map<String, Object> clientConfig;
     private List<String> columnTypes;
     private List<String> columnNames;
@@ -65,6 +66,7 @@ public class Es7xWriter extends BaseDataWriter {
         password = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_PASSWORD);
         type = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
         index = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
+        requestSchema = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_REQUEST_SCHEMA);
         bulkAction =
                 writerConfig
                         .getParameter()
@@ -134,7 +136,7 @@ public class Es7xWriter extends BaseDataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
-
+        builder.setRequestSchema(requestSchema);
         return createOutput(dataSet, builder.finish());
     }
 }

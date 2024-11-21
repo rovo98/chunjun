@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hbase2.reader;
 
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.hbase2.HbaseHelper;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 
@@ -41,8 +42,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+
+import static com.dtstack.flinkx.enums.ColumnType.BOOLEAN;
 
 /**
  * The InputFormat Implementation used for HbaseReader
@@ -57,6 +59,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
 
     protected Map<String, Object> hbaseConfig;
     protected String tableName;
+    protected String namespace;
     protected String startRowkey;
     protected String endRowkey;
     protected List<String> columnNames;
@@ -100,6 +103,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                             public com.dtstack.flinkx.hbase2.reader.HbaseInputSplit[] run() {
                                 return split(
                                         connection,
+                                        namespace,
                                         tableName,
                                         startRowkey,
                                         endRowkey,
@@ -107,13 +111,15 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                             }
                         });
             } else {
-                return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+                return split(
+                        connection, namespace, tableName, startRowkey, endRowkey, isBinaryRowkey);
             }
         }
     }
 
     public HbaseInputSplit[] split(
             Connection hConn,
+            String namespace,
             String tableName,
             String startKey,
             String endKey,
@@ -128,7 +134,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             throw new IllegalArgumentException("startRowKey can't be bigger than endRowkey");
         }
 
-        RegionLocator regionLocator = HbaseHelper.getRegionLocator(hConn, tableName);
+        RegionLocator regionLocator = HbaseHelper.getRegionLocator(hConn, namespace, tableName);
         List<HbaseInputSplit> resultSplits;
         try {
             Pair<byte[][], byte[][]> regionRanges = regionLocator.getStartEndKeys();
@@ -242,7 +248,7 @@ public class HbaseInputFormat extends BaseRichInputFormat {
 
         openKerberos = HbaseHelper.openKerberos(hbaseConfig);
 
-        table = connection.getTable(TableName.valueOf(tableName));
+        table = connection.getTable(TableName.valueOf(namespace, tableName));
         scan = new Scan();
         scan.setStartRow(startRow);
         scan.setStopRow(stopRow);
@@ -281,7 +287,14 @@ public class HbaseInputFormat extends BaseRichInputFormat {
                             arr = new byte[2][];
                             String[] arr1 = columnName.split(":");
                             arr[0] = arr1[0].trim().getBytes(StandardCharsets.UTF_8);
-                            arr[1] = arr1[1].trim().getBytes(StandardCharsets.UTF_8);
+                            StringBuffer lineName = new StringBuffer();
+                            for (int i1 = 1; i1 < arr1.length; i1++) {
+                                if (i1 > 1) {
+                                    lineName.append(":");
+                                }
+                                lineName.append(arr1[i1]);
+                            }
+                            arr[1] = lineName.toString().trim().getBytes(StandardCharsets.UTF_8);
                             nameMaps.put(columnName, arr);
                         }
                         bytes = next.getValue(arr[0], arr[1]);
@@ -301,30 +314,46 @@ public class HbaseInputFormat extends BaseRichInputFormat {
         HbaseHelper.closeConnection(connection);
     }
 
+    protected ColumnType getType(String type) {
+        if (ColumnType.isStringType(type)) {
+            return ColumnType.STRING;
+        }
+        if (ColumnType.isNumberType(type)) {
+            return ColumnType.LONG;
+        }
+        if (ColumnType.isTimeType(type)) {
+            return ColumnType.DATE;
+        }
+        if (ColumnType.isFloatType(type)) {
+            return ColumnType.DOUBLE;
+        }
+        return ColumnType.STRING;
+    }
+
     public Object convertValueToAssignType(
             String columnType, String constantValue, String dateformat) throws Exception {
         Object column = null;
         if (org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
             return column;
         }
-
-        switch (columnType.toUpperCase()) {
-            case "BOOLEAN":
+        ColumnType type = getType(columnType);
+        switch (type) {
+            case BOOLEAN:
                 column = Boolean.valueOf(constantValue);
                 break;
-            case "SHORT":
-            case "INT":
-            case "LONG":
+            case SHORT:
+            case INT:
+            case LONG:
                 column = NumberUtils.createBigDecimal(constantValue).toBigInteger();
                 break;
-            case "FLOAT":
-            case "DOUBLE":
+            case FLOAT:
+            case DOUBLE:
                 column = new BigDecimal(constantValue);
                 break;
-            case "STRING":
+            case STRING:
                 column = constantValue;
                 break;
-            case "DATE":
+            case DATE:
                 column = DateUtils.parseDate(constantValue, new String[] {dateformat});
                 break;
             default:
@@ -341,32 +370,33 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             return null;
         }
         String bytesToString = new String(byteArray, encoding);
-        switch (columnType.toUpperCase(Locale.ENGLISH)) {
-            case "BOOLEAN":
+        ColumnType type = getType(columnType);
+        switch (type) {
+            case BOOLEAN:
                 column = Boolean.valueOf(bytesToString);
                 break;
-            case "SHORT":
+            case SHORT:
                 column = Short.valueOf(bytesToString);
                 break;
-            case "INT":
+            case INT:
                 column = Integer.valueOf(bytesToString);
                 break;
-            case "LONG":
+            case LONG:
                 column = Long.valueOf(bytesToString);
                 break;
-            case "FLOAT":
+            case FLOAT:
                 column = Float.valueOf(bytesToString);
                 break;
-            case "DOUBLE":
+            case DOUBLE:
                 column = Double.valueOf(bytesToString);
                 break;
-            case "STRING":
+            case STRING:
                 column = bytesToString;
                 break;
-            case "BINARY_STRING":
+            case BINARY_STRING:
                 column = Bytes.toStringBinary(byteArray);
                 break;
-            case "DATE":
+            case DATE:
                 String dateValue = Bytes.toStringBinary(byteArray);
                 column = DateUtils.parseDate(dateValue, new String[] {dateformat});
                 break;

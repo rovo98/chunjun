@@ -46,6 +46,7 @@ import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +67,8 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
 
     protected String encoding;
 
+    protected boolean redundant;
+
     protected String nullMode;
 
     protected boolean walFlag;
@@ -77,6 +80,8 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
     protected List<String> columnNames;
 
     protected String rowkeyExpress;
+
+    protected String namespace;
 
     protected Integer versionColumnIndex;
 
@@ -148,7 +153,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
             /** 写缓存 */
             bufferedMutator =
                     connection.getBufferedMutator(
-                            new BufferedMutatorParams(TableName.valueOf(tableName))
+                            new BufferedMutatorParams(TableName.valueOf(namespace, tableName))
                                     .pool(HTable.getDefaultExecutor(hConfiguration))
                                     .writeBufferSize(writeBufferSize));
         } catch (Exception e) {
@@ -188,7 +193,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
             }
 
             for (; i < record.getArity(); ++i) {
-                if (rowKeyColumnIndex.contains(i)) {
+                if (rowKeyColumnIndex.contains(i) && !redundant) {
                     continue;
                 }
 
@@ -198,13 +203,22 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                 byte[][] cfAndQualifierBytes = nameByteMaps.get(name);
                 if (cfAndQualifier == null || cfAndQualifierBytes == null) {
                     cfAndQualifier = name.split(":");
-                    if (cfAndQualifier.length == 2
+                    if (cfAndQualifier.length >= 2
                             && StringUtils.isNotBlank(cfAndQualifier[0])
                             && StringUtils.isNotBlank(cfAndQualifier[1])) {
                         nameMaps.put(name, cfAndQualifier);
                         cfAndQualifierBytes = new byte[2][];
                         cfAndQualifierBytes[0] = Bytes.toBytes(cfAndQualifier[0]);
-                        cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
+
+                        StringBuffer lineName = new StringBuffer();
+                        for (int i1 = 1; i1 < cfAndQualifier.length; i1++) {
+                            if (i1 > 1) {
+                                lineName.append(":");
+                            }
+                            lineName.append(cfAndQualifier[i1]);
+                        }
+
+                        cfAndQualifierBytes[1] = Bytes.toBytes(lineName.toString());
                         nameByteMaps.put(name, cfAndQualifierBytes);
                     } else {
                         throw new IllegalArgumentException(
@@ -212,7 +226,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                     }
                 }
 
-                ColumnType columnType = ColumnType.getType(type);
+                ColumnType columnType = getType(type);
                 byte[] columnBytes = getColumnByte(columnType, record.getField(i));
                 // columnBytes 为null忽略这列
                 if (null != columnBytes) {
@@ -354,6 +368,9 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                 case STRING:
                     bytes = value.getBytes(Charset.forName(encoding));
                     break;
+                case DATE:
+                    bytes = dateToByte(value);
+                    break;
                 default:
                     throw new IllegalArgumentException("Unsupported column type: " + columnType);
             }
@@ -361,6 +378,22 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
             bytes = HConstants.EMPTY_BYTE_ARRAY;
         }
         return bytes;
+    }
+
+    protected ColumnType getType(String type) {
+        if (ColumnType.isStringType(type)) {
+            return ColumnType.STRING;
+        }
+        if (ColumnType.isNumberType(type)) {
+            return ColumnType.LONG;
+        }
+        if (ColumnType.isTimeType(type)) {
+            return ColumnType.DATE;
+        }
+        if (ColumnType.isFloatType(type)) {
+            return ColumnType.DOUBLE;
+        }
+        return ColumnType.STRING;
     }
 
     public byte[] getColumnByte(ColumnType columnType, Object column) {
@@ -395,6 +428,10 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                     }
                     bytes = this.getValueByte(columnType, stringValue);
                     break;
+                case DATE:
+                    bytes = dateToByte(column);
+                    break;
+
                 default:
                     throw new IllegalArgumentException("Unsupported column type: " + columnType);
             }
@@ -411,6 +448,48 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
             }
         }
         return bytes;
+    }
+
+    private byte[] dateToByte(Object column) {
+        if (column instanceof Date) {
+            return Bytes.toBytes(((Date) column).getTime());
+        } else if (column instanceof Timestamp) {
+            return Bytes.toBytes(((Timestamp) column).getTime());
+        } else if (column instanceof String) {
+            SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+            Date parse = null;
+            try {
+                parse = fm.parse((String) column);
+            } catch (ParseException e) {
+                return Bytes.toBytes((String) column);
+            }
+            return Bytes.toBytes(parse.getTime());
+        } else if (column instanceof Long) {
+            return Bytes.toBytes(((Long) column).longValue());
+        } else if (column instanceof Double) {
+            return Bytes.toBytes(((Double) column).doubleValue());
+        } else if (column instanceof LocalDateTime) {
+            long epochMilli =
+                    ((LocalDateTime) column)
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli();
+            return Bytes.toBytes(epochMilli);
+
+        } else if (column instanceof LocalDate) {
+            long epochMilli =
+                    ((LocalDate) column)
+                            .atStartOfDay(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli();
+            return Bytes.toBytes(epochMilli);
+        } else if (column instanceof ZonedDateTime) {
+            long epochMilli = ((ZonedDateTime) column).toInstant().toEpochMilli();
+            return Bytes.toBytes(epochMilli);
+        } else if (column instanceof Instant) {
+            return Bytes.toBytes(((Instant) column).toEpochMilli());
+        }
+        return Bytes.toBytes((String) column);
     }
 
     private byte[] intToBytes(Object column) {
@@ -561,7 +640,6 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         if (null != timeMillisecondFormatThreadLocal) {
             timeMillisecondFormatThreadLocal.remove();
         }
-
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
     }

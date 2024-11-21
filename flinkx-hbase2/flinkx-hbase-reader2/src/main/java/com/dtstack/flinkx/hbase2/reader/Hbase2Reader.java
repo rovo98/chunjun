@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.hbase2.HbaseConfigKeys.NAME_SPACE;
+
 /**
  * The reader plugin of Hbase
  *
@@ -56,11 +58,13 @@ public class Hbase2Reader extends BaseDataReader {
     protected boolean isBinaryRowkey;
     protected String tableName;
     protected int scanCacheSize;
+    protected String namespace;
 
     public Hbase2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         tableName = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_TABLE);
+        namespace = readerConfig.getParameter().getStringVal(NAME_SPACE);
         hbaseConfig =
                 (Map<String, Object>)
                         readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
@@ -120,6 +124,7 @@ public class Hbase2Reader extends BaseDataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
+        builder.setNamespace(namespace);
 
         return createInput(builder.finish());
     }

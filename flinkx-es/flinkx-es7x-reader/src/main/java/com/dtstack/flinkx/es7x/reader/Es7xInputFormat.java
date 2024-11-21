@@ -89,6 +89,8 @@ public class Es7xInputFormat extends BaseRichInputFormat {
 
     private String scrollId;
 
+    protected String requestSchema;
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -98,7 +100,7 @@ public class Es7xInputFormat extends BaseRichInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
-        client = Es7xUtil.getClient(address, username, password, clientConfig);
+        client = Es7xUtil.getClient(requestSchema, address, username, password, clientConfig);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -190,7 +192,12 @@ public class Es7xInputFormat extends BaseRichInputFormat {
         ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
         clearScrollRequest.addScrollId(scrollId);
         ClearScrollResponse clearScrollResponse =
-                client.clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
+                client.clearScroll(
+                        clearScrollRequest,
+                        RequestOptions.DEFAULT
+                                .toBuilder()
+                                .addHeader("Content-Type", "application/json")
+                                .build());
         boolean succeeded = clearScrollResponse.isSucceeded();
         LOG.info("Clear scroll response:{}", succeeded);
     }

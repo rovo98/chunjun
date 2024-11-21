@@ -83,6 +83,11 @@ public class Es7xOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         return this;
     }
 
+    public Es7xOutputFormatBuilder setRequestSchema(String requestSchema) {
+        format.requestSchema = requestSchema;
+        return this;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {

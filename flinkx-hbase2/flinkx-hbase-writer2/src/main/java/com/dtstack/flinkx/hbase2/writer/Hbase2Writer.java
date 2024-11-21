@@ -50,12 +50,14 @@ public class Hbase2Writer extends BaseDataWriter {
     private Map<String, Object> hbaseConfig;
     private String encoding;
     private String nullMode;
+    private String namespace;;
     private Boolean walFlag;
     private long writeBufferSize;
 
     private List<String> columnTypes;
     private List<String> columnNames;
     private String rowkeyExpress;
+    private Boolean redundant;
 
     private Integer versionColumnIndex;
     private String versionColumnValue;
@@ -65,10 +67,12 @@ public class Hbase2Writer extends BaseDataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         tableName = writerConfig.getParameter().getStringVal(KEY_TABLE);
+        namespace = writerConfig.getParameter().getStringVal(NAME_SPACE);
         hbaseConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HBASE_CONFIG);
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);
+        redundant = writerConfig.getParameter().getBooleanVal(REDUNDANT, DEFAULT_WAL_FLAG);
         writeBufferSize =
                 writerConfig
                         .getParameter()
@@ -133,6 +137,7 @@ public class Hbase2Writer extends BaseDataWriter {
         HbaseOutputFormatBuilder builder = new HbaseOutputFormatBuilder();
         builder.setHbaseConfig(hbaseConfig);
         builder.setTableName(tableName);
+        builder.setRedundant(redundant);
         builder.setEncoding(encoding);
         builder.setNullMode(nullMode);
         builder.setWalFlag(walFlag);
@@ -148,6 +153,7 @@ public class Hbase2Writer extends BaseDataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setNamespace(namespace);
 
         return createOutput(dataSet, builder.finish());
     }

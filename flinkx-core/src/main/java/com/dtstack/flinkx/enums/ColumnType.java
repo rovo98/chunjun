@@ -71,9 +71,11 @@ public enum ColumnType {
     TIME,
     DECIMAL,
     YEAR,
-    BIT;
+    BIT,
+    BINARY_STRING;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(DATE, DATETIME, TIME, TIMESTAMP);
+    public static List<ColumnType> FLOAT_TYPE = Arrays.asList(DOUBLE, FLOAT, BOOLEAN);
 
     public static List<ColumnType> NUMBER_TYPE =
             Arrays.asList(
@@ -138,6 +140,10 @@ public enum ColumnType {
 
     public static boolean isTimeType(String type) {
         return TIME_TYPE.contains(getType(type));
+    }
+
+    public static boolean isFloatType(String type) {
+        return FLOAT_TYPE.contains(getType(type));
     }
 
     public static boolean isNumberType(String type) {

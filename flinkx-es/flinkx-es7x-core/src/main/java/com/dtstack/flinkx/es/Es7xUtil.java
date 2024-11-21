@@ -23,6 +23,11 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -33,12 +38,14 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.RestHighLevelClientBuilder;
 
 import java.math.BigDecimal;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,16 +60,52 @@ import java.util.Map;
  */
 public class Es7xUtil {
 
+    private static final SSLContext sslContext;
+    private static final HostnameVerifier hostnameVerifier;
+
+    static {
+        try {
+            sslContext = SSLContext.getInstance("SSL");
+            TrustManager[] trustAllCerts =
+                    new TrustManager[] {
+                        new X509TrustManager() {
+                            @Override
+                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                                return new java.security.cert.X509Certificate[] {};
+                            }
+
+                            @Override
+                            public void checkClientTrusted(
+                                    X509Certificate[] chain, String authType) {}
+
+                            @Override
+                            public void checkServerTrusted(
+                                    X509Certificate[] chain, String authType) {}
+                        }
+                    };
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+        } catch (Exception e) {
+            throw new ElasticsearchException(e);
+        }
+    }
+
+    static {
+        hostnameVerifier = (hostname, session) -> true;
+    }
+
     public static RestHighLevelClient getClient(
-            String address, String username, String password, Map<String, Object> config) {
+            String requestSchema,
+            String address,
+            String username,
+            String password,
+            Map<String, Object> config) {
         List<HttpHost> httpHostList = new ArrayList<>();
         String[] addr = address.split(",");
         for (String add : addr) {
             String[] pair = add.split(":");
             TelnetUtil.telnet(pair[0], Integer.parseInt(pair[1]));
-            httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), "http"));
+            httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), requestSchema));
         }
-
         RestClientBuilder restClientBuilder =
                 RestClient.builder(httpHostList.toArray(new HttpHost[0]));
 
@@ -71,19 +114,21 @@ public class Es7xUtil {
             restClientBuilder.setPathPrefix(pathPrefix);
         }
         if (StringUtils.isNotBlank(username)) {
+
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
                     AuthScope.ANY, new UsernamePasswordCredentials(username, password));
             restClientBuilder.setHttpClientConfigCallback(
-                    httpClientBuilder -> {
-                        httpClientBuilder.disableAuthCaching();
-                        return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-                    });
+                    httpAsyncClientBuilder ->
+                            httpAsyncClientBuilder
+                                    .setDefaultCredentialsProvider(credentialsProvider)
+                                    .setSSLContext(sslContext)
+                                    .setSSLHostnameVerifier(hostnameVerifier));
         }
 
         return new RestHighLevelClientBuilder(restClientBuilder.build())
                 // make this client also communicate with ES 7.11 and higher.
-                .setApiCompatibilityMode(true)
+                .setApiCompatibilityMode(false)
                 .build();
     }
 

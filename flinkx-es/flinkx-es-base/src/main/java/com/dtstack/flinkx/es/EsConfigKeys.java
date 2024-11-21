@@ -37,6 +37,8 @@ public class EsConfigKeys {
 
     public static final String KEY_INDEX = "index";
 
+    public static final String KEY_REQUEST_SCHEMA = "requestSchema";
+
     public static final String KEY_TYPE = "type";
 
     public static final String KEY_BATCH_SIZE = "batchSize";

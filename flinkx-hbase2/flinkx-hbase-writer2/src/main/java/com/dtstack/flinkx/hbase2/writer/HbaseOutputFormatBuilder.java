@@ -42,8 +42,16 @@ public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new HbaseOutputFormat();
     }
 
+    public void setRedundant(boolean redundant) {
+        format.redundant = redundant;
+    }
+
     public void setTableName(String tableName) {
         format.tableName = tableName;
+    }
+
+    public void setNamespace(String namespace) {
+        format.namespace = namespace;
     }
 
     public void setHbaseConfig(Map<String, Object> hbaseConfig) {

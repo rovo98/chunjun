@@ -52,6 +52,7 @@ public class Es7xReader extends BaseDataReader {
     private String username;
     private String password;
     private String query;
+    private String requestSchema;
 
     private String[] index;
     private String[] type;
@@ -71,6 +72,7 @@ public class Es7xReader extends BaseDataReader {
         index = Es7xUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_INDEX));
         type = Es7xUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_TYPE));
         batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 10);
+        requestSchema = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_REQUEST_SCHEMA);
 
         clientConfig = new HashMap<>();
         clientConfig.put(
@@ -127,7 +129,7 @@ public class Es7xReader extends BaseDataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
-
+        builder.setRequestSchema(requestSchema);
         return createInput(builder.finish());
     }
 }
