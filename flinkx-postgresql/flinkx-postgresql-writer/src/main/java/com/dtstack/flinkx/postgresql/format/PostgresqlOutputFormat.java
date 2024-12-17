@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * when postgresql with mode insert, it use 'copy tableName(columnName) from stdin' syntax Date:
@@ -98,7 +99,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 if (rowData == null) {
                     sb.append(DEFAULT_NULL_DELIM);
                 } else {
-                    sb.append(rowData);
+                    sb.append(removePossibleDelimCharacters(rowData, index));
                 }
                 if (index != lastIndex) {
                     sb.append(DEFAULT_FIELD_DELIM);
@@ -123,6 +124,15 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
     }
 
+    private Object removePossibleDelimCharacters(Object rowData, int index) {
+        final String colType = columnType.get(index);
+        if (STRING_TYPES.contains(colType.toUpperCase(Locale.ENGLISH))) {
+            // Remove field&null delim (unicode forms) character in the field value
+            return rowData.toString().replaceAll("[\\u0001\\u0002]", "");
+        }
+        return rowData;
+    }
+
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         if (!isCopyMode) {
@@ -139,7 +149,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 if (rowData == null) {
                     tempBuilder.append(DEFAULT_NULL_DELIM);
                 } else {
-                    tempBuilder.append(rowData);
+                    tempBuilder.append(removePossibleDelimCharacters(rowData, index));
                 }
                 if (index != lastIndex) {
                     tempBuilder.append(DEFAULT_FIELD_DELIM);
