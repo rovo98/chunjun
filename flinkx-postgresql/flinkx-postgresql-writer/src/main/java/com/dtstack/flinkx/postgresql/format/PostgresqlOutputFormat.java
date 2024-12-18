@@ -106,18 +106,9 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 }
             }
             String rowVal = sb.toString();
-            if (rowVal.contains("\\")) {
-                rowVal = rowVal.replaceAll("\\\\", "\\\\\\\\");
-            }
-            if (rowVal.contains("\r")) {
-                rowVal = rowVal.replaceAll("\r", "\\\\r");
-            }
-
-            if (rowVal.contains("\n")) {
-                rowVal = rowVal.replaceAll("\n", "\\\\n");
-            }
             ByteArrayInputStream bi =
-                    new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
+                    new ByteArrayInputStream(
+                            handleEscapeCorrectly(rowVal).getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
         } catch (Exception e) {
             processWriteException(e, index, row);
@@ -156,18 +147,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 }
             }
             // \r \n \ 等特殊字符串需要转义
-            String tempData = tempBuilder.toString();
-            if (tempData.contains("\\")) {
-                tempData = tempData.replaceAll("\\\\", "\\\\\\\\");
-            }
-            if (tempData.contains("\r")) {
-                tempData = tempData.replaceAll("\r", "\\\\r");
-            }
-
-            if (tempData.contains("\n")) {
-                tempData = tempData.replaceAll("\n", "\\\\n");
-            }
-            sb.append(tempData).append(LINE_DELIMITER);
+            sb.append(handleEscapeCorrectly(tempBuilder.toString())).append(LINE_DELIMITER);
         }
 
         String rowVal = sb.toString();
@@ -177,6 +157,22 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         if (restoreConfig.isRestore()) {
             rowsOfCurrentTransaction += rows.size();
         }
+    }
+
+    private String handleEscapeCorrectly(String input) {
+        if (StringUtils.isEmpty(input)) return input;
+        String result = input;
+        if (result.contains("\\")) {
+            result = result.replaceAll("\\\\", "\\\\\\\\");
+        }
+        if (result.contains("\r")) {
+            result = result.replaceAll("\r", "\\\\r");
+        }
+
+        if (result.contains("\n")) {
+            result = result.replaceAll("\n", "\\\\n");
+        }
+        return result;
     }
 
     @Override
