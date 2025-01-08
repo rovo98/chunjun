@@ -23,6 +23,7 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.utils.TypeConversions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -33,7 +34,6 @@ import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.flink.CatalogLoader;
 import org.apache.iceberg.flink.TableLoader;
 
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Date;
@@ -197,7 +197,15 @@ public final class IcebergUtil {
                 datatypeOpt = TypeConversions.fromClassToDataType(Timestamp.class);
                 break;
             case DECIMAL:
-                datatypeOpt = TypeConversions.fromClassToDataType(BigDecimal.class);
+                int startPIdx = type.indexOf("(");
+                int endPIdx = type.indexOf(")");
+                Preconditions.checkState(
+                        startPIdx > 0 && endPIdx > 0, "Decimal type require precision and scale.");
+                String[] ps = type.substring(startPIdx + 1, endPIdx).split(",");
+                int precision = Integer.parseInt(ps[0].trim());
+                int scale = Integer.parseInt(ps[1].trim());
+                DecimalType flinkDt = new DecimalType(precision, scale);
+                datatypeOpt = Optional.ofNullable(TypeConversions.fromLogicalToDataType(flinkDt));
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported type -> `" + type + "`.");
