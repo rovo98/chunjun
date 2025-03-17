@@ -21,6 +21,7 @@ package com.dtstack.flinkx.launcher.perJob;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.MapUtil;
+import com.dtstack.flinkx.util.SysUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
@@ -33,6 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 import static com.dtstack.flinkx.launcher.Launcher.*;
@@ -63,8 +67,9 @@ public class PerJobSubmitter {
         String pluginRoot = launcherOptions.getPluginRoot();
         File jarFile = new File(pluginRoot + File.separator + getCoreJarFileName(pluginRoot));
         clusterSpecification.setConfiguration(launcherOptions.loadFlinkConfiguration());
-        clusterSpecification.setClasspaths(
-                analyzeUserClasspath(launcherOptions.getJob(), pluginRoot));
+        List<URL> usrClasspath = analyzeUserClasspath(launcherOptions.getJob(), pluginRoot);
+        usrClasspath.addAll(findFlinkDistLibJar(launcherOptions.getFlinkLibJar()));
+        clusterSpecification.setClasspaths(usrClasspath);
         clusterSpecification.setEntryPointClass(MAIN_CLASS);
         clusterSpecification.setJarFile(jarFile);
 
@@ -88,5 +93,20 @@ public class PerJobSubmitter {
         String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
         LOG.info("deploy per_job with appId: {}, jobId: {}", applicationId, flinkJobId);
         return applicationId;
+    }
+
+    private static List<URL> findFlinkDistLibJar(String flinkLibJarDir) {
+        if (StringUtils.isNotBlank(flinkLibJarDir)) {
+            if (!new File(flinkLibJarDir).exists()) {
+                throw new IllegalArgumentException("The Flink jar path is not exist");
+            }
+        } else {
+            throw new IllegalArgumentException("The Flink jar path is null");
+        }
+        try {
+            return SysUtil.findJarsInDir(new File(flinkLibJarDir));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
