@@ -99,6 +99,7 @@
         <module>flinkx-oraclelogminer</module>
         <module>flinkx-hudi</module>
         <module>flinkx-assembly</module>
+        <module>flinkx-starrocks</module>
     </modules>
 
     <properties>
