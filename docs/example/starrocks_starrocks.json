@@ -1,0 +1,74 @@
+
+{
+	"job": {
+		"content": [{
+			"reader": {
+				"parameter": {
+					"jdbc-url": "jdbc:mysql://<fe_host1:9030,<fe_host2:9030",
+					"http-url": "fe_host1:8030,fe_host2:8030",
+					"username": "root",
+					"password": "root@test",
+					"database": "test-db",
+					"table": "test_source_table",
+					"optional-props": {},
+					"column": [{
+						"name": "id",
+						"type": "bigint"
+					}, {
+						"name": "user_id",
+						"type": "bigint"
+					}, {
+						"name": "name",
+						"type": "varchar"
+					}]
+				},
+				"name": "starrocksreader"
+			},
+			"writer": {
+				"name": "starrockswriter",
+				"parameter": {
+					"jdbc-url": "jdbc:mysql://<fe_host1:9030,<fe_host2:9030",
+					"http-url": "fe_host1:8030,fe_host2:8030",
+					"username": "root",
+					"password": "root@test",
+					"database": "test-db",
+					"table": "test_sink_table",
+					"optional-props": {},
+					"preSql": ["truncate table test_sink_table;"],
+					"postSql": [],
+					"column": [{
+						"name": "id",
+						"type": "bigint"
+					}, {
+						"name": "user_id",
+						"type": "bigint"
+					}, {
+						"name": "name",
+						"type": "varchar"
+					}]
+				}
+			}
+		}],
+		"setting": {
+			"speed": {
+				"channel": 1,
+				"bytes": 0
+			},
+			"errorLimit": {
+				"record": 100
+			},
+			"restore": {
+				"maxRowNumForCheckpoint": 0,
+				"isRestore": true,
+				"restoreColumnName": "id",
+				"restoreColumnIndex": 1
+			},
+			"log": {
+				"isLogger": false,
+				"level": "debug",
+				"path": "",
+				"pattern": ""
+			}
+		}
+	}
+}

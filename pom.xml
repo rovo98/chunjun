@@ -66,6 +66,7 @@
 <!--        make sure the assembly module executed at the last stage-->
         <module>flinkx-assembly</module>
         <module>flinkx-iceberg</module>
+        <module>flinkx-starrocks</module>
     </modules>
 
     <properties>
