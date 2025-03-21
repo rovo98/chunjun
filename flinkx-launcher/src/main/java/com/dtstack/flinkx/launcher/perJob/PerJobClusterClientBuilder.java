@@ -157,7 +157,8 @@ public class PerJobClusterClientBuilder {
         File[] jars = new File(flinkJarPath).listFiles();
         if (jars != null) {
             for (File jar : jars) {
-                if (jar.toURI().toURL().toString().contains("flink-dist")) {
+                String jarUrl = jar.toURI().toURL().toString();
+                if (jarUrl.contains("flink-dist") && jarUrl.endsWith(".jar")) {
                     descriptor.setLocalJarPath(new Path(jar.toURI().toURL().toString()));
                 } else {
                     shipFiles.add(jar);
