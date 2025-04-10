@@ -49,6 +49,9 @@ public class StarrocksWriter extends BaseDataWriter {
     private List<String> preSql;
     private List<String> postSql;
 
+    public static final String COL_SEP = "\\x01";
+    public static final String ROW_DELIMITER = "\\x02";
+
     @SuppressWarnings("unchecked")
     public StarrocksWriter(DataTransferConfig config) {
         super(config);
@@ -93,6 +96,8 @@ public class StarrocksWriter extends BaseDataWriter {
                 .withProperty(USERNAME.key(), starRocksConfig.getUsername())
                 .withProperty(PASSWORD.key(), starRocksConfig.getPassword())
                 .withProperty(SINK_BATCH_FLUSH_INTERVAL.key(), "60000") // 1 min
+                .withProperty("sink.properties.column_separator", COL_SEP)
+                .withProperty("sink.properties.row_delimiter", ROW_DELIMITER)
                 .withProperty("sink.properties.columns", sinkColumns);
         if (presentPks) {
             b.withProperty("sink.properties.partial_update", "true");
