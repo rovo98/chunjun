@@ -175,7 +175,13 @@ public class StarrocksWriter extends BaseDataWriter {
 
         @Override
         public void accept(Object[] internalRow, Row row) {
-            for (int i = 0; i < row.getArity(); i++) {
+            int dLen = handlePKs ? internalRow.length - 1 : internalRow.length;
+            Preconditions.checkState(
+                    dLen <= row.getArity(),
+                    "sink column count mismatch, expected: %s, got: %s.",
+                    dLen,
+                    row.getArity());
+            for (int i = 0; i < dLen; i++) {
                 internalRow[i] = row.getField(i);
             }
             // When the StarRocks table is a Primary Key table, you need to set
