@@ -83,15 +83,20 @@ public class StarrocksWriter extends BaseDataWriter {
                 postSql);
     }
 
-    private StarRocksSinkOptions genSinkOptions() {
+    private StarRocksSinkOptions genSinkOptions(boolean presentPks) {
         StarRocksSinkOptions.Builder b = StarRocksSinkOptions.builder();
+        String sinkColumns = String.join(",", columnNames) + (presentPks ? ",__op" : "");
         b.withProperty(JDBC_URL.key(), starRocksConfig.getJdbcUrl())
                 .withProperty(LOAD_URL.key(), starRocksConfig.getHttpUrl().replaceAll(",", ";"))
                 .withProperty(DATABASE_NAME.key(), starRocksConfig.getDatabase())
                 .withProperty(TABLE_NAME.key(), starRocksConfig.getTable())
                 .withProperty(USERNAME.key(), starRocksConfig.getUsername())
                 .withProperty(PASSWORD.key(), starRocksConfig.getPassword())
-                .withProperty(SINK_BATCH_FLUSH_INTERVAL.key(), "60000"); // 1 min
+                .withProperty(SINK_BATCH_FLUSH_INTERVAL.key(), "60000") // 1 min
+                .withProperty("sink.properties.columns", sinkColumns);
+        if (presentPks) {
+            b.withProperty("sink.properties.partial_update", "true");
+        }
         // setup optional properties
         if (starRocksConfig.getOptionalProps() != null) {
             starRocksConfig.getOptionalProps().forEach(b::withProperty);
@@ -126,11 +131,12 @@ public class StarrocksWriter extends BaseDataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         TableSchema schema = constructFlinkSchema();
+        boolean presentPks = schema.getPrimaryKey().isPresent();
         SinkFunction<Row> starRockSink =
                 StarRocksSink.sink(
                         schema,
-                        genSinkOptions(),
-                        new RowTransformer(schema.getPrimaryKey().isPresent()),
+                        genSinkOptions(presentPks),
+                        new RowTransformer(presentPks),
                         preSql,
                         postSql);
         return dataSet.addSink(starRockSink).name(this.getClass().getSimpleName().toLowerCase());
