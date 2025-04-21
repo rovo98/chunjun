@@ -49,8 +49,8 @@ public class StarrocksWriter extends BaseDataWriter {
     private List<String> preSql;
     private List<String> postSql;
 
-    public static final String COL_SEP = "\\x01";
-    public static final String ROW_DELIMITER = "\\x02";
+    public static final String COL_SEP = "\\x010101";
+    public static final String ROW_DELIMITER = "\\x020202";
 
     @SuppressWarnings("unchecked")
     public StarrocksWriter(DataTransferConfig config) {
