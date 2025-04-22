@@ -3,6 +3,7 @@ package com.dtstack.flinkx.starrocks;
 import com.dtstack.flinkx.enums.ColumnType;
 
 import com.google.common.base.Preconditions;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.utils.TypeConversions;
@@ -68,6 +69,10 @@ public final class StarRocksUtil {
             case DECIMAL:
                 int startPIdx = type.indexOf("(");
                 int endPIdx = type.indexOf(")");
+                if (startPIdx < 0 || endPIdx < 0) {
+                    // TBD: to be handle later.
+                    return null;
+                }
                 Preconditions.checkState(
                         startPIdx > 0 && endPIdx > 0, "Decimal type require precision and scale.");
                 String[] ps = type.substring(startPIdx + 1, endPIdx).split(",");
@@ -83,5 +88,16 @@ public final class StarRocksUtil {
                 () ->
                         new UnsupportedOperationException(
                                 "Failed to convert type `" + type + "` into Flink datatype."));
+    }
+
+    public static DataType toFlinkDecimalType(String type) {
+        int startPIdx = type.indexOf("(");
+        int endPIdx = type.indexOf(")");
+        Preconditions.checkState(
+                startPIdx > 0 && endPIdx > 0, "Decimal type require precision and scale.");
+        String[] ps = type.substring(startPIdx + 1, endPIdx).split(",");
+        int precision = Integer.parseInt(ps[0].trim());
+        int scale = Integer.parseInt(ps[1].trim());
+        return DataTypes.DECIMAL(precision, scale);
     }
 }
