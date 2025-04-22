@@ -186,12 +186,18 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 fullColumnType = analyzeTable();
             }
 
+            List<String> mismatchedCols = new ArrayList<>();
             for (String col : column) {
+                boolean matched = false;
                 for (int i = 0; i < fullColumn.size(); i++) {
                     if (col.equalsIgnoreCase(fullColumn.get(i))) {
                         columnType.add(fullColumnType.get(i));
+                        matched = true;
                         break;
                     }
+                }
+                if (!matched) {
+                    mismatchedCols.add(col);
                 }
             }
 
@@ -201,10 +207,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             // condition checking
             Preconditions.checkState(
                     column.size() == columnType.size(),
-                    "Failed to fetch the metadata info for the columns("
-                            + column
-                            + "). Actual: "
-                            + columnType);
+                    String.format(
+                            "Failed to fetch the metadata info for the columns(%s), expected %s cols, but got %s. missed: (%s)",
+                            column, column.size(), columnType.size(), mismatchedCols));
 
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
