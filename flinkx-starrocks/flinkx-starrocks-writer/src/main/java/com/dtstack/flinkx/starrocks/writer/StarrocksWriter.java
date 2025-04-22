@@ -25,6 +25,7 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,8 @@ public class StarrocksWriter extends BaseDataWriter {
 
     public static final String COL_SEP = "\\x010101";
     public static final String ROW_DELIMITER = "\\x020202";
+
+    private StarRocksQueryVisitor starRocksQueryVisitor;
 
     @SuppressWarnings("unchecked")
     public StarrocksWriter(DataTransferConfig config) {
@@ -84,6 +87,16 @@ public class StarrocksWriter extends BaseDataWriter {
                 starRocksConfig,
                 preSql,
                 postSql);
+        //
+        StarRocksJdbcConnectionProvider jdbcConnProvider =
+                new StarRocksJdbcConnectionProvider(
+                        new StarRocksJdbcConnectionOptions(
+                                this.starRocksConfig.getJdbcUrl(),
+                                this.starRocksConfig.getUsername(),
+                                this.starRocksConfig.getPassword()));
+        final String database = this.starRocksConfig.getDatabase();
+        final String table = this.starRocksConfig.getTable();
+        starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnProvider, database, table);
     }
 
     private StarRocksSinkOptions genSinkOptions(boolean presentPks) {
@@ -114,15 +127,25 @@ public class StarrocksWriter extends BaseDataWriter {
                 columnTypes.stream()
                         .map(StarRocksUtil::internalType2FlinkDataType)
                         .toArray(DataType[]::new);
-        Set<String> pks = probePrimaryKeys();
+        List<Map<String, Object>> metadata = starRocksQueryVisitor.getTableColumnsMetaData();
+        Set<String> pks = probePrimaryKeys(metadata);
+        Map<String, String> preciseDecimalCols = probeDecimalColTypes(metadata);
         LOG.info("Probed primary keys: {}.", pks);
         TableSchema.Builder b = TableSchema.builder();
         for (int i = 0; i < columnNames.size(); i++) {
-            String cn = columnNames.get(i);
+            String cn = columnNames.get(i).toLowerCase();
+            DataType dt = flinkDataTypes[i];
+            if (dt == null) {
+                LOG.info("Unknown precision & scale decimal type encountered -> col:`{}`.", cn);
+                String probedDT = preciseDecimalCols.get(cn);
+                Preconditions.checkNotNull(
+                        probedDT, "Failed to query precision & scale of Decimal col - " + cn);
+                dt = StarRocksUtil.toFlinkDecimalType(probedDT);
+            }
             if (!pks.isEmpty() && pks.contains(cn)) {
-                b.field(cn, flinkDataTypes[i].notNull());
+                b.field(cn, dt.notNull());
             } else {
-                b.field(cn, flinkDataTypes[i]);
+                b.field(cn, dt);
             }
         }
         if (!pks.isEmpty()) {
@@ -147,19 +170,8 @@ public class StarrocksWriter extends BaseDataWriter {
         return dataSet.addSink(starRockSink).name(this.getClass().getSimpleName().toLowerCase());
     }
 
-    private Set<String> probePrimaryKeys() {
+    private Set<String> probePrimaryKeys(List<Map<String, Object>> rows) {
         Set<String> pks = Sets.newHashSet();
-        StarRocksJdbcConnectionProvider jdbcConnProvider =
-                new StarRocksJdbcConnectionProvider(
-                        new StarRocksJdbcConnectionOptions(
-                                this.starRocksConfig.getJdbcUrl(),
-                                this.starRocksConfig.getUsername(),
-                                this.starRocksConfig.getPassword()));
-        final String database = this.starRocksConfig.getDatabase();
-        final String table = this.starRocksConfig.getTable();
-        StarRocksQueryVisitor starRocksQueryVisitor =
-                new StarRocksQueryVisitor(jdbcConnProvider, database, table);
-        List<Map<String, Object>> rows = starRocksQueryVisitor.getTableColumnsMetaData();
         for (Map<String, Object> row : rows) {
             String keysType = row.get("COLUMN_KEY").toString();
             if (!"PRI".equals(keysType)) {
@@ -168,6 +180,20 @@ public class StarrocksWriter extends BaseDataWriter {
             pks.add(row.get("COLUMN_NAME").toString().toLowerCase());
         }
         return pks;
+    }
+
+    private Map<String, String> probeDecimalColTypes(List<Map<String, Object>> rows) {
+        Map<String, String> result = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            String dataType = row.get("DATA_TYPE").toString();
+            if (dataType.equalsIgnoreCase("DECIMAL")) {
+                String column = row.get("COLUMN_NAME").toString().toLowerCase();
+                String precision = row.get("COLUMN_SIZE").toString();
+                String scale = row.get("DECIMAL_DIGITS").toString();
+                result.put(column, String.format("%s(%s,%s)", dataType, precision, scale));
+            }
+        }
+        return result;
     }
 
     private static class RowTransformer implements StarRocksSinkRowBuilder<Row> {

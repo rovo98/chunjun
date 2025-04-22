@@ -10,6 +10,9 @@ import com.dtstack.flinkx.starrocks.config.StarRocksConfig;
 
 import com.google.common.base.Preconditions;
 import com.starrocks.connector.flink.FXStarRocksSource;
+import com.starrocks.connector.flink.connection.StarRocksJdbcConnectionOptions;
+import com.starrocks.connector.flink.connection.StarRocksJdbcConnectionProvider;
+import com.starrocks.connector.flink.manager.StarRocksQueryVisitor;
 import com.starrocks.connector.flink.table.source.StarRocksSourceOptions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -24,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +48,8 @@ public class StarrocksReader extends BaseDataReader {
     private StarRocksConfig starRocksConfig;
     private List<MetaColumn> projectColumns;
     private String filterClause;
+
+    private StarRocksQueryVisitor starRocksQueryVisitor;
 
     @SuppressWarnings("unchecked")
     public StarrocksReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -66,21 +72,59 @@ public class StarrocksReader extends BaseDataReader {
 
         LOG.info("Accepted starRocks config -> {}", starRocksConfig);
         Preconditions.checkState(!projectColumns.isEmpty(), "Project columns can NOT be empty!");
+
+        //
+        StarRocksJdbcConnectionProvider jdbcConnProvider =
+                new StarRocksJdbcConnectionProvider(
+                        new StarRocksJdbcConnectionOptions(
+                                this.starRocksConfig.getJdbcUrl(),
+                                this.starRocksConfig.getUsername(),
+                                this.starRocksConfig.getPassword()));
+        final String database = this.starRocksConfig.getDatabase();
+        final String table = this.starRocksConfig.getTable();
+        starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnProvider, database, table);
     }
 
     private TableSchema constructFlinkSchema() {
+        List<Map<String, Object>> metadata = starRocksQueryVisitor.getTableColumnsMetaData();
+        Map<String, String> preciseDecimalCols = probeDecimalColTypes(metadata);
         List<String> names = new ArrayList<>();
         List<DataType> datatypes = new ArrayList<>();
         for (MetaColumn mc : projectColumns) {
             names.add(mc.getName());
             datatypes.add(StarRocksUtil.internalType2FlinkDataType(mc.getType()));
         }
-        TableSchema schema =
-                TableSchema.builder()
-                        .fields(names.toArray(new String[0]), datatypes.toArray(new DataType[0]))
-                        .build();
+        TableSchema.Builder b = TableSchema.builder();
+
+        for (int i = 0; i < names.size(); i++) {
+            String cn = names.get(i).toLowerCase();
+            DataType dt = datatypes.get(i);
+            if (dt == null) {
+                LOG.info("Unknown precision & scale decimal type encountered -> col:`{}`.", cn);
+                String probedDT = preciseDecimalCols.get(cn);
+                Preconditions.checkNotNull(
+                        probedDT, "Failed to be precision & scale of Decimal col - " + cn);
+                dt = StarRocksUtil.toFlinkDecimalType(probedDT);
+            }
+            b.field(cn, dt);
+        }
+        TableSchema schema = b.build();
         LOG.info("projected table schema -> {}", schema);
         return schema;
+    }
+
+    private Map<String, String> probeDecimalColTypes(List<Map<String, Object>> rows) {
+        Map<String, String> result = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            String dataType = row.get("DATA_TYPE").toString();
+            if (dataType.equalsIgnoreCase("DECIMAL")) {
+                String column = row.get("COLUMN_NAME").toString().toLowerCase();
+                String precision = row.get("COLUMN_SIZE").toString();
+                String scale = row.get("DECIMAL_DIGITS").toString();
+                result.put(column, String.format("%s(%s,%s)", dataType, precision, scale));
+            }
+        }
+        return result;
     }
 
     private StarRocksSourceOptions genSourceOptions() {
