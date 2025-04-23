@@ -5,13 +5,6 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.google.common.base.Preconditions;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.DecimalType;
-import org.apache.flink.table.types.utils.TypeConversions;
-
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Optional;
 
 public final class StarRocksUtil {
     private StarRocksUtil() {}
@@ -27,45 +20,33 @@ public final class StarRocksUtil {
 
     public static DataType internalType2FlinkDataType(final String type) {
         ColumnType columnType = ColumnType.getType(starRocksType2FlinkXType(type));
-        Optional<DataType> dtOpt;
         switch (columnType) {
             case TINYINT:
-                dtOpt = TypeConversions.fromClassToDataType(Byte.class);
-                break;
+                return DataTypes.TINYINT();
             case SMALLINT:
-                dtOpt = TypeConversions.fromClassToDataType(Short.class);
-                break;
+                return DataTypes.SMALLINT();
             case INT:
-                dtOpt = TypeConversions.fromClassToDataType(Integer.class);
-                break;
+                return DataTypes.INT();
             case MEDIUMINT:
             case BIGINT:
-                dtOpt = TypeConversions.fromClassToDataType(Long.class);
-                break;
+                return DataTypes.BIGINT();
             case FLOAT:
-                dtOpt = TypeConversions.fromClassToDataType(Float.class);
-                break;
+                return DataTypes.FLOAT();
             case DOUBLE:
-                dtOpt = TypeConversions.fromClassToDataType(Double.class);
-                break;
+                return DataTypes.DOUBLE();
             case STRING:
             case CHAR:
             case VARCHAR:
-                dtOpt = TypeConversions.fromClassToDataType(String.class);
-                break;
+                return DataTypes.STRING();
             case BOOLEAN:
-                dtOpt = TypeConversions.fromClassToDataType(Boolean.class);
-                break;
+                return DataTypes.BOOLEAN();
             case DATE:
-                dtOpt = TypeConversions.fromClassToDataType(Date.class);
-                break;
+                return DataTypes.DATE();
             case TIME:
-                dtOpt = TypeConversions.fromClassToDataType(Time.class);
-                break;
+                return DataTypes.TIME();
             case TIMESTAMP:
             case DATETIME:
-                dtOpt = TypeConversions.fromClassToDataType(Timestamp.class);
-                break;
+                return DataTypes.TIMESTAMP(9);
             case DECIMAL:
                 int startPIdx = type.indexOf("(");
                 int endPIdx = type.indexOf(")");
@@ -78,16 +59,10 @@ public final class StarRocksUtil {
                 String[] ps = type.substring(startPIdx + 1, endPIdx).split(",");
                 int precision = Integer.parseInt(ps[0].trim());
                 int scale = Integer.parseInt(ps[1].trim());
-                DecimalType flinkDt = new DecimalType(precision, scale);
-                dtOpt = Optional.ofNullable(TypeConversions.fromLogicalToDataType(flinkDt));
-                break;
+                return DataTypes.DECIMAL(precision, scale);
             default:
                 throw new UnsupportedOperationException("Unsupported type -> `" + type + "`.");
         }
-        return dtOpt.orElseThrow(
-                () ->
-                        new UnsupportedOperationException(
-                                "Failed to convert type `" + type + "` into Flink datatype."));
     }
 
     public static DataType toFlinkDecimalType(String type) {
