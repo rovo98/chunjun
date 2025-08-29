@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.starrocks.config.StarRocksConfigKeys.*;
 import static com.starrocks.connector.flink.table.sink.StarRocksSinkOptions.DATABASE_NAME;
@@ -101,7 +102,11 @@ public class StarrocksWriter extends BaseDataWriter {
 
     private StarRocksSinkOptions genSinkOptions(boolean presentPks) {
         StarRocksSinkOptions.Builder b = StarRocksSinkOptions.builder();
-        String sinkColumns = String.join(",", columnNames) + (presentPks ? ",__op" : "");
+        List<String> preprocessedCNs =
+                columnNames.stream()
+                        .map(StarRocksUtil::backtickPossibleReservedKeyword)
+                        .collect(Collectors.toList());
+        String sinkColumns = String.join(",", preprocessedCNs) + (presentPks ? ",__op" : "");
         b.withProperty(JDBC_URL.key(), starRocksConfig.getJdbcUrl())
                 .withProperty(LOAD_URL.key(), starRocksConfig.getHttpUrl().replaceAll(",", ";"))
                 .withProperty(DATABASE_NAME.key(), starRocksConfig.getDatabase())
